@@ -1,0 +1,311 @@
+/**
+ * Test literal types
+ *
+ * @author Daniel Leuck
+ */
+
+# String Tests -----------------------------------
+
+Strings {
+    string1 "hello"
+    string2 "hi" Abcd1234
+    string3 `aloha`
+    string4 bula
+    string5 """
+        hi there
+        """
+    string6 "line1\nline2"
+    # note: new lines should be preserved for string7 and string8
+    string7 `line1
+    line2` # note: this is continued from the line above
+    string8 `line1
+    line2
+    line3` # note: the previous two lines are continued from "string8"
+    string9 `Anything should go in this line without escapes \ \\ \n \t " "" ' ''`
+    string10 "escapes \"\\\n\t"
+
+    # unicode strings - if these don't display properly download a unicode font
+    # such as Bitstream Cyberbit, Code2000
+    # (http://home.att.net/~jameskass/code2000_page.htm), or MS Arial
+    # Unicode (http://support.microsoft.com/default.aspx?scid=kb;en-us;287247) and
+    # ensure your text editor supports UTF8 encoding in values
+    Japanese "日本語"
+    Korean "여보세요"
+    Russian "здравствулте"
+
+    # SDL3 string literals
+    raw_string @"start\t\nend"
+    triple_quotes1 """
+    Hello friends
+    """
+    triple_quotes2 """
+        Hello friends
+    """
+    triple_quotes3 """
+        Hello friends
+        This is the second line
+    """
+    triple_quotes4 """
+            My friend said "hi!"
+            My other friends said `bonjour!`
+            My last friend said 'salama!'
+            "\""Escaped triple quote"\""
+    """
+    tabs_and_spaces """
+      My friend said "hi!"
+        My other friends said `hello!`
+      This is the third line
+    """
+
+    raw_string_block @"""
+      My friend said "hi!"
+        My other friends said `hello!`
+      This is the third line
+    """
+
+    """"""
+    """\""""
+    """ """
+    """"""""
+
+    triple_quotes_around_quotes """
+        Yell "Hi!"
+        """
+
+    double_quotes_in_string_block """
+        ""Hello""
+     """
+
+    escape_double_quotes "I say \"hello\""
+    escape_striple_quotes_in_string_block """
+        \"""Hello\"""
+    """
+
+    escape singleQuote '\''
+    escapeBackquote `Backquote \`hello\``
+
+    YellAnotherWay `Yell "Hi!"`
+
+    triple_quotes_raw @"""
+        line1
+        line2\nline3
+        tabstart    tabend
+        tab_escape_start\ttab_escape_end
+    """
+
+    # check support for UTF8 in identifiers
+    日本語 "Japanese"
+    여보세요 "Korean"
+    здравствулте "Russian"
+
+    xml `
+    <root type="widget">
+        <color red="255" green="0" blue="0"/>
+        <text>Hi there!</text>
+    </root>
+    `
+    line_test `
+    new line above and below
+    `
+    emoji "😀"
+}
+
+# Naked (quoteless) strings
+
+nakedStrings {
+	# value strings
+	greeting1 Aloha
+	greeting2 Aloha Bula
+	greeting3 Aloha "Bula" Hola
+	greeting4 "Aloha" Bula "Hola" Hi
+	greeting5 Aloha Bula `Hola` "Hi"
+
+	# attribute strings
+	greeting6 hawaiian=Aloha
+	greeting7 hawaiian=Aloha fijian=Bula
+	greeting8 hawaiian=Aloha fijian="Bula" spanish=Hola
+}
+
+
+# Character Tests -----------------------------------
+
+Characters {
+    char1 'a'
+    char2 'A'
+    char3 '\\'
+    char4 '\n'
+    char5 '\t'
+    char6 '\''
+    char7 '"'
+    char8 '日'
+    char9 '여'
+    char10 'з'
+    emoji1 '🍏'
+}
+
+# Number Tests -----------------------------------
+
+Numbers {
+    int1 0
+    int2 5
+    int3 -100
+    int4 234253532
+    int_binary 0b10100001010001011010000101000101
+    int_hex 0x0A2F
+    long1 0L
+    long3 5L
+    long4 3904857398753453453L
+    long5 3_904_857_398_753_453_453L
+    float1 1.0F
+    float2 .23f
+    float3 -.34F
+    double1 2.0
+    double2 -0.234
+    double3 2.34
+    double_exp1 123e-5
+    double_exp2 12.1e2
+    decimal1 0m
+    decimal2 11.111111M
+    decimal3 234535.3453453453454345345341242343m
+    decimal4 982_342_462_234.163_932_352m
+}
+
+# Boolean Tests -----------------------------------
+
+Booleans {
+    light-on true
+    light-off false
+
+    light1 on
+    light2 off
+}
+
+# Null Tests -----------------------------------
+
+Nulls {
+    nothing null
+    nothing2 nil
+}
+
+# Version Tests -----------------------------------
+
+Versions {
+    basic-version 12.23.5
+    include-build 3.0.2.34
+    includes-qualifier 315.24.52.beta
+    includes-build-qualifier 12.53.64.23523.alpha
+}
+
+# Date Tests -----------------------------------
+
+Dates {
+    date1 2005/12/31
+    date2 1882/5/2
+    date3 1882/05/02
+    way_back 582/09/16
+    date_bce -50/09/16
+}
+
+# Date Time Tests -----------------------------------
+
+DateTimes {
+    date_time1 2005/12/31@12:30
+    date_time2 1882/5/2@12:30
+    date_time3 2005/12/31@1:00
+    date_time4 1882/5/2@1:00EST
+    date_time5 2005/12/31@12:30:23.12
+    date_time6 1882/5/2@22:30:23.123
+    date_time7 1882/5/2@10:30:23.123/JST
+    date_time8 985/04/11 @12:30:23.123/PST
+    date_time9 1980/5/23@5:30:15.03/GMT+2
+    date_time10 1980/5/23@15:30:15.03/UTC-3:30
+    date_time11 1980/5/23@9:30:15.03/GMT
+    date_time12 1978/5/23@12:30:15.2z # 'z' or 'Z' is UTC shorthand from ISO 8601
+    date_time13 1978/5/23@12:30:15.2z+1
+    date_time14 1980/5/23@14:30:15.123_534_623/HST
+}
+
+# Duration Tests -----------------------------------
+Durations {
+    SimpleDurations {
+        dur1 12:30:10
+        dur2 24:00:00
+        dur3 1:00:00
+        dur4 1:0:0
+        dur5 12:30:2
+        dur6 -12:30:23
+        dur7 12h:30:23s # With optional unit labels
+        dur_with_days 8day:12:30:23
+        dur_with_days_labels 8day:12h:30min:23s # With optional unit labels
+    }
+
+    # Using fractional seconds
+    FractionalSeconds {
+        dur8 12:30:23.1
+        dur9 -12:30:23.12
+        dur10 12h:30:23.123s # With optional unit labels
+        dur11 34day:12:30:23.1 # Day units are mandatory for clarity
+        dur12 1day:12:30:0
+        dur13 5day:12:30:23.12
+        dur_frac_sec_millis -12:30:23.103 # milliseconds
+        dur_frac_sec_micros -5day:12:30:23.123534 # microseconds
+        dur_frac_sec_micros_with_sep -5day:12:30:23.123_534 # microseconds with _ separators
+        dur_frac_sec_nanos 7day:12:30:23.123534623 # nanoseconds
+        dur_frac_sec_nanos_with_sep -3day:12:30:23.123_534_623 # nanoseconds with _ separators
+        dur_frac_sec_nanos_with_sep 12day:12h:30min:23.123_534_623s # nanoseconds with _ separators and labels
+    }
+
+    # Using unit durations
+    UnitDurations {
+        days 15day
+        hours 16h
+        minutes 23min
+        minutes 2.5min # =30s
+        seconds 15s
+        seconds 10.25s # =250ms
+        milli 12ms
+        nano 54664ns
+    }
+}
+
+# URLs -----------------------------------
+
+URLs {
+    UNSite http://www.un.org
+    CERN_URL https://home.cern
+    https://www.amazon.com/Wide-Angle-Quadcopter/dp/?ac_md=2-1-QmV0d2VlbiAkNTAgYW5kICQxMDA%3D-ac_d_pm&cv_ct_cx=drones
+}
+
+# Range Tests -----------------------------------
+
+Ranges {
+    intRange 12..15
+    intOpenLeftRange _..15
+    intOpenRightRange 2.5.._
+    doubleRange 12.4<..15.1
+    decimalRange 12.4m<..15.1m
+    durationRange 5s..10s
+    durationRange2 5day:23:01:02..8day
+    dateTimeRange 1990/12/5..2000/02/5@5:23:01
+    versionRanges 3.1.0.._  3.0.23.beta<..5.0.0
+}
+
+# Base64 -----------------------------------
+
+Base64 {
+    # bytes for UTF8 string "hi"
+    hi base64(aGk=)
+
+    # bytes for a small PNG image
+
+    png base64(
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKnRFWHRDcmVhdGlvbiBUaW1l
+        AERpIDQgTXJ6IDIwMDMgMDA6MjQ6MDQgKzAxMDDdSQ6OAAAAB3RJTUUH0wMEAAcllPlrJgAA
+        AAlwSFlzAAAK8AAACvABQqw0mAAAAARnQU1BAACxjwv8YQUAAADQSURBVHjaY2CgEDCCyZn/
+        3YHkDhL1ejCkM+5kgXJ2zDQmXueShwwMh9+ALWSEGcCQfhZIvHlDnAk8PAwMHBxgJtyAa7bX
+        UdT8/cvA8Ps3hP7zB4FBYn/+vGbweqyJaoCmpiaKASDFv35BNMBoZMzwGKKOidJYoNgAuBdm
+        naXQgHRSDLfgagxD89w8S+iAaFICwGIHFAgjrHUczAByySAaAMEgDLBphhv7/D8EYLgDZhAxA
+        mkAKYYbAMMwwDAOQXYDuDXRXgDC6AR7SW8jITNQAACjZgdj4VjlqAAAAAElFTkSuQmCC
+    )
+}
+
