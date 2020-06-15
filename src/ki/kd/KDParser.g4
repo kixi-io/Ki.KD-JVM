@@ -38,7 +38,7 @@ duration: CompoundDuration | DayDuration | HourDuration | MinuteDuration | Secon
 
 // Range --- ---
 
-rangeOp: InclusiveRangeOp | InclusiveRangeOp | ExclusiveRangeOp | ExclusiveLeftOp | ExclusiveRightOp;
+rangeOp: InclusiveRangeOp | ExclusiveRangeOp | ExclusiveLeftOp | ExclusiveRightOp;
 
 intRange: ('_' rangeOp IntegerLiteral) | (IntegerLiteral rangeOp '_') | (IntegerLiteral rangeOp IntegerLiteral);
 longRange: ('_' rangeOp LongLiteral) | (LongLiteral rangeOp '_') | (LongLiteral rangeOp LongLiteral);
@@ -46,10 +46,10 @@ realRange: ('_' rangeOp RealLiteral) | (RealLiteral rangeOp '_') | (RealLiteral 
 durationRange: ('_' rangeOp duration) | (duration rangeOp '_') | (duration rangeOp duration);
 dateTimeRange: ('_' rangeOp dateTime) | (dateTime rangeOp '_') | (dateTime rangeOp dateTime);
 versionRange: ('_' rangeOp Version) | (Version rangeOp '_') | (Version rangeOp Version);
+charRange: ('_' rangeOp CharLiteral) | (CharLiteral rangeOp '_') | (CharLiteral rangeOp CharLiteral);
+stringRange: ('_' rangeOp StringLiteral) | (StringLiteral rangeOp '_') | (StringLiteral rangeOp StringLiteral);
 
-// TODO - Should we add a generic comparable range?
-
-range: intRange | realRange | durationRange | dateTimeRange | versionRange;
+range: intRange | longRange | realRange | durationRange | dateTimeRange | versionRange | charRange | stringRange;
 
 // Tag Parts --- ---
 

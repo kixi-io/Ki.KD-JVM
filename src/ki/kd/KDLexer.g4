@@ -199,20 +199,21 @@ UNDERSCORE: '_';
 
 // Encodings --- ---
 
-BASE64: 'base64';
+BASE64: '.base64';
 
 // Complies with "The Base64 Alphabet" as specified in Table 1 of RFC 4648
 BASE64_DATA: '(' [A-Za-z0-9+=/ \t\r\n]* ')'; // '(' [ \t\r\n]* ([A-Za-z0-9+=/]* [ \t\r\n]*)* ')';
 
 // Identifiers --- ---
 
-fragment IDStart: [\p{Alpha}\p{General_Category=Other_Letter}\p{Emoji_Presentation}];
+// fragment IDStart: [\p{Alpha}\p{General_Category=Other_Letter}\p{Emoji_Presentation}];
 
-// Note: I'm not sure if "." should be included here. We need $ and _ for compatibility with other languages
-// (e.g. XML, Java, C#, etc.)
-fragment IDChar: [$\-\p{Alnum}\p{General_Category=Other_Letter}\p{Emoji}\p{Join_Control}\p{Variation_Selector}_];
+// Any unicode letter, emoji, $ or _
+fragment IDStart: [$_\p{Alpha}\p{General_Category=Other_Letter}\p{Emoji}\p{Join_Control}\p{Variation_Selector}];
 
-// IDs can start with any unicode letter or emoji followed by any unicode letter, number, emoji, $, -, or _
+// Any unicode letter, digit, emoji, $ or _
+fragment IDChar: [$_\p{Alnum}\p{General_Category=Other_Letter}\p{Emoji}\p{Join_Control}\p{Variation_Selector}];
+
 ID: IDStart IDChar*;
 
 // COMMENTS --- ---
