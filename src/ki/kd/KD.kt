@@ -1,10 +1,9 @@
 package ki.kd
 
-import java.io.File
-import java.io.FileReader
-import java.io.Reader
-import java.io.StringReader
+import java.io.*
+import java.net.URL
 import java.time.format.DateTimeFormatter
+
 
 /**
  * Utility class for KD
@@ -80,7 +79,8 @@ class KD {
             }
         }
 
-        fun read(kd: String) : Tag = read(StringReader(kd));
-        fun read(file: File) : Tag = read(FileReader(file));
+        fun read(kd: String) : Tag = read(StringReader(kd))
+        fun read(file: File) : Tag = read(FileReader(file))
+        fun read(file: URL) : Tag = read(file.readText())
     }
 }

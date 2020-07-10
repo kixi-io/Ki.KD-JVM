@@ -26,14 +26,14 @@ class Interpreter {
         parser = KDParser(CommonTokenStream(lexer))
         parser.setBuildParseTree(true)
 
-        var tagListCtx = parser.tagList()
-        var tags = ArrayList<Tag>()
+        val tagListCtx = parser.tagList()
+        val tags = ArrayList<Tag>()
 
         if(tagListCtx!=null && tagListCtx.getChildCount() > 0) {
-            var childCount = tagListCtx.getChildCount()
+            val childCount = tagListCtx.getChildCount()
 
             for(i in 0..childCount-1) {
-                var child = tagListCtx.getChild(i)
+                val child = tagListCtx.getChild(i)
                 if(child is KDParser.TagContext) {
                     tags.add(makeTag(child))
                 }
@@ -45,7 +45,7 @@ class Interpreter {
 
     private fun makeTag(tree:KDParser.TagContext) : Tag {
 
-        var nsNameCtx = tree.nsName();
+        val nsNameCtx = tree.nsName()
         var namespace = ""; var name = ""
 
         if(nsNameCtx != null) {
@@ -57,9 +57,9 @@ class Interpreter {
             }
         }
 
-        var tag = Tag(name, namespace);
+        val tag = Tag(name, namespace);
 
-        var valuesCtx = tree.valueList();
+        val valuesCtx = tree.valueList()
 
         if(valuesCtx != null) {
             for(vc in valuesCtx.value()) {
@@ -67,11 +67,11 @@ class Interpreter {
             }
         }
 
-        var attsCtx = tree.attributeList();
+        val attsCtx = tree.attributeList()
 
         if(attsCtx != null) {
             for(att in attsCtx.attribute()) {
-                var attNSNameCtx = att.nsName()
+                val attNSNameCtx = att.nsName()
                 var attNamespace = ""
                 var attName = ""
 
@@ -89,10 +89,10 @@ class Interpreter {
         }
 
         // Adding child tags
-        var tagListContext = tree.tagList()
+        val tagListContext = tree.tagList()
 
         if(tagListContext!=null) {
-            var tagContexts  = tagListContext.tag()
+            val tagContexts  = tagListContext.tag()
             for (tagContext in tagContexts) {
                 tag.children.add(makeTag(tagContext))
             }
@@ -101,14 +101,15 @@ class Interpreter {
         return tag;
     }
 
+    // TODO: Ensure this is dealing only with values. Deal with formatting in toString().
     private fun makeValue(ctx: KDParser.ValueContext) : Any? {
 
-        var text = ctx.getText()
+        val text = ctx.getText()
 
         //// Strings --- ---
         if(ctx.StringLiteral()!=null) return formatString(text) // return "\"$text\""
 
-        // handles naked strings
+        // Handles naked strings
         if(ctx.ID() != null) return formatString(text) // "\"$text\"";
 
         //// Numbers --- ---
@@ -151,12 +152,16 @@ class Interpreter {
 
         //// TODO: Bin64 --- ---
 
+        if(ctx.bin64() != null) {
+            return text // ctx.bin64().BIN64_DATA().text
+        }
+
         //// TODO: Duration --- ---
 
         //// DateTime --- ---
         // Can be a LocalDate, LocalDateTime or ZonedDateTime
 
-        var dateTimeCtx = ctx.dateTime();
+        val dateTimeCtx = ctx.dateTime();
 
         if(dateTimeCtx!=null) {
             return makeLocalOrZonedDateOrDateTime(dateTimeCtx, text)
@@ -168,20 +173,19 @@ class Interpreter {
             return makeRange(ctx.range());
         }
 
-
         //// List --- ---
 
-        var listCtx = ctx.list();
+        val listCtx = ctx.list();
         if(listCtx!=null) {
             return makeList(listCtx);
         }
 
         //// Map --- ---
 
-        var mapContext = ctx.map();
+        val mapContext = ctx.map();
         if(mapContext!=null) return makeMap(mapContext);
 
-        var t = ctx.getStart()
+        val t = ctx.getStart()
 
         throw KDParseException("Unknown literal type: $text at line ${t.line}, index ${t.charPositionInLine}")
     }
@@ -190,19 +194,19 @@ class Interpreter {
      * Can be Local or Zoned Date or DateTime
      */
     private fun makeLocalOrZonedDateOrDateTime(ctx: KDParser.DateTimeContext, text:String): Any? {
-        var timeNode = ctx.Time();
+        val timeNode = ctx.Time();
 
         if(timeNode==null) {
             return LocalDate.parse(text, KD.LOCAL_DATE_FORMATTER);
         } else {
-            var timeWithZone = timeNode.getText().substring(1);
+            val timeWithZone = timeNode.getText().substring(1);
             return makeDateTime(LocalDate.parse(ctx.Date().getText(), KD.LOCAL_DATE_FORMATTER),
                     timeWithZone);
         }
     }
 
     private fun makeRealNumber(text:String) : Number {
-        var lastChar = text.last()
+        val lastChar = text.last()
 
         return when(lastChar) {
             'f', 'F' -> text.toFloat()
@@ -240,8 +244,8 @@ class Interpreter {
         }
 
 
-        var dtformatter = DateTimeFormatter.ISO_LOCAL_TIME;
-        var time = LocalTime.parse(timeString, dtformatter)
+        val dtformatter = DateTimeFormatter.ISO_LOCAL_TIME;
+        val time = LocalTime.parse(timeString, dtformatter)
 
         if(zone.isEmpty())
             return LocalDateTime.of(date, time);
@@ -250,7 +254,7 @@ class Interpreter {
     }
 
     private fun getZone(zoneString:String) : ZoneId {
-        var zoneSize = zoneString.length;
+        val zoneSize = zoneString.length;
         var zone = zoneString
 
         if(zone.equals("Z", ignoreCase = true)) {
@@ -263,7 +267,7 @@ class Interpreter {
 
 
         if(zone.startsWith("UTC") && zoneSize>3) {
-            var colonIndex = zone.indexOf(':');
+            val colonIndex = zone.indexOf(':');
             if(colonIndex!=-1 && zone.substring(4, colonIndex).length==1) {
                 zone = zone.substring(0,4) + "0" + zone.substring(4);
             }
@@ -273,16 +277,18 @@ class Interpreter {
     }
 
     private fun makeList(listCtx:KDParser.ListContext) : List<Any?> {
-        var list = ArrayList<Any?>()
+        val list = ArrayList<Any?>()
 
-        for(value in listCtx.value()) list.add(makeValue(value));
+        for(value in listCtx.value()) {
+            list.add(makeValue(value))
+        }
 
         return list;
     }
 
     // TODO: Question - Should KD allow null keys?
     private fun makeMap(mapCtx:KDParser.MapContext) : Map<Any?,Any?> {
-        var map = HashMap<Any?,Any?>();
+        val map = HashMap<Any?,Any?>();
 
         for(pair in mapCtx.pair()) {
             map.put(makeValue(pair.value(0)), makeValue(pair.value(1)));
@@ -292,38 +298,39 @@ class Interpreter {
     }
 
     private fun makeRange(ctx:KDParser.RangeContext): Range<*> {
-        var irCtx = ctx.intRange()
+
+        val irCtx = ctx.intRange()
         if(irCtx!= null) return makeIntRange(irCtx)
 
-        var lrCtx = ctx.longRange()
+        val lrCtx = ctx.longRange()
         if(lrCtx!= null) return makeLongRange(lrCtx)
 
-        var rrCtx = ctx.realRange()
+        val rrCtx = ctx.realRange()
         if(rrCtx!= null) return makeRealRange(rrCtx)
 
-        var drCtx = ctx.durationRange()
+        val drCtx = ctx.durationRange()
         if(drCtx!= null) return makeDurationRange(drCtx)
 
-        var dtCtx = ctx.dateTimeRange()
+        val dtCtx = ctx.dateTimeRange()
         if(dtCtx!= null) return makeDateTimeRange(dtCtx)
 
-        var vCtx = ctx.versionRange()
+        val vCtx = ctx.versionRange()
         if(vCtx!= null) return makeVersionRange(vCtx)
 
-        var cCtx = ctx.charRange()
+        val cCtx = ctx.charRange()
         if(cCtx!= null) return makeCharRange(cCtx)
 
-        var sCtx = ctx.stringRange()
+        val sCtx = ctx.stringRange()
         if(sCtx!= null) return makeStringRange(sCtx)
 
         throw KDParseException("Uknown type in range", ctx.start.charPositionInLine, ctx.start.line)
     }
 
     private fun makeStringRange(ctx: KDParser.StringRangeContext): Range<String> {
-        var left = ctx.getChild(0).text;
+        var left = ctx.getChild(0).text
         var openLeft = (left == "_")
         var op = rangeOp(ctx.rangeOp().text)
-        var right = ctx.getChild(2).text;
+        var right = ctx.getChild(2).text
         var openRight = (right == "_")
 
         return when {
@@ -337,20 +344,39 @@ class Interpreter {
     }
 
     private fun makeCharRange(ctx: KDParser.CharRangeContext): Range<Char> {
-        var left = ctx.getChild(0).text[0];
-        var openLeft = (left == '_')
-        var op = rangeOp(ctx.rangeOp().text)
-        var right = ctx.getChild(2).text[0];
-        var openRight = (right == '_')
 
-        log(left, right)
+        log("Make char range with " + ctx.text)
+
+        var leftText = ctx.getChild(0).text
+
+        var openLeft = false
+        var leftChar = '\u0000'
+
+        if(leftText == "_") {
+            openLeft = true
+        } else {
+            leftChar = leftText[1]
+        }
+
+        var op = rangeOp(ctx.rangeOp().text)
+
+        var rightText = ctx.getChild(2).text
+
+        var openRight = false
+        var rightChar = '\u0000'
+
+        if(rightText == "_") {
+            openRight = true
+        } else {
+            rightChar = rightText[1]
+        }
 
         return when {
-            openLeft -> Range<Char>(Char.MIN_VALUE, ctx.getChild(2).text[0],
+            openLeft -> Range<Char>(Char.MIN_VALUE, ctx.getChild(2).text[1],
                     op, openLeft, openRight)
-            openRight -> Range<Char>(ctx.getChild(0).text[0], Char.MAX_VALUE,
+            openRight -> Range<Char>(ctx.getChild(0).text[1], Char.MAX_VALUE,
                     op, openLeft, openRight)
-            else -> Range<Char>(left, right, op, openLeft, openRight)
+            else -> Range<Char>(leftChar, rightChar, op, openLeft, openRight)
         }
     }
 
@@ -414,13 +440,13 @@ class Interpreter {
         }
     }
 
-    // TODO - This needs work. It is using Java's durection string format, not KD's
+    // TODO - This needs work. It is using Java's duration string format, not KD's
     private fun makeDurationRange(ctx: KDParser.DurationRangeContext): Range<Duration> {
-        var left = ctx.getChild(0).text;
-        var openLeft = (left == "_")
-        var op = rangeOp(ctx.rangeOp().text)
-        var right = ctx.getChild(2).text;
-        var openRight = (right == "_")
+        val left = ctx.getChild(0).text;
+        val openLeft = (left == "_")
+        val op = rangeOp(ctx.rangeOp().text)
+        val right = ctx.getChild(2).text;
+        val openRight = (right == "_")
 
         return when {
             openLeft -> Range<Duration>(Duration.ofDays(Long.MIN_VALUE), Duration.parse(ctx.getChild(0).text),
@@ -543,7 +569,10 @@ class Interpreter {
 // TODO: Move to tests area
 fun main() {
 
-    // var file = Interpreter::class.java.getResource("temp_tests.sdl")
+    /*
+    var file = Interpreter::class.java.getResource("temp_tests.kd")
+    log(KD.read(file))
+    */
 
     // TODO: Fix broken cases below
 
@@ -555,6 +584,11 @@ fun main() {
                     bata
                 }
             }
+
+            x:nums [1 2 3]
+            x:map [name="Dan" animal="lemur"]
+            
+            // .bin64(123) // TODO: Make this work!
             
             ranges {
                 0..5  
@@ -568,6 +602,9 @@ fun main() {
                 _..<5    
                 
                 'a'..'z'
+                'b'..<'d'
+                _..'g'
+                'g'.._
                 2f<..<5.24f
                 # 2d..5.24d    
 
