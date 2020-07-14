@@ -21,110 +21,93 @@ FALSE: 'false' | 'off';
 // Note: This requires a "protocol:/" at the beginning, which excludes URLs such as jar:file:/home/duke/duke.jar!
 // The trainling':/' is necessary to disabiguate protocol: and namespace:
 URL: [a-zA-Z][a-zA-Z0-9.+\-]* ':' '/' [a-zA-Z0-9.+\-_~:/?#[\]@!$&'()*;,%=]+;
-
 // Numbers --- ---
-
 // SECTION: literals
-
 fragment DecDigit: '0'..'9';
 fragment DecDigitNoZero: '1'..'9';
 fragment DecDigitOrSeparator: DecDigit | '_';
-
 fragment DecDigits
     : DecDigit DecDigitOrSeparator* DecDigit
     | DecDigit
     ;
-
 fragment DoubleExponent: [eE] [+-]? DecDigits;
 
+fragment NonZeroNumberPart
+    : (DecDigitNoZero DecDigitOrSeparator* DecDigit | DecDigit)
+    ;
+fragment NumberPart
+    : (DecDigit DecDigitOrSeparator* DecDigit | DecDigit)
+    ;
+/*
 RealLiteral
     : '-'? (FloatLiteral | DoubleLiteral | DecimalLiteral)
     ;
+*/
 
 FloatLiteral
-    : DoubleLiteral [fF]
-    | DecDigits [fF]
+    : '-'? NumberPart? '.' NumberPart DoubleExponent? [fF]
+    | '-'? NumberPart DoubleExponent? [fF]
     ;
-
 DoubleLiteral
-    : DecDigits? '.' DecDigits DoubleExponent?
-    | DecDigits DoubleExponent
+    : '-'? NumberPart? '.' NumberPart DoubleExponent? [dD]?
+    | '-'? NumberPart DoubleExponent? [dD]
     ;
-
 DecimalLiteral
-    : DoubleLiteral [mM]
-    | DecDigits [mM]
+    : '-'? NumberPart? '.' NumberPart DoubleExponent? [mM]
+    | '-'? NumberPart DoubleExponent? [mM]
     ;
-
 IntegerLiteral
-    : '-'? (DecDigitNoZero DecDigitOrSeparator* DecDigit | DecDigit)
+    : '-'? NumberPart
     ;
 
 fragment HexDigit: [0-9a-fA-F];
 fragment HexDigitOrSeparator: HexDigit | '_';
-
 HexLiteral
     : '0' [xX] HexDigit HexDigitOrSeparator* HexDigit
     | '0' [xX] HexDigit
     ;
-
 fragment BinDigit: [01];
 fragment BinDigitOrSeparator: BinDigit | '_';
-
 BinLiteral
     : '0' [bB] BinDigit BinDigitOrSeparator* BinDigit
     | '0' [bB] BinDigit
     ;
-
 LongLiteral
     : (IntegerLiteral | HexLiteral | BinLiteral) 'L'
     ;
 
 // Version --- ---
-
 Version: (IntegerLiteral '.' ID) |
          (IntegerLiteral '.' IntegerLiteral ('.' ID)?) |
          (IntegerLiteral '.' IntegerLiteral '.' IntegerLiteral ('.' ID)?);
-
 // String --- ---
-
 StringLiteral
    : ( '@'?  ( BlockStringLiteral | SimpleString ) ) | RawBlockStringLiteral
    ;
-
 SimpleString: '"' (Esc | SafeCodePoint)* '"';
-
 BlockStringLiteral
    : '"""' ([\t\r\n] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""'
    ;
-
 RawBlockStringLiteral
    : '`' ('\\' '`' | ~'`')* '`';
-
 fragment EmptyString: '""';
-
 ////
 fragment UniCharacterLiteral
     : '\\' 'u' HexDigit HexDigit HexDigit HexDigit
     ;
-
 fragment EscapedIdentifier
     : '\\' ('t' | 'b' | 'r' | 'n' | '\'' | '"' | '\\' | '$')
     ;
-
 fragment Esc
     : UniCharacterLiteral
     | EscapedIdentifier
     ;
-
 fragment Unicode // TODO - Add six HEX version
    : 'u' HexDigit HexDigit HexDigit HexDigit
    ;
-
 fragment SafeCodePoint
    : ~ ["\\\u0000-\u001F]
    ;
-
 fragment CharSafeCodePoint
    : ~ ['\\\u0000-\u001F]
    ;
@@ -154,13 +137,6 @@ SecondDuration: Number 's';
 MillisecondDuration: Number 'ms';
 NanosecondDuration: Number 'ns';
 
-/* Moved to the parser
-DateTime:
-    '-'? DecDigits '/' DecDigit DecDigit? '/' DecDigit DecDigit? // Date
-    ('@' DecDigits HOURS? ':' DecDigits MINUTES? (':' DecDigits ('.' DecDigits DoubleExponent?)? SECONDS?)?)? // Time
-    ('/' (TimeZone | GMT))?; // TimeZone or GMT offset
-*/
-
 // Example: 1980/5/23@12:30:15.123_534_623/PST
 Date: '-'? DecDigits '/' DecDigit DecDigit? '/' DecDigit DecDigit?;
 // should also support "T" for time like ISO-8601?
@@ -173,13 +149,6 @@ ExclusiveRangeOp: '<..<';
 ExclusiveLeftOp: '<..';
 ExclusiveRightOp: '..<';
 
-/* TODO Decide: This way or above (leaning this way - precedent: Kotlin, ANTL4, etc.)
-InclusiveRangeOp: '..';
-ExclusiveRangeOp: '<..<';
-ExclusiveLeftOp: '<..';
-ExclusiveRightOp: '..<';
-*/
-
 // Punctuation
 DOT: '.';
 COLON: ':';
@@ -191,6 +160,7 @@ LPAREN: '(';
 RPAREN: ')';
 LSQUARE: '[';
 RSQUARE: ']';
+COMMA: ',';
 SLASH: '/';
 DASH: '-';
 AT: '@';
@@ -199,10 +169,10 @@ UNDERSCORE: '_';
 
 // Encodings --- ---
 
-BASE64: '.base64';
+BIN64: '.bin64';
 
 // Complies with "The Base64 Alphabet" as specified in Table 1 of RFC 4648
-BASE64_DATA: '(' [A-Za-z0-9+=/ \t\r\n]* ')'; // '(' [ \t\r\n]* ([A-Za-z0-9+=/]* [ \t\r\n]*)* ')';
+BIN64_DATA: '(' [A-Za-z0-9+=/ \t\r\n]* ')'; // '(' [ \t\r\n]* ([A-Za-z0-9+=/]* [ \t\r\n]*)* ')';
 
 // Identifiers --- ---
 
