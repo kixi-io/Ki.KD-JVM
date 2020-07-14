@@ -15,7 +15,8 @@ value:
     // Strings
     StringLiteral | CharLiteral | ID
     // Numbers
-    | IntegerLiteral | HexLiteral | BinLiteral | RealLiteral | LongLiteral
+    | IntegerLiteral | HexLiteral | BinLiteral | LongLiteral
+    | FloatLiteral | DoubleLiteral | DecimalLiteral
     | TRUE | FALSE
     | NULL
     // Data Structures
@@ -28,7 +29,7 @@ value:
     | range
     | Version
     // Encodings
-    | base64
+    | bin64
     ;
 
 // Duration
@@ -42,14 +43,17 @@ rangeOp: InclusiveRangeOp | ExclusiveRangeOp | ExclusiveLeftOp | ExclusiveRightO
 
 intRange: ('_' rangeOp IntegerLiteral) | (IntegerLiteral rangeOp '_') | (IntegerLiteral rangeOp IntegerLiteral);
 longRange: ('_' rangeOp LongLiteral) | (LongLiteral rangeOp '_') | (LongLiteral rangeOp LongLiteral);
-realRange: ('_' rangeOp RealLiteral) | (RealLiteral rangeOp '_') | (RealLiteral rangeOp RealLiteral);
+floatRange: ('_' rangeOp FloatLiteral) | (FloatLiteral rangeOp '_') | (FloatLiteral rangeOp FloatLiteral);
+doubleRange: ('_' rangeOp DoubleLiteral) | (DoubleLiteral rangeOp '_') | (DoubleLiteral rangeOp DoubleLiteral);
+decimalRange: ('_' rangeOp DecimalLiteral) | (DecimalLiteral rangeOp '_') | (DecimalLiteral rangeOp DecimalLiteral);
 durationRange: ('_' rangeOp duration) | (duration rangeOp '_') | (duration rangeOp duration);
 dateTimeRange: ('_' rangeOp dateTime) | (dateTime rangeOp '_') | (dateTime rangeOp dateTime);
 versionRange: ('_' rangeOp Version) | (Version rangeOp '_') | (Version rangeOp Version);
 charRange: ('_' rangeOp CharLiteral) | (CharLiteral rangeOp '_') | (CharLiteral rangeOp CharLiteral);
 stringRange: ('_' rangeOp StringLiteral) | (StringLiteral rangeOp '_') | (StringLiteral rangeOp StringLiteral);
 
-range: intRange | longRange | realRange | durationRange | dateTimeRange | versionRange | charRange | stringRange;
+range: intRange | longRange | floatRange | doubleRange | decimalRange | durationRange | dateTimeRange | versionRange
+       | charRange | stringRange;
 
 // Tag Parts --- ---
 
@@ -64,12 +68,12 @@ nsName: (ID ':')? ID;
 
 // DATA STRUCTURES --- ---
 
-list: '[' NL* (COMMA? value NL*)* ']';
+list: ('[' NL* value (COMMA? value)* NL* ']') | ('[' ']');
 
 pair: NL* value '=' NL* value NL*;
 
 map: ('[' NL* pair (COMMA? pair)* NL* ']') | ('[' '=' ']');
 
-base64: BASE64 BASE64_DATA;
+bin64: BIN64 BIN64_DATA;
 
 dateTime: Date Time?;
