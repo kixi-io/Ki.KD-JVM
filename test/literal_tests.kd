@@ -33,7 +33,7 @@ Strings {
     Korean "여보세요"
     Russian "здравствулте"
 
-    # SDL3 string literals
+    # KD string literals
     raw_string @"start\t\nend"
     triple_quotes1 """
     Hello friends
@@ -159,22 +159,29 @@ Numbers {
     float1 1.0F
     float2 .23f
     float3 -.34F
+    float4 500f
     double1 2.0
     double2 -0.234
     double3 2.34
+    double4 10000000d
+    double5 521_789.231_834
     double_exp1 123e-5
     double_exp2 12.1e2
     decimal1 0m
     decimal2 11.111111M
-    decimal3 234535.3453453453454345345341242343m
-    decimal4 982_342_462_234.163_932_352m
+    decimal3 143_523.521_535m
+    decimal4 234535.3453453453454345345341242343m
+    decimal5 982_342_462_234.163_932_352m
+
+    int_binary 0b1010000101000101101100010110101
+    int_hex 0x0A2F
 }
 
 # Boolean Tests -----------------------------------
 
 Booleans {
-    light-on true
-    light-off false
+    light_on true
+    light_off false
 
     light1 on
     light2 off
@@ -190,10 +197,16 @@ Nulls {
 # Version Tests -----------------------------------
 
 Versions {
-    basic-version 12.23.5
-    include-build 3.0.2.34
-    includes-qualifier 315.24.52.beta
-    includes-build-qualifier 12.53.64.23523.alpha
+    version1 12.0.0
+    version2 5.6.2.beta
+    version3 3.beta
+    version4 4.2.alpha
+
+    basic_version 12.23.5
+    include_build 3.0.2.34
+    includes_qualifier 315.24.52.beta
+    # Not currently supported
+    # includes_build_qualifier 12.53.64.23523.alpha
 }
 
 # Date Tests -----------------------------------
@@ -212,7 +225,11 @@ DateTimes {
     date_time1 2005/12/31@12:30
     date_time2 1882/5/2@12:30
     date_time3 2005/12/31@1:00
-    date_time4 1882/5/2@1:00EST
+    date_time4a 1882/5/2@1:00EST
+    date_time4b 1882/5/2@1:00/EST
+    date_time4c 1882/5/2@1:00z
+    date_time4d 1882/5/2@1:00/Z
+    date_time4e 1882/5/2@1:00/z
     date_time5 2005/12/31@12:30:23.12
     date_time6 1882/5/2@22:30:23.123
     date_time7 1882/5/2@10:30:23.123/JST
@@ -222,7 +239,9 @@ DateTimes {
     date_time11 1980/5/23@9:30:15.03/GMT
     date_time12 1978/5/23@12:30:15.2z # 'z' or 'Z' is UTC shorthand from ISO 8601
     date_time13 1978/5/23@12:30:15.2z+1
-    date_time14 1980/5/23@14:30:15.123_534_623/HST
+    date_time14 1978/5/23@12:30:15.2z+1:30
+    date_time15 1980/5/23 @14:30:15.123_534_623/HST
+    date_time16 1980/5/23 @14:30:15.000_000_623/HST
 }
 
 # Duration Tests -----------------------------------
@@ -237,6 +256,17 @@ Durations {
         dur7 12h:30:23s # With optional unit labels
         dur_with_days 8day:12:30:23
         dur_with_days_labels 8day:12h:30min:23s # With optional unit labels
+    }
+
+    UnitDurations {
+        days 15day
+        hours 16h
+        minutes 23min
+        minutes 2.5min # =30s
+        seconds 15s
+        seconds 10.25s # =250ms
+        milli 12ms
+        nano 54664ns
     }
 
     # Using fractional seconds
@@ -279,26 +309,57 @@ URLs {
 # Range Tests -----------------------------------
 
 Ranges {
+    range1 1..5
+    range2 4.2..<8.0
+    range3 4.beta..8.0.4.alpha
+    range4 2day..5day
+
+    2016/5/2..2020/1/12
+
     intRange 12..15
     intOpenLeftRange _..15
     intOpenRightRange 2.5.._
     doubleRange 12.4<..15.1
     decimalRange 12.4m<..15.1m
+    charRange 'f'..'z'
+    stringRange "Bilbo".."Frodo"
     durationRange 5s..10s
     durationRange2 5day:23:01:02..8day
-    dateTimeRange 1990/12/5..2000/02/5@5:23:01
+    dateTimeRange 1990/12/5@5:12..2000/02/5@5:23:01
     versionRanges 3.1.0.._  3.0.23.beta<..5.0.0
+
+    0..5
+    5..0
+    0<..<5
+    0..<5
+    0<..5
+    0.._
+    _..5
+    0<.._
+    _..<5
+
+    'a'..'z'
+    2f<..<5.24f
+
+    3f..6.2f
+    2d..5.24
+    3.4m..205.4214m
+
+    2010/12/25 .. 2020/5/15
+
+    4.3.alpha <.. _ # TODO: Question - Should this be "4.3.alpha <= _"
+    5.1.beta .. 6.4.0
 }
 
 # Base64 -----------------------------------
 
-Base64 {
+Bin64 {
     # bytes for UTF8 string "hi"
-    hi base64(aGk=)
+    hi .bin64(aGk=)
 
     # bytes for a small PNG image
 
-    png base64(
+    png .bin64(
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKnRFWHRDcmVhdGlvbiBUaW1l
         AERpIDQgTXJ6IDIwMDMgMDA6MjQ6MDQgKzAxMDDdSQ6OAAAAB3RJTUUH0wMEAAcllPlrJgAA
         AAlwSFlzAAAK8AAACvABQqw0mAAAAARnQU1BAACxjwv8YQUAAADQSURBVHjaY2CgEDCCyZn/
@@ -308,4 +369,6 @@ Base64 {
         mkAKYYbAMMwwDAOQXYDuDXRXgDC6AR7SW8jITNQAACjZgdj4VjlqAAAAAElFTkSuQmCC
     )
 }
+
+
 
