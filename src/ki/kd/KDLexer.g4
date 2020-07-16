@@ -78,7 +78,7 @@ LongLiteral
 
 // Version --- ---
 Version: (IntegerLiteral '.' ID) |
-         (IntegerLiteral '.' IntegerLiteral ('.' ID)?) |
+         (IntegerLiteral '.' IntegerLiteral '.' ID) |
          (IntegerLiteral '.' IntegerLiteral '.' IntegerLiteral ('.' ID)?);
 // String --- ---
 StringLiteral
@@ -176,10 +176,8 @@ BIN64_DATA: '(' [A-Za-z0-9+=/ \t\r\n]* ')'; // '(' [ \t\r\n]* ([A-Za-z0-9+=/]* [
 
 // Identifiers --- ---
 
-// fragment IDStart: [\p{Alpha}\p{General_Category=Other_Letter}\p{Emoji_Presentation}];
-
 // Any unicode letter, emoji, $ or _
-fragment IDStart: [$_\p{Alpha}\p{General_Category=Other_Letter}\p{Emoji}\p{Join_Control}\p{Variation_Selector}];
+fragment IDStart: [$_\p{Alpha}\p{General_Category=Other_Letter}\p{Emoji_Presentation}];  // [$_\p{Alpha}\p{General_Category=Other_Letter}\p{Emoji}\p{Join_Control}\p{Variation_Selector}];
 
 // Any unicode letter, digit, emoji, $ or _
 fragment IDChar: [$_\p{Alnum}\p{General_Category=Other_Letter}\p{Emoji}\p{Join_Control}\p{Variation_Selector}];
@@ -195,4 +193,3 @@ LineComment: ('#' | '//') ~[\u000A\u000D]* -> skip; //-> channel(COMMENTS);
 // WHITE_SPACE --- ---
 WS: ([ \t\r] | '\\' '\n')+ -> skip;
 NL: ('\n' | ';')+;
-// NL: (('\n' | ';') WS* )+ ('\n' | ';')*;

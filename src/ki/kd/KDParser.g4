@@ -33,7 +33,6 @@ value:
     ;
 
 // Duration
-
 duration: CompoundDuration | DayDuration | HourDuration | MinuteDuration | SecondDuration | MillisecondDuration
           | NanosecondDuration;
 
