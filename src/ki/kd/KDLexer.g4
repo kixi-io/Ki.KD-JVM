@@ -38,20 +38,40 @@ fragment NonZeroNumberPart
 fragment NumberPart
     : (DecDigit DecDigitOrSeparator* DecDigit | DecDigit)
     ;
+
 /*
 RealLiteral
     : '-'? (FloatLiteral | DoubleLiteral | DecimalLiteral)
     ;
 */
 
+/*
+NUMBER
+    :   '-'? INT '.' [0-9]+ EXP? // 1.35, 1.35E-9, 0.3, -4.5
+    |   '-'? INT EXP             // 1e10 -3e4
+    |   '-'? INT                 // -3, 45
+    ;
+fragment INT :   '0' | [1-9] [0-9]* ; // no leading zeros
+fragment EXP :   [Ee] [+\-]? INT ; // \- since - means "range" inside [...]
+*/
+
 FloatLiteral
     : '-'? NumberPart? '.' NumberPart DoubleExponent? [fF]
     | '-'? NumberPart DoubleExponent? [fF]
     ;
+
+/*
 DoubleLiteral
     : '-'? NumberPart? '.' NumberPart DoubleExponent? [dD]?
     | '-'? NumberPart DoubleExponent? [dD]
     ;
+*/
+DoubleLiteral
+    : '-'? NumberPart? '.' NumberPart DoubleExponent? [dD]?
+    | '-'? NumberPart DoubleExponent [dD]?
+    | '-'? NumberPart [dD]
+    ;
+
 DecimalLiteral
     : '-'? NumberPart? '.' NumberPart DoubleExponent? [mM]
     | '-'? NumberPart DoubleExponent? [mM]
