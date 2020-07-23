@@ -73,6 +73,8 @@ pair: NL* value '=' NL* value NL*;
 
 map: ('[' NL* pair (COMMA? pair)* NL* ']') | ('[' '=' ']');
 
+// ETC
+
 bin64: BIN64 BIN64_DATA;
 
 dateTime: Date Time?;

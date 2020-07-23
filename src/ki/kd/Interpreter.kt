@@ -1,37 +1,37 @@
 package ki.kd
 
+import ki.Ki
 import ki.Range
 import ki.Version
-import ki.Ki
 import ki.log
 import ki.text.ParseException
-
+import org.antlr.v4.runtime.CharStreams
+import org.antlr.v4.runtime.CommonTokenStream
+import java.io.Reader
 import java.io.StringReader
 import java.math.BigDecimal
 import java.net.MalformedURLException
 import java.net.URL
 import java.time.*
-import java.time.format.*
-
-import org.antlr.v4.runtime.CharStreams
-import org.antlr.v4.runtime.CommonTokenStream
-import java.io.Reader
+import java.time.format.DateTimeFormatter
 
 /**
  * TODO:
  *
- * 1. Get Bin64 working
- * 2. Review and get Strings working in line with the spec
+ * 1. Get the interpreter working again (fix the stuck on commas and bin64 issue)
+ * 2. Get Bin64 working
+ * 3. Review and get Strings working in line with the spec
  *    https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)
- * 3. Review numbers - Doubles and Floats seem to be off
- * 4. Get formatting working correctly for all types (e.g. dates, durations, etc.)
- * 5. Ensure testing is comprehensive
- * 6. Clean up files
- * 7. Kotlin-ify the Tag class, remove cruft. Keep it simple.
- * 8. Fix all warnings
- * 9. -- Beta 1 release --
+ * 4. Review numbers - Doubles and Floats seem to be off
+ * 5. Get formatting working correctly for all types (e.g. dates, durations, etc.)
+ * 6. Ensure testing is comprehensive
+ * 7. Clean up files
+ * 8. Finish the Tag class
+ * 9. Fix all warnings
+ * 10. Add annotations to allow KD to play nice with Java
+ * 11. Update documentation
+ * 12. -- Beta 1 release --
  */
-
 class Interpreter {
 
     private lateinit var lexer: KDLexer
@@ -40,26 +40,35 @@ class Interpreter {
     fun read(reader:Reader) : List<Tag> {
         lexer = KDLexer(CharStreams.fromReader(reader))
         parser = KDParser(CommonTokenStream(lexer))
-        parser.setBuildParseTree(true)
+        parser.buildParseTree = true
+
+        // Test to see if the lexer is working (it is)
+        /*
+        var vocab = lexer.vocabulary
+
+        var tokens = lexer.allTokens
+        for(token in tokens) {
+            log("$token ${vocab.getSymbolicName(token.type)}")
+        }
+        */
 
         val tagListCtx = parser.tagList()
         val tags = ArrayList<Tag>()
 
-        if(tagListCtx!=null && tagListCtx.getChildCount() > 0) {
+        // log("tagListCtx childCount: ${tagListCtx.childCount}")
 
-            val childCount = tagListCtx.getChildCount()
+        if(tagListCtx == null || tagListCtx.tag().count() == 0)
+            return tags
 
-            log("Child count: $childCount")
+        val childCount = tagListCtx.tag().count()
 
-            (0 until childCount).forEach { i ->
-                val child = tagListCtx.getChild(i)
+        log("Child count: $childCount")
 
-                log(child::class.simpleName)
+        (0 until childCount).forEach { i ->
+            val child = tagListCtx.tag(i)
 
-                if(child is KDParser.TagContext) {
-                    // log("Making child " + child.text)
-                    tags.add(makeTag(child))
-                }
+            if(child is KDParser.TagContext) {
+                tags.add(makeTag(child))
             }
         }
 
@@ -73,12 +82,14 @@ class Interpreter {
 
         if(nsNameCtx != null) {
             if(nsNameCtx.COLON()!=null) {
-                namespace = nsNameCtx.ID(0).getText().trim()
-                name = nsNameCtx.ID(1).getText().trim()
+                namespace = nsNameCtx.ID(0).text.trim()
+                name = nsNameCtx.ID(1).text.trim()
             } else {
-                name = nsNameCtx.ID(0).getText().trim()
+                name = nsNameCtx.ID(0).text.trim()
             }
         }
+
+        log("Got tag name $name")
 
         val tag = Tag(name, namespace)
 
@@ -86,6 +97,7 @@ class Interpreter {
 
         if(valuesCtx != null) {
             for(vc in valuesCtx.value()) {
+                log("Parsing value ${vc.text}")
                 tag.values.add(makeValue(vc))
             }
         }
@@ -100,10 +112,10 @@ class Interpreter {
 
                 if(attNSNameCtx != null) {
                     if(attNSNameCtx.COLON()!=null) {
-                        attNamespace = attNSNameCtx.ID(0).getText().trim()
-                        attName = attNSNameCtx.ID(1).getText().trim()
+                        attNamespace = attNSNameCtx.ID(0).text.trim()
+                        attName = attNSNameCtx.ID(1).text.trim()
                     } else {
-                        attName = attNSNameCtx.ID(0).getText().trim()
+                        attName = attNSNameCtx.ID(0).text.trim()
                     }
                 }
 
@@ -130,20 +142,34 @@ class Interpreter {
         val text = ctx.getText()
 
         //// Strings --- ---
-        if(ctx.StringLiteral()!=null) return formatString(text) // return "\"$text\""
+        if(ctx.StringLiteral()!=null) {
+            log("Got a string literal")
+            return stripQuotes(text)
+        }
 
-        // Handles naked strings
-        if(ctx.ID() != null) return formatString(text) // "\"$text\"";
+        // Nakes strings (IDs treated as strings)
+        if(ctx.ID() != null) {
+            return text
+        }
 
         //// Numbers --- ---
 
-        if(ctx.IntegerLiteral()!= null) return Integer.valueOf(text)
-        if(ctx.LongLiteral() != null) return text.toLong()
-        if(ctx.RealLiteral() != null) return makeRealNumber(ctx.text)
+        if(ctx.IntegerLiteral() != null) return Integer.valueOf(text.replace("_", ""))
+        if(ctx.LongLiteral() != null) return text.replace("_", "").toLong()
 
-        if(ctx.BinLiteral() != null) return Integer.parseInt(text.substring(2), 2)
+        if(ctx.DoubleLiteral() != null) return text.replace("_", "").toDouble()
+        if(ctx.FloatLiteral() !=null) return text.replace("_", "").toFloat()
+        if(ctx.DecimalLiteral() !=null) {
+            var decText = text.replace("_", "")
+            if(decText.last().equals('m', ignoreCase = true)) decText = decText.dropLast(1)
+            return decText.toBigDecimal()
+        }
 
-        if(ctx.HexLiteral() != null) return Integer.parseInt(text.substring(2), 16)
+        if(ctx.BinLiteral() != null) return Integer.parseInt(text.replace("_", "")
+                .substring(2), 2)
+
+        if(ctx.HexLiteral() != null) return Integer.parseInt(text.replace("_", "")
+                .substring(2), 16)
 
         //// Booleans --- ---
 
@@ -155,31 +181,32 @@ class Interpreter {
 
         if(ctx.NULL() != null) return null
 
-        if(ctx.CharLiteral() != null) return "'${text[0]}'"
+        if(ctx.CharLiteral() != null) return text[0]
 
         if(ctx.URL() != null) {
             try {
                 return URL(text)
             } catch (e:MalformedURLException) {
                 // already parsed - should never happen
-                throw ParseException("Malformed URL", -1, -1, e)
+                throw ParseException("Malformed URL",
+                    ctx.start.line, ctx.start.charPositionInLine)
             }
         }
 
         if(ctx.Version() != null) {
-            // String[] ints = text.split("\\.");
-            // int major = Integer.parseInt(ints[0]), minor = Integer.parseInt(ints[1]), micro = Integer.parseInt(ints[2]);
-            // return new Version(major, minor, micro, ints.length == 4 ? ints[3] : null);
             return Version.parse(text)
         }
 
-        //// TODO: Bin64 --- ---
+        //// TODO: Bin64 - Ignore for now.
 
+        /*
         if(ctx.bin64() != null) {
-            log("Got bin64")
+            // log("Got bin64")
+            // return "bin64"
 
-            return text // ctx.bin64().BIN64_DATA().text
+            return ctx.bin64().BIN64_DATA().text
         }
+        */
 
         //// TODO: Duration --- ---
 
@@ -191,8 +218,6 @@ class Interpreter {
         if(dateTimeCtx!=null) {
             return makeLocalOrZonedDateOrDateTime(dateTimeCtx, text)
         }
-
-        //// TODO: Finish Range (exclusivity and open ended) ---
 
         if(ctx.range() != null) {
             return makeRange(ctx.range())
@@ -210,9 +235,11 @@ class Interpreter {
         val mapContext = ctx.map()
         if(mapContext!=null) return makeMap(mapContext)
 
+        log("Couldn't find a value type")
+
         val t = ctx.getStart()
 
-        throw KDParseException("Unknown literal type: $text at line ${t.line}, index ${t.charPositionInLine}")
+        throw KDParseException("Unknown literal type.", t.line, t.charPositionInLine)
     }
 
     /**
@@ -227,17 +254,6 @@ class Interpreter {
             val timeWithZone = timeNode.getText().substring(1)
             return makeDateTime(LocalDate.parse(ctx.Date().getText(), Ki.LOCAL_DATE_FORMATTER),
                     timeWithZone)
-        }
-    }
-
-    private fun makeRealNumber(text:String) : Number {
-        val lastChar = text.last()
-
-        return when(lastChar) {
-            'f', 'F' -> text.toFloat()
-            'd', 'D' -> text.toDouble()
-            'm', 'M' -> return BigDecimal(text)
-            else -> text.toDouble()
         }
     }
 
@@ -330,8 +346,14 @@ class Interpreter {
         val lrCtx = ctx.longRange()
         if(lrCtx!= null) return makeLongRange(lrCtx)
 
-        val rrCtx = ctx.realRange()
-        if(rrCtx!= null) return makeRealRange(rrCtx)
+        val fCtx = ctx.floatRange()
+        if(fCtx!= null) return makeFloatRange(fCtx)
+
+        val dbleCtx = ctx.doubleRange()
+        if(dbleCtx!= null) return makeDoubleRange(dbleCtx)
+
+        val decCtx = ctx.decimalRange()
+        if(decCtx!= null) return makeDecimalRange(decCtx)
 
         val drCtx = ctx.durationRange()
         if(drCtx!= null) return makeDurationRange(drCtx)
@@ -348,7 +370,7 @@ class Interpreter {
         val sCtx = ctx.stringRange()
         if(sCtx!= null) return makeStringRange(sCtx)
 
-        throw KDParseException("Uknown type in range", ctx.start.charPositionInLine, ctx.start.line)
+        throw KDParseException("Uknown type in range", ctx.start.line, ctx.start.charPositionInLine)
     }
 
     // TODO - Fix - This leaves quotes on strings.
@@ -438,7 +460,8 @@ class Interpreter {
                 is ZonedDateTime -> Range<ZonedDateTime>(ZonedDateTime.from(LocalDateTime.MIN),
                         rightDT, op, openLeft=true)
                 else -> throw KDParseException(
-                        "Error in DateTime Range calculation. Unknown type ${rightDT.javaClass.simpleName}")
+                        "Error in DateTime Range calculation. Unknown type ${rightDT.javaClass.simpleName}",
+                        ctx.start.line, ctx.start.charPositionInLine)
             }
         } else if(openRight) {
             val leftDT = makeLocalOrZonedDateOrDateTime(ctx.dateTime(0)!!, left)!!
@@ -448,7 +471,8 @@ class Interpreter {
                 is LocalDateTime -> Range<LocalDateTime>(leftDT, LocalDateTime.MAX, openRight=true)
                 is ZonedDateTime -> Range<ZonedDateTime>(leftDT, ZonedDateTime.from(LocalDateTime.MAX), openRight=true)
                 else -> throw KDParseException(
-                        "Error in DateTime Range calculation. Unknown type ${leftDT.javaClass.simpleName}")
+                        "Error in DateTime Range calculation. Unknown type ${leftDT.javaClass.simpleName}",
+                        ctx.start.line, ctx.start.charPositionInLine)
             }
         } else {
             val leftDT = makeLocalOrZonedDateOrDateTime(ctx.dateTime(0)!!, left)!!
@@ -459,7 +483,8 @@ class Interpreter {
                 is LocalDateTime -> Range<LocalDateTime>(leftDT, rightDT as LocalDateTime, op)
                 is ZonedDateTime -> Range<ZonedDateTime>(leftDT, rightDT as ZonedDateTime, op)
                 else -> throw KDParseException(
-                        "Error in DateTime Range calculation. Unknown type ${leftDT.javaClass.simpleName}")
+                        "Error in DateTime Range calculation. Unknown type ${leftDT.javaClass.simpleName}",
+                        ctx.start.line, ctx.start.charPositionInLine)
             }
         }
     }
@@ -483,7 +508,7 @@ class Interpreter {
         }
     }
 
-    private fun makeRealRange(ctx: KDParser.RealRangeContext): Range<*> {
+    private fun makeFloatRange(ctx: KDParser.FloatRangeContext): Range<Float> {
         val leftText = ctx.getChild(0).text
         val leftOpen = (leftText == "_")
         val rightText = ctx.getChild(2).text
@@ -492,36 +517,69 @@ class Interpreter {
         val op = rangeOp(ctx.rangeOp().text)
 
         if(leftOpen) {
-            val rightNum = makeRealNumber(rightText)
+            val rightNum = rightText.replace("_", "").toFloat()
 
-            return when(rightNum) {
-                is Float -> Range<Float>(Float.MIN_VALUE, rightNum,
-                    op, openLeft = true)
-                is BigDecimal -> Range<BigDecimal>(
-                        BigDecimal(Double.MIN_VALUE),
-                        rightNum,
+            return Range<Float>(Float.MIN_VALUE, rightNum,
                         op, openLeft = true)
-                else -> Range<Double>(Double.MIN_VALUE, rightNum as Double,
-                        op, openLeft = true)
-            }
         } else if (rightOpen) {
-            val leftNum = makeRealNumber(leftText)
+            val leftNum = leftText.replace("_", "").toFloat()
 
-            return when(leftNum) {
-                is Float -> Range<Float>(leftNum, Float.MAX_VALUE, op, openLeft = true)
-                is BigDecimal -> Range<BigDecimal>(leftNum, BigDecimal(Double.MAX_VALUE), op,
-                        openLeft = true)
-                else -> Range<Double>(leftNum as Double, Double.MAX_VALUE, op, openLeft = true)
-            }
+            return Range<Float>(leftNum, Float.MAX_VALUE, op, openLeft = true)
         } else {
-            val leftNum = makeRealNumber(leftText)
-            val rightNum = makeRealNumber(rightText)
+            val leftNum = leftText.replace("_", "").toFloat()
+            val rightNum = rightText.replace("_", "").toFloat()
 
-            return when(leftNum) {
-                is Float -> Range<Float>(leftNum, rightNum as Float, op)
-                is BigDecimal -> Range<BigDecimal>(leftNum, rightNum as BigDecimal, op)
-                else -> Range<Double>(leftNum as Double, rightNum as Double, op)
-            }
+            return Range<Float>(leftNum, rightNum, op)
+        }
+    }
+
+    private fun makeDoubleRange(ctx: KDParser.DoubleRangeContext): Range<Double> {
+        val leftText = ctx.getChild(0).text
+        val leftOpen = (leftText == "_")
+        val rightText = ctx.getChild(2).text
+        val rightOpen = (rightText == "_")
+
+        val op = rangeOp(ctx.rangeOp().text)
+
+        if(leftOpen) {
+            val rightNum = rightText.replace("_", "").toDouble()
+
+            return Range<Double>(Double.MIN_VALUE, rightNum,
+                    op, openLeft = true)
+        } else if (rightOpen) {
+            val leftNum = leftText.replace("_", "").toDouble()
+
+            return Range<Double>(leftNum, Double.MAX_VALUE, op, openLeft = true)
+        } else {
+            val leftNum = leftText.replace("_", "").toDouble()
+            val rightNum = rightText.replace("_", "").toDouble()
+
+            return Range<Double>(leftNum, rightNum, op)
+        }
+    }
+
+    private fun makeDecimalRange(ctx: KDParser.DecimalRangeContext): Range<BigDecimal> {
+        val leftText = ctx.getChild(0).text
+        val leftOpen = (leftText == "_")
+        val rightText = ctx.getChild(2).text
+        val rightOpen = (rightText == "_")
+
+        val op = rangeOp(ctx.rangeOp().text)
+
+        if(leftOpen) {
+            val rightNum = rightText.replace("_", "").toBigDecimal()
+
+            return Range<BigDecimal>(BigDecimal(Double.MIN_VALUE), rightNum,
+                    op, openLeft = true)
+        } else if (rightOpen) {
+            val leftNum = leftText.replace("_", "").toBigDecimal()
+
+            return Range<BigDecimal>(leftNum, BigDecimal(Double.MAX_VALUE), op, openLeft = true)
+        } else {
+            val leftNum = leftText.replace("_", "").toBigDecimal()
+            val rightNum = rightText.replace("_", "").toBigDecimal()
+
+            return Range<BigDecimal>(leftNum, rightNum, op)
         }
     }
 
@@ -565,11 +623,13 @@ class Interpreter {
             "<..<" -> Range.Type.Exclusive
             "..<" -> Range.Type.ExclusiveRight
             "<.." -> Range.Type.ExclusiveLeft
-            else -> throw KDParseException("Unknown range type") // will never happen
+            // this is verified by the lexer, so it can't happen
+            else -> throw KDParseException("Unknown range type")
+
         }
     }
 
-    private fun formatString(value:String): String{
+    private fun stripQuotes(value:String): String{
         var text = value
 
         if(text.startsWith("\"\"\"")) {
@@ -592,21 +652,20 @@ class Interpreter {
 
 // TODO: Move to tests area
 fun main() {
-
     /*
     var file = Interpreter::class.java.getResource("temp_tests.kd")
     log(KD.read(file))
     */
 
     var root = KD.read("""
-        "hello"
-        data .bin64(123) // TODO: Make this work!
-        "there"
-        """)
+        odds 5 7 9
+        23d
+        array [1 2 3]
+    """)
 
-    log(root.getChild("data"))
+    log(root)
+
     // TODO: Fix broken cases below
-
 
     /*
     log(KD.read("""
@@ -621,7 +680,7 @@ fun main() {
             x:nums [1 2 3]
             x:map [name="Dan" animal="lemur"]
             
-            .bin64(123) // TODO: Make this work!
+            // .bin64(123) // TODO: Make this work!
             
             ranges {
                 0..5  

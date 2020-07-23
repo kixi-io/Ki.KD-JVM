@@ -26,5 +26,5 @@ data class NSID(val name:String, val namespace:String = "") {
             throw ParseException("NSID namespace component $name is not a valid Ki Identifier.")
     }
 
-    override fun toString() = if(namespace != "") "$namespace:$name" else "$name"
+    override fun toString() = if(namespace != "") "$namespace:$name" else name
 }

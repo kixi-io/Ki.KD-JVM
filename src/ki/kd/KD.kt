@@ -21,7 +21,7 @@ class KD {
          * If there are multiple tags they are returned as children of a root tag
          * called "root";
          */
-        fun read(reader: Reader) : Tag {
+        @JvmStatic fun read(reader: Reader) : Tag {
             var tags = Interpreter().read(reader)
             if(tags.size == 0) {
                 return Tag("root")
@@ -34,8 +34,8 @@ class KD {
             }
         }
 
-        fun read(kd: String) : Tag = read(StringReader(kd))
-        fun read(file: File) : Tag = read(FileReader(file))
-        fun read(file: URL) : Tag = read(file.readText())
+        @JvmStatic fun read(text: String) : Tag = read(StringReader(text))
+        @JvmStatic fun read(file: File) : Tag = read(FileReader(file))
+        @JvmStatic fun read(url: URL) : Tag = read(url.readText())
     }
 }

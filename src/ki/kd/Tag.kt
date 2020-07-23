@@ -1,5 +1,7 @@
 package ki.kd
 
+import ki.Ki
+
 /**
  * KD documents are composed of KD tags. Tags contain:
  *
@@ -9,31 +11,39 @@ package ki.kd
  * 1. 0 or more attributes
  * 1. 0 or more children
  *
- * For the KD code:
+ * KD tag examples:
  * ```
  *     size 4
  *     secure true
  *     version 5.2.3.beta
+ *     range 25..50
+ *     oddValues 1 3 5 7
+ *     valueAndAtt "manahoana" greeting=true
+ *     myList [2 4 6]
+ *     myMap [name="Isabella" programmer=true]
+ *     kitchenSink 1 'a' true [1 2 3] [4 5 6] [pizza=true sardines=false] 3.0..<5.0
  * ```
  *
- * Assuming this code is in a file called values.kd, the values can be read
- * using the following code:
+ * The KD utility class can be used to read KD code from a file, URL, string or reader.
  * ```
- *     var root = KD.read(File("values.kd"))
+ *     var root = KD.read("""
+ *          size 15
+ *          optimized true
+ *          version 5.0.2
+ *     """)
  *
  *     var size = root.getChild("size").value as Int
- *     var optimized = root.getChild("secure").value as Boolean
+ *     var optimized = root.getChild("optimized").value as Boolean
  *     var version = root.getChild("version").value as Version
  * ```
  *
- * In the example above, the "values.kd" file is read into a tag called
- * "root".  It has two children (tags) called "size" and "secure".  Both have
- * one value, no attributes, and no bodies.
+ * In the example above, the tags in the string are read into a tag called "root".  It has
+ * three children (tags) called "size", "optimized", and "version".  They each have one
+ * value, no attributes, and no bodies.
  *
- * KD is often used for simple key-value mappings.  To simplify things Tag
- * has the methods getValue and setValue which operate on the first element in
- * the values list.  Also notice KD understands types which are determined
- * using type inference.
+ * KD is often used for simple key-value mappings.  Because of this common case, Tag
+ * provides convenience methods such as getValue and setValue which operate on the first
+ * element in the values list.
  *
  * The example above used the simple format common in property files:
  * ```
@@ -50,10 +60,10 @@ package ki.kd
  * ...where value_list is zero or more space separated KD literals and
  * attribute_list is zero or more space separated (namespace:)key=value pairs.
  * The name, namespace, and keys are KD identifiers.  Values are KD literals.
- * Namespace is optional for both tag names and attributes.  Tag bodies are also
- * optional.  KD identifiers begin with a unicode letter, underscore or emoji
- * followed by zero or more Unicode letters, numbers, underscores, emoji dashes or
- * periods.
+ * Namespace is optional for tag names and attributes.  Tag bodies are also
+ * optional.  KD identifiers begin with a unicode letter, underscore, dollar
+ * sign or emoji followed by zero or more Unicode letters, numbers, underscores,
+ * dollar signs or emoji.
  *
  * KD also supports anonymous tags which have the name "" (the empty string).
  * An anonymous tag starts with a literal and is followed by zero or more
@@ -64,7 +74,7 @@ package ki.kd
  */
 class Tag {
 
-    lateinit var nsid:NSID
+    var nsid:NSID
 
     var values = mutableListOf<Any?>()
     var attributes = HashMap<NSID, Any?>();
@@ -101,19 +111,19 @@ class Tag {
             val i: Iterator<*> = values.iterator()
             while (i.hasNext()) {
                 if (skipValueSpace) skipValueSpace = false else builder.append(" ")
-                builder.append(KD.format(i.next()))
+                builder.append(Ki.format(i.next()))
             }
         }
 
         // output attributes
-        if (!attributes.isEmpty()) {
+        if (attributes.isNotEmpty()) {
             val i = attributes.entries.iterator()
             while (i.hasNext()) {
                 builder.append(" ")
                 val e = i.next()
-                val key = e.key
-                val value = e.value
-                builder.append("${e.key}=${KD.format(e.value)}")
+                // val key = e.key
+                // val value = e.value
+                builder.append("${Ki.format(e.key)}=${Ki.format(e.value)}")
             }
         }
 
