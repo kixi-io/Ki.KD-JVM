@@ -1,0 +1,163 @@
+// Generated from /Users/danielleuck/projects/Ki/JVM/Ki.KD-JVM/src/main/kotlin/ki/kd/KDParser.g4 by ANTLR 4.8
+package ki.kd.antlr;
+import org.antlr.v4.runtime.tree.ParseTreeVisitor;
+
+/**
+ * This interface defines a complete generic visitor for a parse tree produced
+ * by {@link KDParser}.
+ *
+ * @param <T> The return type of the visit operation. Use {@link Void} for
+ * operations with no return type.
+ */
+public interface KDParserVisitor<T> extends ParseTreeVisitor<T> {
+	/**
+	 * Visit a parse tree produced by {@link KDParser#tagList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTagList(KDParser.TagListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#tag}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTag(KDParser.TagContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#value}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitValue(KDParser.ValueContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#duration}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDuration(KDParser.DurationContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#rangeOp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRangeOp(KDParser.RangeOpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#intRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIntRange(KDParser.IntRangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#longRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLongRange(KDParser.LongRangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#floatRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFloatRange(KDParser.FloatRangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#doubleRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDoubleRange(KDParser.DoubleRangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#decimalRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDecimalRange(KDParser.DecimalRangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#durationRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDurationRange(KDParser.DurationRangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#dateTimeRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDateTimeRange(KDParser.DateTimeRangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#versionRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVersionRange(KDParser.VersionRangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#charRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCharRange(KDParser.CharRangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#stringRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStringRange(KDParser.StringRangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#range}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRange(KDParser.RangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#valueList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitValueList(KDParser.ValueListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#attribute}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAttribute(KDParser.AttributeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#attributeList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAttributeList(KDParser.AttributeListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#nsName}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNsName(KDParser.NsNameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#list}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitList(KDParser.ListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#pair}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPair(KDParser.PairContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#map}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMap(KDParser.MapContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#bin64}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBin64(KDParser.Bin64Context ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#dateTime}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDateTime(KDParser.DateTimeContext ctx);
+}

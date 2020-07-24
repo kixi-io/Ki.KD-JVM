@@ -1,0 +1,294 @@
+/**
+ * Test:
+ * - Tags with values, attributes and namespaces
+ * - Complex types such as DateTime and Duration
+ * - Struct literals such as lists and maps
+ *
+ * @author Daniel Leuck
+ */
+
+# Single tag with no values, attributes, or children
+empty_tag
+
+# Tags with values -----------------------------------
+
+Values {
+    # test values (and comments)
+    values1 "hi"
+    values2 "hi" "ho"
+    values3 1 "ho"
+    values4 "hi" 5
+    values5 1 2
+    values6 1 2 3
+
+    # Testing line continuation
+    breakline "one" \
+          "two"
+
+    values7 null "foo" false 1980/12/5
+    values8 null "foo" false 1980/12/5@12:30 `there` 'a'
+    values9 null "foo" false 1980/12/5@12:30 `there` 'a'
+    values10 null "foo" false 1980/12/5@12:30 `there` 'a' \
+        "more stuff"
+    values11 null "foo" false 1980/12/5 @12:30 `there` 'a' """
+        more
+        stuff
+        here
+        """
+    values12 1 /* 2 */ 3 # 4
+    values13 1/* 2 */3 # 4
+    values14 1/* 2 */3# 4
+    values15 1 2 /* 3 */\
+        4 5 \
+        6 # more comments
+    values16 1 2 /*
+        4 */ 5
+    values17 1 2 /*
+
+        4 */ 5
+    values18 1 2 /*
+        4  6
+        */ 7
+    values19 1 /* 2 */ 3 /* 4 */ 5/*6*/7
+    values20 1 /* 2 */ 3 /* 4 */ 5/*6 7*/
+    values21 1 /* 2 */ 3 /* 4 */ 5/*6 7
+        */
+    values22 "hi""ho" "ho"5"hi"
+}
+
+# Tags with attributes -----------------------------------
+
+Attributes {
+    atts1 name="joe"
+    atts2 size=5
+    atts3 name="joe" size=5
+    atts4 name="joe" size=5 allergies=false
+    atts5 name="joe" /* size=5 */ allergies=false
+    atts6 name="joe" /* size=5 */ \
+        allergies=false
+    atts7 name="joe" /* size=5 */ # allergies=false
+    atts8 name="joe" size=5 allergies=false text="hi" birthday=1972/05/23
+    atts9 key=.bin64(bXlrZXk=)
+
+    # test values and attributes
+    valatts1 "joe" size=5
+    valatts2 "joe" size=5 #comment...
+    valatts3 "joe" size=5 #comment...
+    valatts4 "joe" size=5 weight=160 hat="big"
+    valatts5 "joe" `is a
+     nice guy` size=5 allergies=false
+    valatts6 "joe" `is a
+     nice guy` size=5 house=`big and
+     blue`
+    valatts7 "joe" `is a
+     nice guy` size=5 /* house=`big and
+     blue` */allergies=false
+    valatts8 "joe" `is a
+     nice guy` size=5 /* random
+     text in comments
+     */ allergies=false
+    valatts9 "joe" `is a
+     nice guy` size=5/* random
+     text in comments
+     */allergies=false
+}
+
+
+# Comments -----------------------------------
+
+Comments {
+    comment:interspersed "foo" /* comment */ "bar"
+    comment:nested /* /* comment in comment */ */ "other side"
+}
+
+
+# Unicode -----------------------------------
+
+Unicode {
+    имя "Анастасия"
+    国 "日本 🇯🇵" 言語="日本語"
+    alphnum123
+    "test"
+
+    👌 "OK"
+    randomEmoji 💕🎁💯🌹 att1="num" 🎁2="present"
+    💕🎁💯🌹123 "happy"
+    🎅🏿 "Greetings!"
+}
+
+
+# Tags with children -----------------------------------
+
+Children {
+
+    empty { /*empty*/ }
+
+    parent {
+        son
+        daughter
+    }
+
+    forest { tree1: elm
+        treet2: oak; plant1: fern
+        plant2: moss
+    }
+
+    colors {    red
+                green
+                blue    }
+
+    continent "Europe" { country "France" { capitol "Paris" } }
+
+    grandparent {
+        child {
+            son
+            daughter
+        }
+        child {
+            son
+            daughter
+        }
+    }
+
+    grandparent2 name="Harold" age=93 {
+        child name="Harold II" age=60 allergies=false {
+            son name="Joe"
+            daughter name="Akiko" birthday=1976/04/18
+        }
+        child name="Jose" {
+            child name="child1"
+            child name="child2"
+            child name="child3"
+        }
+    }
+
+    line { child { grandchild "hello" } }
+
+    line2 "I'm here" { child 1 2 { grandchild 1 2 3 } }
+
+    tree2 "I'm here" {
+        child 1 2 {
+            granchild 1 2 3
+        }
+    }
+}
+
+
+# Test anonymous tags (no ID) -----------------------------------
+
+AnonymousTags {
+    "hello"
+
+    files {
+        "c:/file1.txt"
+        "c:/file2.txt"
+        "c:/folder" {
+            "c:/file3.txt"
+            "c:/file4.txt"
+        }
+    }
+
+    matrix {
+        1	2	3
+        4	5	6
+    }
+}
+
+# Check semicolons (forced line end) behavior
+
+Semicolons {
+
+    twoLines {
+        "line1";"line2"
+    }
+
+    threeLines {
+        "line1";"line2"; "line3"
+    }
+
+    // six tags on two lines with semicolons everywhere
+    sixLines {
+        "line1";"line2";\
+            "line3"
+        ;;1;2;;;  3;;
+    }
+
+    "name"; textbox "Joe"
+}
+
+# Complex tags with namespaces, values, attributes, children and comments -----------------------------------
+
+ComplexTags {
+
+    person:random_guy // nice guy
+
+    monkey:friend bananas=yes {
+        pet Fluffy size="large" sheds=true
+    }
+
+    person:grandparent3 name="Harold" age=93 {
+        person:child name="Sabrina" age=93 allergies=false { #comment here...
+            person:son name="Joe" # Good at soccer
+            person:daughter public:name="Akiko" private:allergies=true \
+                public:birthday=1976/04/18
+            dog name="Spot"
+            /* cat name="Scratches" */
+        }
+
+        person:child name="Jose" {
+            person:son
+            person:daughter
+        }
+    }
+
+    person:yuka 10.5 true "🙂" "مرحبا كيف حالك" age=65 location="札幌市" birthday=1975/05/01 {
+        relative:child info:name="武" { relative:grandchild info:name = "ゆか" }
+        Jill second=true
+        Manuel 1 2
+    }
+}
+
+
+# Data structures -----------------------------------
+
+Structs {
+    list [1 2 3]
+    map ["name"="Joe" "age"=32]
+    mapWithCommas ["name"="Etsuko", "age"=35]
+    emptylist []
+    emptyMap [=]
+
+    lists [[1 2][3 4][5,6]] // commas are optional
+    listWithMap [55 ["name"="Joe" "age"=32]]
+    mapWithLists["list1"=[1 2 3] "list2"=[1 2 3]]
+    mapWithMap [
+        pets=[dog="fluffy" cat="whiskers"]
+        coins=[ja='¥' us='$']
+    ]
+
+    mapWithNakedStrings [red=255 green=0 blue=0]
+
+    fancyMap "crazy map" works=true map=[
+        "nums"=[1 2 3]
+        "chars"=["a" "b" "c"]
+        "maps"=[
+            "person"=["name"="Jim" "age"=25]
+            "pet"=["name"="Rufus" "age"=3]
+        ]
+    ]
+
+    # Anonymous Map
+    [
+        "name" = "José"
+        "age" = 24
+        "hobby" =
+            "rock collecting"
+    ]
+
+    matrix {
+        1   2   3
+        4   5   6
+        7   8   9
+    }
+}
+
