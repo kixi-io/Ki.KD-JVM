@@ -4,7 +4,8 @@ This is a [JVM](https://en.wikipedia.org/wiki/Java_virtual_machine) implementati
 [KD (Ki Declarative) language](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)). It
 is written in [Kotlin](https://kotlinlang.org/) with annotations that allow it to be used
 equally well with [Java](https://en.wikipedia.org/wiki/Java_(programming_language)) and
-other JVM languages.
+other [JVM languages](https://en.wikipedia.org/wiki/List_of_JVM_languages) such as Scala,
+Jython and JRuby.
 
 KD is a simple delcarative language with rich type inferencing and the ability to easily
 work with portable high precision numeric and temporal data. It is well suited for
