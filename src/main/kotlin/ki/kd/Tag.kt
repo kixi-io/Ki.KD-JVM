@@ -15,7 +15,7 @@ import ki.Ki
  * ```
  *     size 4
  *     secure true
- *     version 5.2.3.beta
+ *     version 5.2.3-beta
  *     range 25..50
  *     oddValues 1 3 5 7
  *     valueAndAtt "manahoana" greeting=true

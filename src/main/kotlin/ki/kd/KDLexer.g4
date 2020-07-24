@@ -97,9 +97,9 @@ LongLiteral
     ;
 
 // Version --- ---
-Version: (IntegerLiteral '.' ID) |
-         (IntegerLiteral '.' IntegerLiteral '.' ID) |
-         (IntegerLiteral '.' IntegerLiteral '.' IntegerLiteral ('.' ID)?);
+Version: (IntegerLiteral '-' ID) |
+         (IntegerLiteral '.' IntegerLiteral '-' ID) |
+         (IntegerLiteral '.' IntegerLiteral '.' IntegerLiteral ('-' ID)?);
 // String --- ---
 StringLiteral
    : ( '@'?  ( BlockStringLiteral | SimpleString ) ) | RawBlockStringLiteral
