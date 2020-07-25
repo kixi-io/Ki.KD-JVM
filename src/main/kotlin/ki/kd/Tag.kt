@@ -1,6 +1,6 @@
 package ki.kd
 
-import ki.Ki
+import io.kixi.ki.Ki
 
 /**
  * KD documents are composed of KD tags. Tags contain:

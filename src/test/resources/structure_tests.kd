@@ -26,7 +26,7 @@ Values {
           "two"
 
     values7 null "foo" false 1980/12/5
-    values8 null "foo" false 1980/12/5@12:30 `there` 'a'
+    values8 null "foo" false 1980/12/5@12:30 `there`
     values9 null "foo" false 1980/12/5@12:30 `there` 'a'
     values10 null "foo" false 1980/12/5@12:30 `there` 'a' \
         "more stuff"

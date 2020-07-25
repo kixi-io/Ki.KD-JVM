@@ -1,7 +1,7 @@
 package ki.kd
 
-import ki.text.ParseException
-import ki.text.isKiIdentifier
+import io.kixi.ki.text.ParseException
+import io.kixi.ki.text.isKiIdentifier
 
 /**
  * NSIDs are an ID (key identifier) with an optional namespace. They are used for

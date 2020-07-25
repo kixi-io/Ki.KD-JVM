@@ -1,12 +1,14 @@
 package ki.kd
 
-import ki.Ki
-import ki.Range
-import ki.Version
+import io.kixi.ki.Ki
+import io.kixi.ki.Range
+import io.kixi.ki.Version
+import io.kixi.ki.log
+import io.kixi.ki.text.ParseException
+
 import ki.kd.antlr.KDLexer
 import ki.kd.antlr.KDParser
-import ki.log
-import ki.text.ParseException
+
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import java.io.Reader
@@ -20,19 +22,17 @@ import java.time.format.DateTimeFormatter
 /**
  * TODO:
  *
- * 1. Get the interpreter working again (fix the stuck on commas and bin64 issue)
- * 2. Get Bin64 working
- * 3. Review and get Strings working in line with the spec
+ * 1. Get Bin64 working
+ * 2. Review and get Strings working in line with the spec
  *    https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)
- * 4. Review numbers - Doubles and Floats seem to be off
- * 5. Get formatting working correctly for all types (e.g. dates, durations, etc.)
- * 6. Ensure testing is comprehensive
- * 7. Clean up files
- * 8. Finish the Tag class
- * 9. Fix all warnings
- * 10. Add annotations to allow KD to play nice with Java
- * 11. Update documentation
- * 12. -- Beta 1 release --
+ * 3. Get formatting working correctly for all types (e.g. dates, durations, etc.)
+ * 4. Ensure testing is comprehensive
+ * 5. Clean up files
+ * 6. Finish the Tag class
+ * 7. Fix all warnings
+ * 8. Add annotations to allow KD to play nice with Java
+ * 9. Update documentation
+ * 10. -- Beta 1 release --
  */
 class Interpreter {
 
@@ -57,14 +57,10 @@ class Interpreter {
         val tagListCtx = parser.tagList()
         val tags = ArrayList<Tag>()
 
-        // log("tagListCtx childCount: ${tagListCtx.childCount}")
-
         if(tagListCtx == null || tagListCtx.tag().count() == 0)
             return tags
 
         val childCount = tagListCtx.tag().count()
-
-        log("Child count: $childCount")
 
         (0 until childCount).forEach { i ->
             val child = tagListCtx.tag(i)
@@ -91,15 +87,12 @@ class Interpreter {
             }
         }
 
-        log("Got tag name $name")
-
         val tag = Tag(name, namespace)
 
         val valuesCtx = tree.valueList()
 
         if(valuesCtx != null) {
             for(vc in valuesCtx.value()) {
-                log("Parsing value ${vc.text}")
                 tag.values.add(makeValue(vc))
             }
         }
@@ -145,7 +138,6 @@ class Interpreter {
 
         //// Strings --- ---
         if(ctx.StringLiteral()!=null) {
-            log("Got a string literal")
             return stripQuotes(text)
         }
 
@@ -201,14 +193,13 @@ class Interpreter {
 
         //// TODO: Bin64 - Ignore for now.
 
-        /*
+
         if(ctx.bin64() != null) {
             // log("Got bin64")
             // return "bin64"
 
             return ctx.bin64().BIN64_DATA().text
         }
-        */
 
         //// TODO: Duration --- ---
 
@@ -561,10 +552,15 @@ class Interpreter {
     }
 
     private fun makeDecimalRange(ctx: KDParser.DecimalRangeContext): Range<BigDecimal> {
-        val leftText = ctx.getChild(0).text
+        var leftText = ctx.getChild(0).text
         val leftOpen = (leftText == "_")
-        val rightText = ctx.getChild(2).text
+        var rightText = ctx.getChild(2).text
         val rightOpen = (rightText == "_")
+
+        if(leftText.last().equals('m', ignoreCase = true))
+            leftText = leftText.substring(0, leftText.length-1)
+        if(rightText.last().equals('m', ignoreCase = true))
+            rightText = rightText.substring(0, rightText.length-1)
 
         val op = rangeOp(ctx.rangeOp().text)
 
@@ -586,10 +582,10 @@ class Interpreter {
     }
 
     private fun makeLongRange(ctx: KDParser.LongRangeContext): Range<Long> {
-        val left = ctx.getChild(0).text;
+        val left = ctx.getChild(0).text
         val openLeft = (left == "_")
         val op = rangeOp(ctx.rangeOp().text)
-        val right = ctx.getChild(2).text;
+        val right = ctx.getChild(2).text
         val openRight = (right == "_")
 
         return when {
@@ -647,7 +643,7 @@ class Interpreter {
         return text;
     }
 
-    public fun read(code:String) : List<Tag> {
+    fun read(code:String) : List<Tag> {
         return read(StringReader(code))
     }
 }
@@ -659,10 +655,17 @@ fun main() {
     log(KD.read(file))
     */
 
-    var root = KD.read("""
+    val root = KD.read("""
         odds 5 7 9
         23d
-        array [1 2 3]
+        array [1 2 3] [4, 5, 6] # Commas optional
+        greet "Aloha" {
+            "It works again!"
+        }
+        data .bin64(213)
+        12.5.2-beta5
+        12..90
+        _..<4.5m
     """)
 
     log(root)

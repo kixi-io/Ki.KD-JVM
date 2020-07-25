@@ -97,9 +97,12 @@ LongLiteral
     ;
 
 // Version --- ---
-Version: (IntegerLiteral '-' ID) |
-         (IntegerLiteral '.' IntegerLiteral '-' ID) |
-         (IntegerLiteral '.' IntegerLiteral '.' IntegerLiteral ('-' ID)?);
+Version: (NumberPart '-' VersionQualifierAndNum) |
+         (NumberPart '.' NumberPart '-' VersionQualifierAndNum) |
+         (NumberPart '.' NumberPart '.' NumberPart ('-' VersionQualifierAndNum)?);
+
+fragment VersionQualifierAndNum: VersionQualifier ('-'? NumberPart)?;
+
 // String --- ---
 StringLiteral
    : ( '@'?  ( BlockStringLiteral | SimpleString ) ) | RawBlockStringLiteral
@@ -201,6 +204,8 @@ fragment IDStart: [$_\p{Alpha}\p{General_Category=Other_Letter}\p{Emoji_Presenta
 
 // Any unicode letter, digit, emoji, $ or _
 fragment IDChar: [$_\p{Alnum}\p{General_Category=Other_Letter}\p{Emoji}\p{Join_Control}\p{Variation_Selector}];
+
+fragment VersionQualifier: [\p{Alpha}]+;
 
 ID: IDStart IDChar*;
 

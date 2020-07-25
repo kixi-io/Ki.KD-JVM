@@ -1,6 +1,6 @@
 package ki.kd
 
-import ki.text.ParseException
+import io.kixi.ki.text.ParseException
 
 /**
  * A `ParseException` while reading KD code. Note that the index is the location within
