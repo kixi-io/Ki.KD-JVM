@@ -46,7 +46,7 @@ null
 '@'
 '+'
 '_'
-'.bin64'
+'.base64'
 null
 null
 null
@@ -102,8 +102,8 @@ DASH
 AT
 PLUS
 UNDERSCORE
-BIN64
-BIN64_DATA
+BASE64
+BASE64_DATA
 ID
 BlockComment
 LineComment
@@ -134,7 +134,7 @@ nsName
 list
 pair
 map
-bin64
+base64
 dateTime
 
 

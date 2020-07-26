@@ -5,8 +5,9 @@ import io.kixi.ki.Range
 import io.kixi.ki.Version
 import io.kixi.ki.log
 import io.kixi.ki.text.ParseException
-
 import ki.kd.antlr.KDLexer
+
+
 import ki.kd.antlr.KDParser
 
 import org.antlr.v4.runtime.CharStreams
@@ -191,14 +192,13 @@ class Interpreter {
             return Version.parse(text)
         }
 
-        //// TODO: Bin64 - Ignore for now.
+        //// TODO: Base64 - Finish implementation.
 
-
-        if(ctx.bin64() != null) {
+        if(ctx.base64() != null) {
             // log("Got bin64")
             // return "bin64"
 
-            return ctx.bin64().BIN64_DATA().text
+            return ctx.base64().BASE64_DATA().text
         }
 
         //// TODO: Duration --- ---
@@ -666,13 +666,15 @@ fun main() {
         12.5.2-beta5
         12..90
         _..<4.5m
+        2020/7/26@9:02
+        2020/7/26@9:02z
     """)
 
     log(root)
 
     // TODO: Fix broken cases below
 
-    /*
+
     log(KD.read("""
             dan leuck age=48 birthday=1972/5/23 url=http://ikayzo.com {
                 kai
@@ -685,7 +687,7 @@ fun main() {
             x:nums [1 2 3]
             x:map [name="Dan" animal="lemur"]
             
-            // .bin64(123) // TODO: Make this work!
+            .bin64(123)
             
             ranges {
                 0..5  
@@ -703,7 +705,7 @@ fun main() {
                 _..'g'
                 'g'.._
                 2f<..<5.24f
-                # 2d..5.24d    
+                2d..5.24d    
 
                 
                 2010/12/25 .. 2020/5/15
@@ -714,6 +716,5 @@ fun main() {
                 # TODO: Duration
             }
         """.trimIndent()))
-        */
 }
 

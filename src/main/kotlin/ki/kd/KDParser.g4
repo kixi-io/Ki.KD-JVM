@@ -29,7 +29,7 @@ value:
     | range
     | Version
     // Encodings
-    | bin64
+    | base64
     ;
 
 // Duration
@@ -75,6 +75,6 @@ map: ('[' NL* pair (COMMA? pair)* NL* ']') | ('[' '=' ']');
 
 // ETC
 
-bin64: BIN64 BIN64_DATA;
+base64: BASE64 BASE64_DATA;
 
 dateTime: Date Time?;

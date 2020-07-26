@@ -163,7 +163,9 @@ NanosecondDuration: Number 'ns';
 // Example: 1980/5/23@12:30:15.123_534_623/PST
 Date: '-'? DecDigits '/' DecDigit DecDigit? '/' DecDigit DecDigit?;
 // should also support "T" for time like ISO-8601?
-Time: AT DecDigits':' DecDigits (':' DecDigits ('.' DecDigits DoubleExponent?)?)? TimeZone?;
+Time: AT DecDigits':' DecDigits (':' DecDigits ('.' NumberPart DoubleExponent?)?)? TimeZone?;
+// TODO: Switch from /timezone to -timezone
+// TODO: Handle location based timezones (long-form standard)
 fragment TimeZone: '/'? ([a-zA-Z]+) ([+\-] DecDigit DecDigit? (':' DecDigit DecDigit)?)?;
 
 // Range Operators
@@ -192,10 +194,10 @@ UNDERSCORE: '_';
 
 // Encodings --- ---
 
-BIN64: '.bin64';
+BASE64: '.base64';
 
 // Complies with "The Base64 Alphabet" as specified in Table 1 of RFC 4648
-BIN64_DATA: '(' [A-Za-z0-9+=/ \t\r\n]* ')'; // '(' [ \t\r\n]* ([A-Za-z0-9+=/]* [ \t\r\n]*)* ')';
+BASE64_DATA: '(' [A-Za-z0-9+=/ \t\r\n]* ')'; // '(' [ \t\r\n]* ([A-Za-z0-9+=/]* [ \t\r\n]*)* ')';
 
 // Identifiers --- ---
 

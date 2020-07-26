@@ -25,7 +25,7 @@ public class KDParser extends Parser {
 		Date=25, Time=26, InclusiveRangeOp=27, ExclusiveRangeOp=28, ExclusiveLeftOp=29, 
 		ExclusiveRightOp=30, DOT=31, COLON=32, SEMICOLON=33, EQUALS=34, OPEN=35, 
 		CLOSE=36, LPAREN=37, RPAREN=38, LSQUARE=39, RSQUARE=40, COMMA=41, SLASH=42, 
-		DASH=43, AT=44, PLUS=45, UNDERSCORE=46, BIN64=47, BIN64_DATA=48, ID=49, 
+		DASH=43, AT=44, PLUS=45, UNDERSCORE=46, BASE64=47, BASE64_DATA=48, ID=49, 
 		BlockComment=50, LineComment=51, WS=52, NL=53;
 	public static final int
 		RULE_tagList = 0, RULE_tag = 1, RULE_value = 2, RULE_duration = 3, RULE_rangeOp = 4, 
@@ -33,13 +33,13 @@ public class KDParser extends Parser {
 		RULE_decimalRange = 9, RULE_durationRange = 10, RULE_dateTimeRange = 11, 
 		RULE_versionRange = 12, RULE_charRange = 13, RULE_stringRange = 14, RULE_range = 15, 
 		RULE_valueList = 16, RULE_attribute = 17, RULE_attributeList = 18, RULE_nsName = 19, 
-		RULE_list = 20, RULE_pair = 21, RULE_map = 22, RULE_bin64 = 23, RULE_dateTime = 24;
+		RULE_list = 20, RULE_pair = 21, RULE_map = 22, RULE_base64 = 23, RULE_dateTime = 24;
 	private static String[] makeRuleNames() {
 		return new String[] {
 			"tagList", "tag", "value", "duration", "rangeOp", "intRange", "longRange", 
 			"floatRange", "doubleRange", "decimalRange", "durationRange", "dateTimeRange", 
 			"versionRange", "charRange", "stringRange", "range", "valueList", "attribute", 
-			"attributeList", "nsName", "list", "pair", "map", "bin64", "dateTime"
+			"attributeList", "nsName", "list", "pair", "map", "base64", "dateTime"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
@@ -50,7 +50,7 @@ public class KDParser extends Parser {
 			null, null, null, null, null, null, null, null, null, null, null, null, 
 			null, null, null, "'..'", "'<..<'", "'<..'", "'..<'", "'.'", "':'", "';'", 
 			"'='", "'{'", "'}'", "'('", "')'", "'['", "']'", "','", "'/'", "'-'", 
-			"'@'", "'+'", "'_'", "'.bin64'"
+			"'@'", "'+'", "'_'", "'.base64'"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
@@ -64,7 +64,7 @@ public class KDParser extends Parser {
 			"Time", "InclusiveRangeOp", "ExclusiveRangeOp", "ExclusiveLeftOp", "ExclusiveRightOp", 
 			"DOT", "COLON", "SEMICOLON", "EQUALS", "OPEN", "CLOSE", "LPAREN", "RPAREN", 
 			"LSQUARE", "RSQUARE", "COMMA", "SLASH", "DASH", "AT", "PLUS", "UNDERSCORE", 
-			"BIN64", "BIN64_DATA", "ID", "BlockComment", "LineComment", "WS", "NL"
+			"BASE64", "BASE64_DATA", "ID", "BlockComment", "LineComment", "WS", "NL"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -172,7 +172,7 @@ public class KDParser extends Parser {
 			setState(65);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NULL) | (1L << TRUE) | (1L << FALSE) | (1L << URL) | (1L << FloatLiteral) | (1L << DoubleLiteral) | (1L << DecimalLiteral) | (1L << IntegerLiteral) | (1L << HexLiteral) | (1L << BinLiteral) | (1L << LongLiteral) | (1L << Version) | (1L << StringLiteral) | (1L << CharLiteral) | (1L << CompoundDuration) | (1L << DayDuration) | (1L << HourDuration) | (1L << MinuteDuration) | (1L << SecondDuration) | (1L << MillisecondDuration) | (1L << NanosecondDuration) | (1L << Date) | (1L << LSQUARE) | (1L << UNDERSCORE) | (1L << BIN64) | (1L << ID))) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NULL) | (1L << TRUE) | (1L << FALSE) | (1L << URL) | (1L << FloatLiteral) | (1L << DoubleLiteral) | (1L << DecimalLiteral) | (1L << IntegerLiteral) | (1L << HexLiteral) | (1L << BinLiteral) | (1L << LongLiteral) | (1L << Version) | (1L << StringLiteral) | (1L << CharLiteral) | (1L << CompoundDuration) | (1L << DayDuration) | (1L << HourDuration) | (1L << MinuteDuration) | (1L << SecondDuration) | (1L << MillisecondDuration) | (1L << NanosecondDuration) | (1L << Date) | (1L << LSQUARE) | (1L << UNDERSCORE) | (1L << BASE64) | (1L << ID))) != 0)) {
 				{
 				{
 				setState(56);
@@ -364,8 +364,8 @@ public class KDParser extends Parser {
 			return getRuleContext(RangeContext.class,0);
 		}
 		public TerminalNode Version() { return getToken(KDParser.Version, 0); }
-		public Bin64Context bin64() {
-			return getRuleContext(Bin64Context.class,0);
+		public Base64Context base64() {
+			return getRuleContext(Base64Context.class,0);
 		}
 		public ValueContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -537,7 +537,7 @@ public class KDParser extends Parser {
 				enterOuterAlt(_localctx, 21);
 				{
 				setState(106);
-				bin64();
+				base64();
 				}
 				break;
 			}
@@ -1989,7 +1989,7 @@ public class KDParser extends Parser {
 				setState(299);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NULL) | (1L << TRUE) | (1L << FALSE) | (1L << URL) | (1L << FloatLiteral) | (1L << DoubleLiteral) | (1L << DecimalLiteral) | (1L << IntegerLiteral) | (1L << HexLiteral) | (1L << BinLiteral) | (1L << LongLiteral) | (1L << Version) | (1L << StringLiteral) | (1L << CharLiteral) | (1L << CompoundDuration) | (1L << DayDuration) | (1L << HourDuration) | (1L << MinuteDuration) | (1L << SecondDuration) | (1L << MillisecondDuration) | (1L << NanosecondDuration) | (1L << Date) | (1L << LSQUARE) | (1L << COMMA) | (1L << UNDERSCORE) | (1L << BIN64) | (1L << ID))) != 0)) {
+				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NULL) | (1L << TRUE) | (1L << FALSE) | (1L << URL) | (1L << FloatLiteral) | (1L << DoubleLiteral) | (1L << DecimalLiteral) | (1L << IntegerLiteral) | (1L << HexLiteral) | (1L << BinLiteral) | (1L << LongLiteral) | (1L << Version) | (1L << StringLiteral) | (1L << CharLiteral) | (1L << CompoundDuration) | (1L << DayDuration) | (1L << HourDuration) | (1L << MinuteDuration) | (1L << SecondDuration) | (1L << MillisecondDuration) | (1L << NanosecondDuration) | (1L << Date) | (1L << LSQUARE) | (1L << COMMA) | (1L << UNDERSCORE) | (1L << BASE64) | (1L << ID))) != 0)) {
 					{
 					{
 					setState(294);
@@ -2296,38 +2296,38 @@ public class KDParser extends Parser {
 		return _localctx;
 	}
 
-	public static class Bin64Context extends ParserRuleContext {
-		public TerminalNode BIN64() { return getToken(KDParser.BIN64, 0); }
-		public TerminalNode BIN64_DATA() { return getToken(KDParser.BIN64_DATA, 0); }
-		public Bin64Context(ParserRuleContext parent, int invokingState) {
+	public static class Base64Context extends ParserRuleContext {
+		public TerminalNode BASE64() { return getToken(KDParser.BASE64, 0); }
+		public TerminalNode BASE64_DATA() { return getToken(KDParser.BASE64_DATA, 0); }
+		public Base64Context(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_bin64; }
+		@Override public int getRuleIndex() { return RULE_base64; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof KDParserListener ) ((KDParserListener)listener).enterBin64(this);
+			if ( listener instanceof KDParserListener ) ((KDParserListener)listener).enterBase64(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof KDParserListener ) ((KDParserListener)listener).exitBin64(this);
+			if ( listener instanceof KDParserListener ) ((KDParserListener)listener).exitBase64(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof KDParserVisitor ) return ((KDParserVisitor<? extends T>)visitor).visitBin64(this);
+			if ( visitor instanceof KDParserVisitor ) return ((KDParserVisitor<? extends T>)visitor).visitBase64(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final Bin64Context bin64() throws RecognitionException {
-		Bin64Context _localctx = new Bin64Context(_ctx, getState());
-		enterRule(_localctx, 46, RULE_bin64);
+	public final Base64Context base64() throws RecognitionException {
+		Base64Context _localctx = new Base64Context(_ctx, getState());
+		enterRule(_localctx, 46, RULE_base64);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(365);
-			match(BIN64);
+			match(BASE64);
 			setState(366);
-			match(BIN64_DATA);
+			match(BASE64_DATA);
 			}
 		}
 		catch (RecognitionException re) {

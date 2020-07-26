@@ -292,13 +292,13 @@ public class KDParserBaseListener implements KDParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterBin64(KDParser.Bin64Context ctx) { }
+	@Override public void enterBase64(KDParser.Base64Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitBin64(KDParser.Bin64Context ctx) { }
+	@Override public void exitBase64(KDParser.Base64Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

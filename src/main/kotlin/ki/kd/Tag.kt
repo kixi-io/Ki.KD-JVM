@@ -87,7 +87,7 @@ class Tag {
 
     constructor(name:String, namespace:String = ""): this(NSID(name, namespace)) {}
 
-    fun isAnonymous(): Boolean = nsid === NSID.ANONYMOUS
+    fun isAnonymous(): Boolean = nsid == NSID.ANONYMOUS
 
     companion object {
         private val NEW_LINE = System.getProperty("line.separator")

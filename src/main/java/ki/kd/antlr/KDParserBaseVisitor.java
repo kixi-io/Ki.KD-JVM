@@ -178,7 +178,7 @@ public class KDParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implemen
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitBin64(KDParser.Bin64Context ctx) { return visitChildren(ctx); }
+	@Override public T visitBase64(KDParser.Base64Context ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

@@ -355,11 +355,11 @@ Ranges {
 
 Bin64 {
     # bytes for UTF8 string "hi"
-    hi .bin64(aGk=)
+    hi .base64(aGk=)
 
     # bytes for a small PNG image
 
-    png .bin64(
+    png .base64(
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKnRFWHRDcmVhdGlvbiBUaW1l
         AERpIDQgTXJ6IDIwMDMgMDA6MjQ6MDQgKzAxMDDdSQ6OAAAAB3RJTUUH0wMEAAcllPlrJgAA
         AAlwSFlzAAAK8AAACvABQqw0mAAAAARnQU1BAACxjwv8YQUAAADQSURBVHjaY2CgEDCCyZn/
