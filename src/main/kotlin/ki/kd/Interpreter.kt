@@ -662,7 +662,7 @@ fun main() {
         greet "Aloha" {
             "It works again!"
         }
-        data .bin64(213)
+        data .base64(213)
         12.5.2-beta5
         12..90
         _..<4.5m
@@ -687,7 +687,7 @@ fun main() {
             x:nums [1 2 3]
             x:map [name="Dan" animal="lemur"]
             
-            .bin64(123)
+            .base64(123)
             
             ranges {
                 0..5  
