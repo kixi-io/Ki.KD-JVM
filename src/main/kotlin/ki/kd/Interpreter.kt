@@ -6,10 +6,7 @@ import io.kixi.ki.Version
 import io.kixi.ki.log
 import io.kixi.ki.text.ParseException
 import ki.kd.antlr.KDLexer
-
-
 import ki.kd.antlr.KDParser
-
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import java.io.Reader
@@ -17,8 +14,10 @@ import java.io.StringReader
 import java.math.BigDecimal
 import java.net.MalformedURLException
 import java.net.URL
-import java.time.*
-import java.time.format.DateTimeFormatter
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 /**
  * TODO:
@@ -204,12 +203,12 @@ class Interpreter {
         //// TODO: Duration --- ---
 
         //// DateTime --- ---
-        // Can be a LocalDate, LocalDateTime or ZonedDateTime
+        // Can be a Date, LocalDateTime or ZonedDateTime
 
         val dateTimeCtx = ctx.dateTime()
 
         if(dateTimeCtx!=null) {
-            return makeLocalOrZonedDateOrDateTime(dateTimeCtx, text)
+            return makeTemporal(dateTimeCtx, text)
         }
 
         if(ctx.range() != null) {
@@ -236,78 +235,25 @@ class Interpreter {
     }
 
     /**
-     * Can be Local or Zoned Date or DateTime
+     * Can be Date, LocalDateTime, or ZonedDateTime
      */
-    private fun makeLocalOrZonedDateOrDateTime(ctx: KDParser.DateTimeContext, text:String): Any? {
+    private fun makeTemporal(ctx:KDParser.DateTimeContext, text:String): Any? {
+
+        log("Text passed to makeTemporal: $text")
+
         val timeNode = ctx.Time()
+        val zoneNode = ctx.TimeZone()
 
         if(timeNode==null) {
+            // LocalDate
             return LocalDate.parse(text, Ki.LOCAL_DATE_FORMATTER)
+        } else if(zoneNode==null) {
+            // LocalDateTime
+            return Ki.parseLocalDateTime(text)
         } else {
-            val timeWithZone = timeNode.getText().substring(1)
-            return makeDateTime(LocalDate.parse(ctx.Date().getText(), Ki.LOCAL_DATE_FORMATTER),
-                    timeWithZone)
+            // ZonedDateTime
+            return Ki.parseZonedDateTime(ctx.text)
         }
-    }
-
-    /**
-     * Returns a LocalDateTime or ZonedDateTime if the timezone is present
-     *
-     * TODO: Test, fix "z" zone and other mappings.
-     */
-    private fun makeDateTime(date: LocalDate, timeWithZone:String) : Any {
-        var i=0
-
-        for(c in timeWithZone) {
-            if(c!=':' && c!='.' && c!='_' && !(c>='0' && c<='9')) break
-            i++
-        }
-
-        var timeString = timeWithZone.substring(0, i).replace("_", "")
-        if(timeString[1]==':')
-            timeString = "0$timeString"
-        if(timeString[timeString.length-2]==':')
-            timeString += "0"
-
-        var zone: String = timeWithZone.substring(i)
-
-        if(zone.isEmpty()) {
-            // zone = null;
-        } else if(zone.startsWith("/")) {
-            zone = zone.substring(1)
-        }
-
-
-        val dtformatter = DateTimeFormatter.ISO_LOCAL_TIME
-        val time = LocalTime.parse(timeString, dtformatter)
-
-        if(zone.isEmpty())
-            return LocalDateTime.of(date, time)
-
-        return ZonedDateTime.of(date, time, getZone(zone))
-    }
-
-    private fun getZone(zoneString:String) : ZoneId {
-        val zoneSize = zoneString.length
-        var zone = zoneString
-
-        if(zone.equals("Z", ignoreCase = true)) {
-            zone = "UTC"
-        } else if(zoneSize>1 && (zoneString[1]=='+' || zoneString[1]=='-')) {
-            zone = "UTC" + zoneString.substring(1)
-        } else if(zoneString.startsWith("GMT")) {
-            zone = "UTC" + zoneString.substring(3)
-        }
-
-
-        if(zone.startsWith("UTC") && zoneSize>3) {
-            val colonIndex = zone.indexOf(':')
-            if(colonIndex!=-1 && zone.substring(4, colonIndex).length==1) {
-                zone = zone.substring(0,4) + "0" + zone.substring(4)
-            }
-        }
-
-        return ZoneId.of(zone, ZoneId.SHORT_IDS)
     }
 
     private fun makeList(listCtx:KDParser.ListContext) : List<Any?> {
@@ -386,7 +332,7 @@ class Interpreter {
 
     private fun makeCharRange(ctx: KDParser.CharRangeContext): Range<Char> {
 
-        var leftText = ctx.getChild(0).text
+        val leftText = ctx.getChild(0).text
 
         var openLeft = false
         var leftChar = '\u0000'
@@ -399,7 +345,7 @@ class Interpreter {
 
         var op = rangeOp(ctx.rangeOp().text)
 
-        var rightText = ctx.getChild(2).text
+        val rightText = ctx.getChild(2).text
 
         var openRight = false
         var rightChar = '\u0000'
@@ -438,14 +384,14 @@ class Interpreter {
     }
 
     private fun makeDateTimeRange(ctx: KDParser.DateTimeRangeContext): Range<*> {
-        val left = ctx.getChild(0).text;
+        val left = ctx.getChild(0).text
         val openLeft = (left == "_")
         val op = rangeOp(ctx.rangeOp().text)
         val right = ctx.getChild(2).text
         val openRight = (right == "_")
 
         if(openLeft) {
-            val rightDT = makeLocalOrZonedDateOrDateTime(ctx.dateTime(0)!!, right)!!
+            val rightDT = makeTemporal(ctx.dateTime(0)!!, right)!!
 
             return when (rightDT) {
                 is LocalDate -> Range<LocalDate>(LocalDate.MIN, rightDT, op, openLeft=true)
@@ -457,7 +403,7 @@ class Interpreter {
                         ctx.start.line, ctx.start.charPositionInLine)
             }
         } else if(openRight) {
-            val leftDT = makeLocalOrZonedDateOrDateTime(ctx.dateTime(0)!!, left)!!
+            val leftDT = makeTemporal(ctx.dateTime(0)!!, left)!!
 
             return when (leftDT) {
                 is LocalDate -> Range<LocalDate>(leftDT, LocalDate.MAX, op, openRight=true)
@@ -468,8 +414,8 @@ class Interpreter {
                         ctx.start.line, ctx.start.charPositionInLine)
             }
         } else {
-            val leftDT = makeLocalOrZonedDateOrDateTime(ctx.dateTime(0)!!, left)!!
-            val rightDT = makeLocalOrZonedDateOrDateTime(ctx.dateTime(1)!!, right)!!
+            val leftDT = makeTemporal(ctx.dateTime(0)!!, left)!!
+            val rightDT = makeTemporal(ctx.dateTime(1)!!, right)!!
 
             return when (leftDT) {
                 is LocalDate -> Range<LocalDate>(leftDT, rightDT as LocalDate, op)
@@ -484,10 +430,10 @@ class Interpreter {
 
     // TODO - This needs work. It is using Java's duration string format, not KD's
     private fun makeDurationRange(ctx: KDParser.DurationRangeContext): Range<Duration> {
-        val left = ctx.getChild(0).text;
+        val left = ctx.getChild(0).text
         val openLeft = (left == "_")
         val op = rangeOp(ctx.rangeOp().text)
-        val right = ctx.getChild(2).text;
+        val right = ctx.getChild(2).text
         val openRight = (right == "_")
 
         return when {
@@ -602,7 +548,7 @@ class Interpreter {
         val left = ctx.getChild(0).text;
         val openLeft = (left == "_")
         val op = rangeOp(ctx.rangeOp().text)
-        val right = ctx.getChild(2).text;
+        val right = ctx.getChild(2).text
         val openRight = (right == "_")
 
         return when {
@@ -640,7 +586,7 @@ class Interpreter {
             text = text.substring(1, text.length-1)
         }
 
-        return text;
+        return text
     }
 
     fun read(code:String) : List<Tag> {
@@ -648,7 +594,7 @@ class Interpreter {
     }
 }
 
-// TODO: Move to tests area
+// TODO: Move to tests
 fun main() {
     /*
     var file = Interpreter::class.java.getResource("temp_tests.kd")
@@ -666,8 +612,23 @@ fun main() {
         12.5.2-beta5
         12..90
         _..<4.5m
-        2020/7/26@9:02
-        2020/7/26@9:02z
+        2020/6/5
+        2020/7/9@8:02
+        2020/8/10@9:02-Z
+        2020/9/11@10:02-Z
+
+        2020/5/2
+        2020/06/02 @9:00
+        2020/7/3@10:30:23
+        2020/08/04 @11:00:23.001
+        2020/9/5@12:00:23.001392
+        2020/10/06 @13:35:23.001_392
+        2020/11/7@14:00-9:30
+        2020/12/08 @15:40+9:30
+        2020/1/9@16:00-Z
+        2020/2/10 @17:45-Z
+        2020/3/11@18:00-JP/JST
+        2020/4/12 @19:50-IN/IST
     """)
 
     log(root)
@@ -710,11 +671,10 @@ fun main() {
                 
                 2010/12/25 .. 2020/5/15
                 
-                # 4.3.alpha <.. _
-                # 5.1.beta .. 6.4.0
+                4.3-alpha <.. _
+                5.1-beta .. 6.4.0
                 
                 # TODO: Duration
             }
         """.trimIndent()))
 }
-

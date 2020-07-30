@@ -5,9 +5,6 @@ lexer grammar KDLexer;
  *
  * @author Daniel Leuck
  */
-
-// TODO - Change range to: value rangeop value
-
  channels {
    WHITESPACE,
    COMMENTS
@@ -38,6 +35,7 @@ fragment NonZeroNumberPart
 fragment NumberPart
     : (DecDigit DecDigitOrSeparator* DecDigit | DecDigit)
     ;
+fragment ASCIIAlpha: [a-zA-Z];
 
 /*
 RealLiteral
@@ -160,13 +158,29 @@ SecondDuration: Number 's';
 MillisecondDuration: Number 'ms';
 NanosecondDuration: Number 'ns';
 
-// Example: 1980/5/23@12:30:15.123_534_623/PST
+// See reference: https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)#ZonedDateTime
+
+// TODO: Consider adding ISO style representation
+//   https://en.wikipedia.org/wiki/ISO_8601#Times
+
 Date: '-'? DecDigits '/' DecDigit DecDigit? '/' DecDigit DecDigit?;
-// should also support "T" for time like ISO-8601?
-Time: AT DecDigits':' DecDigits (':' DecDigits ('.' NumberPart DoubleExponent?)?)? TimeZone?;
-// TODO: Switch from /timezone to -timezone
-// TODO: Handle location based timezones (long-form standard)
-fragment TimeZone: '/'? ([a-zA-Z]+) ([+\-] DecDigit DecDigit? (':' DecDigit DecDigit)?)?;
+
+Time: AT DecDigits':' DecDigits (':' DecDigits ('.' NumberPart DoubleExponent?)?)?;
+
+// TODO - Break this into separate parser rules
+TimeZone:
+    // positive offset
+    ('+' DecDigit DecDigit? (':' DecDigit DecDigit)?) |
+    ('-'(
+        // negative offset
+        ( DecDigit DecDigit? (':' DecDigit DecDigit)?) |
+        // UTC (Z)
+        ('UTC' | 'GMT' | 'Z') |
+        // KiTZ
+        ( ASCIIAlpha ASCIIAlpha '/' ASCIIAlpha+ )
+        )
+    )
+;
 
 // Range Operators
 InclusiveRangeOp: '..';

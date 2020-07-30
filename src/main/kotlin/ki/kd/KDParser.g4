@@ -77,4 +77,4 @@ map: ('[' NL* pair (COMMA? pair)* NL* ']') | ('[' '=' ']');
 
 base64: BASE64 BASE64_DATA;
 
-dateTime: Date Time?;
+dateTime: Date (Time TimeZone?)?;
