@@ -200,7 +200,12 @@ class Interpreter {
             return ctx.base64().BASE64_DATA().text
         }
 
-        //// TODO: Duration --- ---
+        //// Duration --- ---
+
+        val durationCtx = ctx.duration()
+        if (durationCtx!=null) {
+            // TODO: finish duration
+        }
 
         //// DateTime --- ---
         // Can be a Date, LocalDateTime or ZonedDateTime
@@ -239,14 +244,12 @@ class Interpreter {
      */
     private fun makeTemporal(ctx:KDParser.DateTimeContext, text:String): Any? {
 
-        log("Text passed to makeTemporal: $text")
-
         val timeNode = ctx.Time()
         val zoneNode = ctx.TimeZone()
 
         if(timeNode==null) {
             // LocalDate
-            return LocalDate.parse(text, Ki.LOCAL_DATE_FORMATTER)
+            return Ki.parseLocalDate(text)
         } else if(zoneNode==null) {
             // LocalDateTime
             return Ki.parseLocalDateTime(text)

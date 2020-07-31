@@ -94,6 +94,8 @@ LongLiteral
     : (IntegerLiteral | HexLiteral | BinLiteral) 'L'
     ;
 
+fragment Number: IntegerLiteral | DoubleLiteral;
+
 // Version --- ---
 Version: (NumberPart '-' VersionQualifierAndNum) |
          (NumberPart '.' NumberPart '-' VersionQualifierAndNum) |
@@ -148,8 +150,6 @@ fragment SECONDS: 's';
 // We can't use the unit durations for other segments because the labels are optional.
 CompoundDuration: '-'? (DayDuration ':')? DecDigits HOURS? ':' DecDigits MINUTES? ':'
           DecDigits ('.' DecDigits DoubleExponent?)? SECONDS?;
-
-fragment Number: IntegerLiteral | DoubleLiteral;
 
 DayDuration: Number 'day';
 HourDuration: Number 'h';
