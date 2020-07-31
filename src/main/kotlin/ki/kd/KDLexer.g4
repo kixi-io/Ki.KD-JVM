@@ -141,22 +141,25 @@ CharLiteral: '\'' (Esc | CharSafeCodePoint) '\'';
 
 // Date, Time and Duration
 
-fragment DAYS: 'day';
+fragment DAYS: 'day' | 'days';
 fragment HOURS: 'h';
 fragment MINUTES: 'min';
 fragment SECONDS: 's';
+fragment MILLIS: 'ms';
+fragment NANOS: 'ns';
 
-// If days are included the label "days" is required. All others are optional.
-// We can't use the unit durations for other segments because the labels are optional.
-CompoundDuration: '-'? (DayDuration ':')? DecDigits HOURS? ':' DecDigits MINUTES? ':'
-          DecDigits ('.' DecDigits DoubleExponent?)? SECONDS?;
+// If days are included the label "day" is required. All others unit specifications are
+// optional. We can't use the unit durations for other segments because the labels are
+// optional.
+// CompoundDuration: '-'? (DayDuration ':')? DecDigits HOURS? ':' DecDigits MINUTES? ':'
+//          DecDigits ('.' DecDigits DoubleExponent?)? SECONDS?;
 
-DayDuration: Number 'day';
-HourDuration: Number 'h';
-MinuteDuration: Number 'min';
-SecondDuration: Number 's';
-MillisecondDuration: Number 'ms';
-NanosecondDuration: Number 'ns';
+DayDuration: Number DAYS;
+HourDuration: Number HOURS;
+MinuteDuration: Number MINUTES;
+SecondDuration: Number SECONDS;
+MillisecondDuration: Number MILLIS;
+NanosecondDuration: Number NANOS;
 
 // See reference: https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)#ZonedDateTime
 

@@ -204,7 +204,7 @@ class Interpreter {
 
         val durationCtx = ctx.duration()
         if (durationCtx!=null) {
-            // TODO: finish duration
+            return makeDuration(durationCtx, text)
         }
 
         //// DateTime --- ---
@@ -237,6 +237,24 @@ class Interpreter {
         val t = ctx.getStart()
 
         throw KDParseException("Unknown literal type.", t.line, t.charPositionInLine)
+    }
+
+    /**
+     * Make single unit or compound Duration
+     *
+     * @param text The flattened string for the Duration node
+     */
+    private fun makeDuration(durationCtx: KDParser.DurationContext, text: String): Duration {
+        // TODO - Finish day and fractional seconds for compound durations and add single
+        // unit Durations.
+
+        /*
+        var parts = text.split(':')
+        return Duration.ofHours(parts[0].toLong())
+                .plus(Duration.ofMinutes(parts[1].toLong()))
+                .plus(Duration.ofSeconds(parts[2].toLong()))
+         */
+        return Ki.parseDuration(text)
     }
 
     /**
@@ -615,6 +633,13 @@ fun main() {
         12.5.2-beta5
         12..90
         _..<4.5m
+        
+        durations {
+            1:30:00
+            0:15:00
+            10:23:53
+        }
+        
         2020/6/5
         2020/7/9@8:02
         2020/8/10@9:02-Z
@@ -637,7 +662,6 @@ fun main() {
     log(root)
 
     // TODO: Fix broken cases below
-
 
     log(KD.read("""
             dan leuck age=48 birthday=1972/5/23 url=http://ikayzo.com {
