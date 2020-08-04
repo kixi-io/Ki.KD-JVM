@@ -24,6 +24,7 @@ value:
     // Date, DateTime and Duration
     | dateTime
     | duration
+    //| duration
     // etc
     | URL
     | range

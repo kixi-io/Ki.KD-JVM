@@ -260,13 +260,12 @@ Durations {
         dur4 1:0:0
         dur5 12:30:2
         dur6 -12:30:23
-        dur7 12h:30:23s # With optional unit labels
-        dur_with_days 8day:12:30:23
-        dur_with_days_labels 8day:12h:30min:23s # With optional unit labels
+        dur7 12:30:23
+        dur_with_days 8days:12:30:23
     }
 
     UnitDurations {
-        days 15day
+        days 15days
         hours 16h
         minutes 23min
         minutes 2.5min # =30s
@@ -280,21 +279,21 @@ Durations {
     FractionalSeconds {
         dur8 12:30:23.1
         dur9 -12:30:23.12
-        dur10 12h:30:23.123s # With optional unit labels
-        dur11 34day:12:30:23.1 # Day units are mandatory for clarity
+        dur10 12h:30:23.123
+        dur11 34days:12:30:23.1
         dur12 1day:12:30:0
-        dur13 5day:12:30:23.12
+        dur13 5days:12:30:23.12
         dur_frac_sec_millis -12:30:23.103 # milliseconds
-        dur_frac_sec_micros -5day:12:30:23.123534 # microseconds
-        dur_frac_sec_micros_with_sep -5day:12:30:23.123_534 # microseconds with _ separators
-        dur_frac_sec_nanos 7day:12:30:23.123534623 # nanoseconds
-        dur_frac_sec_nanos_with_sep -3day:12:30:23.123_534_623 # nanoseconds with _ separators
-        dur_frac_sec_nanos_with_sep 12day:12h:30min:23.123_534_623s # nanoseconds with _ separators and labels
+        dur_frac_sec_micros -5days:12:30:23.123534 # microseconds
+        dur_frac_sec_micros_with_sep -5days:12:30:23.123_534 # microseconds with _ separators
+        dur_frac_sec_nanos 7days:12:30:23.123534623 # nanoseconds
+        dur_frac_sec_nanos_with_sep -3days:12:30:23.123_534_623 # nanoseconds with _ separators
     }
 
     # Using unit durations
     UnitDurations {
-        days 15day
+        day 1day
+        days 15days
         hours 16h
         minutes 23min
         minutes 2.5min # =150s
@@ -331,7 +330,7 @@ Ranges {
     charRange 'f'..'z'
     stringRange "Bilbo".."Frodo"
     durationRange 5s..10s
-    durationRange2 5day:23:01:02..8day
+    durationRange2 5days:23:01:02..8days
     dateTimeRange 1990/12/5@5:12..2000/02/5@5:23:01
     versionRanges 3.1.0.._  3.0.23-beta-2<..5.0.0
 

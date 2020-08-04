@@ -1,4 +1,4 @@
-package ki.kd
+package io.kixi.kd
 
 import java.io.*
 import java.net.URL

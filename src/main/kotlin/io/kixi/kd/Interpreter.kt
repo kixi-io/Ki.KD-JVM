@@ -1,12 +1,12 @@
-package ki.kd
+package io.kixi.kd
 
-import io.kixi.ki.Ki
-import io.kixi.ki.Range
-import io.kixi.ki.Version
-import io.kixi.ki.log
-import io.kixi.ki.text.ParseException
-import ki.kd.antlr.KDLexer
-import ki.kd.antlr.KDParser
+import io.kixi.Ki
+import io.kixi.Range
+import io.kixi.Version
+import io.kixi.log
+import io.kixi.text.ParseException
+import io.kixi.kd.antlr.KDLexer
+import io.kixi.kd.antlr.KDParser
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import java.io.Reader
@@ -44,7 +44,7 @@ class Interpreter {
         parser = KDParser(CommonTokenStream(lexer))
         parser.buildParseTree = true
 
-        // Test to see if the lexer is working (it is)
+        // Watch the Lexer
         /*
         var vocab = lexer.vocabulary
 
@@ -73,7 +73,7 @@ class Interpreter {
         return tags
     }
 
-    private fun makeTag(tree:KDParser.TagContext) : Tag {
+    private fun makeTag(tree: KDParser.TagContext) : Tag {
 
         val nsNameCtx = tree.nsName()
         var namespace = ""; var name = ""
@@ -260,7 +260,7 @@ class Interpreter {
     /**
      * Can be Date, LocalDateTime, or ZonedDateTime
      */
-    private fun makeTemporal(ctx:KDParser.DateTimeContext, text:String): Any? {
+    private fun makeTemporal(ctx: KDParser.DateTimeContext, text:String): Any? {
 
         val timeNode = ctx.Time()
         val zoneNode = ctx.TimeZone()
@@ -277,7 +277,7 @@ class Interpreter {
         }
     }
 
-    private fun makeList(listCtx:KDParser.ListContext) : List<Any?> {
+    private fun makeList(listCtx: KDParser.ListContext) : List<Any?> {
         val list = ArrayList<Any?>()
 
         for(value in listCtx.value()) {
@@ -288,7 +288,7 @@ class Interpreter {
     }
 
     // TODO: Question - Should KD allow null keys?
-    private fun makeMap(mapCtx:KDParser.MapContext) : Map<Any?,Any?> {
+    private fun makeMap(mapCtx: KDParser.MapContext) : Map<Any?,Any?> {
         val map = HashMap<Any?,Any?>()
 
         for(pair in mapCtx.pair()) {
@@ -298,7 +298,7 @@ class Interpreter {
         return map
     }
 
-    private fun makeRange(ctx:KDParser.RangeContext): Range<*> {
+    private fun makeRange(ctx: KDParser.RangeContext): Range<*> {
 
         val irCtx = ctx.intRange()
         if(irCtx!= null) return makeIntRange(irCtx)
@@ -634,10 +634,21 @@ fun main() {
         12..90
         _..<4.5m
         
+        doubles {
+            100_000.5
+            100_000.222_333
+        }
+
         durations {
             1:30:00
             0:15:00
             10:23:53
+            10:23:53.234
+            10:03:53.002412532
+            2days:10:23:03.002412532
+            1day
+            5days
+            423ns
         }
         
         2020/6/5

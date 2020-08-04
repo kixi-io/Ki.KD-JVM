@@ -148,18 +148,23 @@ fragment SECONDS: 's';
 fragment MILLIS: 'ms';
 fragment NANOS: 'ns';
 
+// Duration: CompoundDuration | DayDuration | HourDuration | MinuteDuration | SecondDuration | MillisecondDuration
+//          | NanosecondDuration;
+
 // If days are included the label "day" is required. All others unit specifications are
 // optional. We can't use the unit durations for other segments because the labels are
 // optional.
-// CompoundDuration: '-'? (DayDuration ':')? DecDigits HOURS? ':' DecDigits MINUTES? ':'
-//          DecDigits ('.' DecDigits DoubleExponent?)? SECONDS?;
+//
+// TODO: We should handle this in the Parser
+CompoundDuration: '-'? (DayDuration ':')? DecDigits HOURS? ':' DecDigits MINUTES? ':'
+          DecDigits ('.' NumberPart DoubleExponent?)? SECONDS?;
 
 DayDuration: Number DAYS;
 HourDuration: Number HOURS;
 MinuteDuration: Number MINUTES;
 SecondDuration: Number SECONDS;
-MillisecondDuration: Number MILLIS;
-NanosecondDuration: Number NANOS;
+MillisecondDuration: IntegerLiteral MILLIS;
+NanosecondDuration: IntegerLiteral NANOS;
 
 // See reference: https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)#ZonedDateTime
 

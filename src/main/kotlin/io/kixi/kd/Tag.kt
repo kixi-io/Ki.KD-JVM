@@ -1,6 +1,6 @@
-package ki.kd
+package io.kixi.kd
 
-import io.kixi.ki.Ki
+import io.kixi.Ki
 
 /**
  * KD documents are composed of KD tags. Tags contain:
@@ -74,14 +74,14 @@ import io.kixi.ki.Ki
  */
 class Tag {
 
-    var nsid:NSID
+    var nsid: NSID
 
     var values = mutableListOf<Any?>()
     var attributes = HashMap<NSID, Any?>();
 
     var children = ArrayList<Tag>()
 
-    constructor(nsid:NSID) {
+    constructor(nsid: NSID) {
         this.nsid = nsid
     }
 
