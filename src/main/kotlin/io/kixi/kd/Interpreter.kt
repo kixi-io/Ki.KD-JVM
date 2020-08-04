@@ -1,5 +1,4 @@
 package io.kixi.kd
-
 import io.kixi.Ki
 import io.kixi.Range
 import io.kixi.Version
@@ -18,6 +17,9 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 /**
  * TODO:
@@ -194,17 +196,18 @@ class Interpreter {
         //// TODO: Base64 - Finish implementation.
 
         if(ctx.base64() != null) {
-            // log("Got bin64")
-            // return "bin64"
+            val base64Text = ctx.base64().BASE64_DATA().text
 
-            return ctx.base64().BASE64_DATA().text
+            return makeBase64(
+                    base64Text.substring(1, base64Text.length-1)
+            )
         }
 
         //// Duration --- ---
 
         val durationCtx = ctx.duration()
         if (durationCtx!=null) {
-            return makeDuration(durationCtx, text)
+            return makeDuration(text)
         }
 
         //// DateTime --- ---
@@ -239,21 +242,18 @@ class Interpreter {
         throw KDParseException("Unknown literal type.", t.line, t.charPositionInLine)
     }
 
+    private fun makeBase64(encText: String): ByteArray {
+        return Base64.getDecoder().decode(
+                encText.replace(Regex("\\s+"), "")
+        )
+    }
+
     /**
      * Make single unit or compound Duration
      *
      * @param text The flattened string for the Duration node
      */
-    private fun makeDuration(durationCtx: KDParser.DurationContext, text: String): Duration {
-        // TODO - Finish day and fractional seconds for compound durations and add single
-        // unit Durations.
-
-        /*
-        var parts = text.split(':')
-        return Duration.ofHours(parts[0].toLong())
-                .plus(Duration.ofMinutes(parts[1].toLong()))
-                .plus(Duration.ofSeconds(parts[2].toLong()))
-         */
+    private fun makeDuration(text: String): Duration {
         return Ki.parseDuration(text)
     }
 
@@ -364,7 +364,7 @@ class Interpreter {
             leftChar = leftText[1]
         }
 
-        var op = rangeOp(ctx.rangeOp().text)
+        val op = rangeOp(ctx.rangeOp().text)
 
         val rightText = ctx.getChild(2).text
 
@@ -629,8 +629,8 @@ fun main() {
         greet "Aloha" {
             "It works again!"
         }
-        data .base64(213)
-        12.5.2-beta5
+        // data .base64(SGVsbG8=)
+        12.5.2-beta-5
         12..90
         _..<4.5m
         
@@ -686,7 +686,7 @@ fun main() {
             x:nums [1 2 3]
             x:map [name="Dan" animal="lemur"]
             
-            .base64(123)
+            greeting .base64(SGVsbG8=) # the bytes from "Hello"
             
             ranges {
                 0..5  
@@ -715,4 +715,23 @@ fun main() {
                 # TODO: Duration
             }
         """.trimIndent()))
+
+    /*
+    log(KD.read("""
+        tag1
+        dan leuck age=48 birthday=1972/5/23 url=http://ikayzo.com {
+            kai
+            noa {
+                chocolate
+                bata
+            }
+        }
+        """))
+     */
+    log(KD.read("hi 5; ho 6"))
+
+    log("=========================")
+    var bytes = KD.read(".base64(SGVsbG8=)").value as ByteArray
+    log(String(bytes))
+    log(Ki.format(bytes))
 }
