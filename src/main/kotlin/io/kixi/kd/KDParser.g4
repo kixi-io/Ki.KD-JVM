@@ -13,7 +13,7 @@ tag:
 
 value:
     // Strings
-    StringLiteral | CharLiteral | ID
+    stringLiteral | CharLiteral | ID
     // Numbers
     | IntegerLiteral | HexLiteral | BinLiteral | LongLiteral
     | FloatLiteral | DoubleLiteral | DecimalLiteral
@@ -33,6 +33,14 @@ value:
     | base64
     ;
 
+// String
+stringLiteral:
+    BasicString |
+    RawString |
+    BlockBasicString |
+    BlockRawString |
+    BlockRawAltString;
+
 // Duration
 duration: CompoundDuration | DayDuration | HourDuration | MinuteDuration | SecondDuration | MillisecondDuration
           | NanosecondDuration;
@@ -50,7 +58,7 @@ durationRange: ('_' rangeOp duration) | (duration rangeOp '_') | (duration range
 dateTimeRange: ('_' rangeOp dateTime) | (dateTime rangeOp '_') | (dateTime rangeOp dateTime);
 versionRange: ('_' rangeOp Version) | (Version rangeOp '_') | (Version rangeOp Version);
 charRange: ('_' rangeOp CharLiteral) | (CharLiteral rangeOp '_') | (CharLiteral rangeOp CharLiteral);
-stringRange: ('_' rangeOp StringLiteral) | (StringLiteral rangeOp '_') | (StringLiteral rangeOp StringLiteral);
+stringRange: ('_' rangeOp stringLiteral) | (stringLiteral rangeOp '_') | (stringLiteral rangeOp stringLiteral);
 
 range: intRange | longRange | floatRange | doubleRange | decimalRange | durationRange | dateTimeRange | versionRange
        | charRange | stringRange;

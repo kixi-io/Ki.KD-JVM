@@ -29,6 +29,12 @@ public interface KDParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitValue(KDParser.ValueContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link KDParser#stringLiteral}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStringLiteral(KDParser.StringLiteralContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link KDParser#duration}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

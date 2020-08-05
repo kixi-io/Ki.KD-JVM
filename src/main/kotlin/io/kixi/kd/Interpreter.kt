@@ -6,6 +6,7 @@ import io.kixi.log
 import io.kixi.text.ParseException
 import io.kixi.kd.antlr.KDLexer
 import io.kixi.kd.antlr.KDParser
+import io.kixi.text.resolveEscapes
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import java.io.Reader
@@ -20,21 +21,18 @@ import java.time.ZonedDateTime
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
+import kotlin.reflect.jvm.internal.impl.load.java.JavaClassesTracker
 
 /**
  * TODO:
- *
- * 1. Get Bin64 working
- * 2. Review and get Strings working in line with the spec
+ * 1. Review and get Strings working in line with the spec
  *    https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)
- * 3. Get formatting working correctly for all types (e.g. dates, durations, etc.)
- * 4. Ensure testing is comprehensive
- * 5. Clean up files
- * 6. Finish the Tag class
- * 7. Fix all warnings
- * 8. Add annotations to allow KD to play nice with Java
- * 9. Update documentation
- * 10. -- Beta 1 release --
+ * 2. Clean up files
+ * 3. Finish the Tag class
+ * 4. Fix all warnings
+ * 5. Add annotations to allow KD to play nice with Java
+ * 6. Update documentation
+ * 7. -- Beta 1 release --
  */
 class Interpreter {
 
@@ -139,8 +137,8 @@ class Interpreter {
         val text = ctx.getText()
 
         //// Strings --- ---
-        if(ctx.StringLiteral()!=null) {
-            return stripQuotes(text)
+        if(ctx.stringLiteral()!=null) {
+            return makeString(ctx.stringLiteral())
         }
 
         // Nakes strings (IDs treated as strings)
@@ -196,11 +194,7 @@ class Interpreter {
         //// TODO: Base64 - Finish implementation.
 
         if(ctx.base64() != null) {
-            val base64Text = ctx.base64().BASE64_DATA().text
-
-            return makeBase64(
-                    base64Text.substring(1, base64Text.length-1)
-            )
+            return Ki.parseBase64(ctx.base64().text)
         }
 
         //// Duration --- ---
@@ -242,10 +236,42 @@ class Interpreter {
         throw KDParseException("Unknown literal type.", t.line, t.charPositionInLine)
     }
 
-    private fun makeBase64(encText: String): ByteArray {
-        return Base64.getDecoder().decode(
-                encText.replace(Regex("\\s+"), "")
-        )
+    private fun makeString(parentCtx: KDParser.StringLiteralContext): String {
+        var text = parentCtx.text
+
+        return when {
+            parentCtx.BasicString()!=null -> {
+                log("--- --- ---")
+                log("basic string: " + text)
+                log("--- --- ---")
+                return text.substring(1, text.length-1).resolveEscapes(quoteChar='"')
+            }
+            parentCtx.RawString()!=null -> {
+                log("--- --- ---")
+                log("raw string: " + text)
+                log("--- --- ---")
+                return text.substring(2, text.length-1)
+            }
+            parentCtx.BlockBasicString()!=null -> {
+                log("--- --- ---")
+                log("block basic string: " + text)
+                log("--- --- ---")
+                return text.substring(3, text.length-3).resolveEscapes(quoteChar=null)
+            }
+            parentCtx.BlockRawString()!=null -> {
+                log("--- --- ---")
+                log("block raw string: " + text)
+                log("--- --- ---")
+                return text.substring(4, text.length-3)
+            }
+            parentCtx.BlockRawAltString()!=null -> {
+                log("--- --- ---")
+                log("block raw alt string: " + text)
+                log("--- --- ---")
+                return text.substring(1, text.length-1)
+            }
+            else -> throw ParseException("Unkown String literal type") // should never happen
+        }
     }
 
     /**
@@ -333,20 +359,20 @@ class Interpreter {
         throw KDParseException("Uknown type in range", ctx.start.line, ctx.start.charPositionInLine)
     }
 
-    // TODO - Fix - This leaves quotes on strings.
+    // TODO - Tests!
     private fun makeStringRange(ctx: KDParser.StringRangeContext): Range<String> {
-        val left = ctx.getChild(0).text
+        val left = makeString(ctx.stringLiteral(0))
         val openLeft = (left == "_")
         val op = rangeOp(ctx.rangeOp().text)
-        val right = ctx.getChild(2).text
+        val right = makeString(ctx.stringLiteral(1))
         val openRight = (right == "_")
 
         return when {
-            openLeft -> Range<String>("", ctx.getChild(2).text,
+            openLeft -> Range<String>("", right,
                     op, openLeft, openRight)
-            openRight -> Range<String>(ctx.getChild(0).text, "",
+            openRight -> Range<String>(left, "",
                     op, openLeft, openRight)
-            else -> Range<String>(ctx.getChild(0).text, ctx.getChild(2).text,
+            else -> Range<String>(left, right,
                     op, openLeft, openRight)
         }
     }
@@ -594,6 +620,7 @@ class Interpreter {
         }
     }
 
+    /*
     private fun stripQuotes(value:String): String{
         var text = value
 
@@ -609,6 +636,7 @@ class Interpreter {
 
         return text
     }
+    */
 
     fun read(code:String) : List<Tag> {
         return read(StringReader(code))
@@ -617,121 +645,9 @@ class Interpreter {
 
 // TODO: Move to tests
 fun main() {
-    /*
     var file = Interpreter::class.java.getResource("temp_tests.kd")
-    log(KD.read(file))
-    */
-
-    val root = KD.read("""
-        odds 5 7 9
-        23d
-        array [1 2 3] [4, 5, 6] # Commas optional
-        greet "Aloha" {
-            "It works again!"
-        }
-        // data .base64(SGVsbG8=)
-        12.5.2-beta-5
-        12..90
-        _..<4.5m
-        
-        doubles {
-            100_000.5
-            100_000.222_333
-        }
-
-        durations {
-            1:30:00
-            0:15:00
-            10:23:53
-            10:23:53.234
-            10:03:53.002412532
-            2days:10:23:03.002412532
-            1day
-            5days
-            423ns
-        }
-        
-        2020/6/5
-        2020/7/9@8:02
-        2020/8/10@9:02-Z
-        2020/9/11@10:02-Z
-
-        2020/5/2
-        2020/06/02 @9:00
-        2020/7/3@10:30:23
-        2020/08/04 @11:00:23.001
-        2020/9/5@12:00:23.001392
-        2020/10/06 @13:35:23.001_392
-        2020/11/7@14:00-9:30
-        2020/12/08 @15:40+9:30
-        2020/1/9@16:00-Z
-        2020/2/10 @17:45-Z
-        2020/3/11@18:00-JP/JST
-        2020/4/12 @19:50-IN/IST
-    """)
-
-    log(root)
-
-    // TODO: Fix broken cases below
-
-    log(KD.read("""
-            dan leuck age=48 birthday=1972/5/23 url=http://ikayzo.com {
-                kai
-                noa {
-                    chocolate
-                    bata
-                }
-            }
-
-            x:nums [1 2 3]
-            x:map [name="Dan" animal="lemur"]
-            
-            greeting .base64(SGVsbG8=) # the bytes from "Hello"
-            
-            ranges {
-                0..5  
-                5..0  
-                0<..<5
-                0..<5 
-                0<..5 
-                0.._  
-                _..5  
-                0<.._ 
-                _..<5    
-                
-                'a'..'z'
-                'b'..<'d'
-                _..'g'
-                'g'.._
-                2f<..<5.24f
-                2d..5.24d    
-
-                
-                2010/12/25 .. 2020/5/15
-                
-                4.3-alpha <.. _
-                5.1-beta .. 6.4.0
-                
-                # TODO: Duration
-            }
-        """.trimIndent()))
-
-    /*
-    log(KD.read("""
-        tag1
-        dan leuck age=48 birthday=1972/5/23 url=http://ikayzo.com {
-            kai
-            noa {
-                chocolate
-                bata
-            }
-        }
-        """))
-     */
-    log(KD.read("hi 5; ho 6"))
-
-    log("=========================")
-    var bytes = KD.read(".base64(SGVsbG8=)").value as ByteArray
-    log(String(bytes))
-    log(Ki.format(bytes))
+    var tags = KD.read(file)
+    for(tag in tags.children) {
+        log(tag)
+    }
 }

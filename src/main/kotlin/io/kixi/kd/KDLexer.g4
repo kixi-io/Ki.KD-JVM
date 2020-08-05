@@ -37,33 +37,11 @@ fragment NumberPart
     ;
 fragment ASCIIAlpha: [a-zA-Z];
 
-/*
-RealLiteral
-    : '-'? (FloatLiteral | DoubleLiteral | DecimalLiteral)
-    ;
-*/
-
-/*
-NUMBER
-    :   '-'? INT '.' [0-9]+ EXP? // 1.35, 1.35E-9, 0.3, -4.5
-    |   '-'? INT EXP             // 1e10 -3e4
-    |   '-'? INT                 // -3, 45
-    ;
-fragment INT :   '0' | [1-9] [0-9]* ; // no leading zeros
-fragment EXP :   [Ee] [+\-]? INT ; // \- since - means "range" inside [...]
-*/
-
 FloatLiteral
     : '-'? NumberPart? '.' NumberPart DoubleExponent? [fF]
     | '-'? NumberPart DoubleExponent? [fF]
     ;
 
-/*
-DoubleLiteral
-    : '-'? NumberPart? '.' NumberPart DoubleExponent? [dD]?
-    | '-'? NumberPart DoubleExponent? [dD]
-    ;
-*/
 DoubleLiteral
     : '-'? NumberPart? '.' NumberPart DoubleExponent? [dD]?
     | '-'? NumberPart DoubleExponent [dD]?
@@ -104,22 +82,67 @@ Version: (NumberPart '-' VersionQualifierAndNum) |
 fragment VersionQualifierAndNum: VersionQualifier ('-'? NumberPart)?;
 
 // String --- ---
+
+BasicString: '"' (Esc | ~["\r\n\\])* '"';
+RawString: '@"' (~["\r\n])* '"';
+BlockBasicString: '"""' ([\t\r\n] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
+BlockRawString:   '@"""' ([\t\r\n\\] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
+BlockRawAltString:   '`' ([\t\r\n\\] | Esc | SafeCodePoint)*? '`';
+
+// BlockRawAletString: '`' (~'`')*? '`';
+
+/*
+BlockRawString:   '@"""' ([\t\r\n\\] | '""' ~'"' | '"' ~'"' | SafeCodePoint)* '"""';
+BlockRawAltString:  '`' ([\t\r\n\\] | (~'`')  | SafeCodePoint)* '`';
+*/
+
+// '`' ([\t\r\n\\] | (~'`')  | SafeCodePoint)* '`';
+
+// '`' ('\\`' | ~'`')* '`';
+
+/*
+BlockRawString:   '@"""' ([\t\r\n\\] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
+BlockRawAltString:   '`' ([\t\r\n\\] | (~'`')  | Esc | SafeCodePoint)* '`';
+*/
+
+/*
+Static_string_literal : '"' Quoted_text? '"' ;
+fragment Quoted_text : Quoted_text_item+ ;
+fragment Quoted_text_item
+  : Escaped_character
+  | ~["\n\r\\]
+  ;
+fragment
+Escaped_character
+  : '\\' [0\\tnr"']
+  | '\\x' Hexadecimal_digit Hexadecimal_digit
+  | '\\u' '{' Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit '}'
+  | '\\u' '{' Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit '}'
+  ;
+*/
+
+
+/*
 StringLiteral
    : ( '@'?  ( BlockStringLiteral | SimpleString ) ) | RawBlockStringLiteral
    ;
+
 SimpleString: '"' (Esc | SafeCodePoint)* '"';
 BlockStringLiteral
    : '"""' ([\t\r\n] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""'
    ;
 RawBlockStringLiteral
-   : '`' ('\\' '`' | ~'`')* '`';
-fragment EmptyString: '""';
+   : '`'  (~'`')* '`';
+*/
+
+// fragment EmptyString: '""';
 ////
+
 fragment UniCharacterLiteral
     : '\\' 'u' HexDigit HexDigit HexDigit HexDigit
     ;
 fragment EscapedIdentifier
-    : '\\' ('t' | 'b' | 'r' | 'n' | '\'' | '"' | '\\' | '$')
+    : '\\' ('t' | 'b' | 'r' | 'n' | '\'' | '"' | '\\' )
     ;
 fragment Esc
     : UniCharacterLiteral
@@ -128,13 +151,13 @@ fragment Esc
 fragment Unicode // TODO - Add six HEX version
    : 'u' HexDigit HexDigit HexDigit HexDigit
    ;
+
 fragment SafeCodePoint
    : ~ ["\\\u0000-\u001F]
    ;
 fragment CharSafeCodePoint
    : ~ ['\\\u0000-\u001F]
    ;
-
 CharLiteral: '\'' (Esc | CharSafeCodePoint) '\'';
 
 // End String --- ---

@@ -38,6 +38,16 @@ public interface KDParserListener extends ParseTreeListener {
 	 */
 	void exitValue(KDParser.ValueContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link KDParser#stringLiteral}.
+	 * @param ctx the parse tree
+	 */
+	void enterStringLiteral(KDParser.StringLiteralContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KDParser#stringLiteral}.
+	 * @param ctx the parse tree
+	 */
+	void exitStringLiteral(KDParser.StringLiteralContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link KDParser#duration}.
 	 * @param ctx the parse tree
 	 */

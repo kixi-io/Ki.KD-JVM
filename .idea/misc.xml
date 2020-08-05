@@ -29,7 +29,17 @@
           <option name="outputDir" value="$PROJECT_DIR$/src/main/java" />
           <option name="libDir" value="" />
           <option name="encoding" value="UTF8" />
-          <option name="pkg" value="ki.kd.antlr" />
+          <option name="pkg" value="io.kixi.kd.antlr" />
+          <option name="language" value="" />
+          <option name="generateVisitor" value="true" />
+        </PerGrammarGenerationSettings>
+        <PerGrammarGenerationSettings>
+          <option name="fileName" value="$PROJECT_DIR$/src/main/kotlin/io/kixi/kd/KDParser.g4" />
+          <option name="autoGen" value="true" />
+          <option name="outputDir" value="$PROJECT_DIR$/src/main/java" />
+          <option name="libDir" value="" />
+          <option name="encoding" value="UTF8" />
+          <option name="pkg" value="io.kixi.kd.antlr" />
           <option name="language" value="" />
           <option name="generateVisitor" value="true" />
         </PerGrammarGenerationSettings>

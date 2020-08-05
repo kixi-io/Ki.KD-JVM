@@ -1,14 +1,50 @@
-   FractionalSeconds {
-        dur8 12:30:23.1
-        dur9 -12:30:23.12
-        dur10 12h:30:23.123s # With optional unit labels
-        dur11 34day:12:30:23.1 # Day units are mandatory for clarity
-        dur12 1day:12:30:0
-        dur13 5day:12:30:23.12
-        dur_frac_sec_millis -12:30:23.103 # milliseconds
-        dur_frac_sec_micros -5day:12:30:23.123534 # microseconds
-        dur_frac_sec_micros_with_sep -5day:12:30:23.123_534 # microseconds with _ separators
-        dur_frac_sec_nanos 7day:12:30:23.123534623 # nanoseconds
-        dur_frac_sec_nanos_with_sep -3day:12:30:23.123_534_623 # nanoseconds with _ separators
-        dur_frac_sec_nanos_with_sep 12day:12h:30min:23.123_534_623s # nanoseconds with _ separators and labels
-    }
+test1 "foo\n\\\t😋"
+
+test2 @"\root\readme.txt\n\t😋"
+
+test3 """foo\n\\\t😋"""
+
+test4 @"""\root\readme.txt\n\t😋"""
+
+test5 `\root\readme.txt\n\t😋`
+
+test6 """
+        123\n
+        456
+      """
+
+test7 @"""
+        123\n
+        456
+      """
+
+test8 `
+        123\n
+        456
+      `
+
+///// Separate test
+
+test1 "foo\n\\\t😋"
+
+test2 @"\root\readme.txt\n\t😋"
+
+test3 """foo\n\\\t😋"""
+
+test4 @"""\root\readme.txt\n\t😋"""
+
+test5 `\root\readme.txt\n\t😋--`
+
+test6 @"""\root\readme.txt\n\t😋"""
+
+test7 @"""\root\readme.txt\n\t😋
+    line2--"""
+
+test9 `\root\readme.txt\n\t😋
+    line2--`
+
+test10 `Working!`
+
+123
+
+
