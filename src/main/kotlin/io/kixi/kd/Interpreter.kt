@@ -241,33 +241,18 @@ class Interpreter {
 
         return when {
             parentCtx.BasicString()!=null -> {
-                log("--- --- ---")
-                log("basic string: " + text)
-                log("--- --- ---")
                 return text.substring(1, text.length-1).resolveEscapes(quoteChar='"')
             }
             parentCtx.RawString()!=null -> {
-                log("--- --- ---")
-                log("raw string: " + text)
-                log("--- --- ---")
                 return text.substring(2, text.length-1)
             }
             parentCtx.BlockBasicString()!=null -> {
-                log("--- --- ---")
-                log("block basic string: " + text)
-                log("--- --- ---")
                 return text.substring(3, text.length-3).resolveEscapes(quoteChar=null)
             }
             parentCtx.BlockRawString()!=null -> {
-                log("--- --- ---")
-                log("block raw string: " + text)
-                log("--- --- ---")
                 return text.substring(4, text.length-3)
             }
             parentCtx.BlockRawAltString()!=null -> {
-                log("--- --- ---")
-                log("block raw alt string: " + text)
-                log("--- --- ---")
                 return text.substring(1, text.length-1)
             }
             else -> throw ParseException("Unkown String literal type") // should never happen
