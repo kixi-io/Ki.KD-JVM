@@ -1,0 +1,41 @@
+# Test Basic String Blocks
+
+text1 """Line1"""
+
+text2 """
+    Line1
+    """
+
+text3 """
+    Line1
+        Line2
+    Line3
+"""
+
+text4 """
+    Line1
+        Line2
+    Line3
+    """
+
+text5 """
+Line1
+        Line2
+    Line3
+    """
+
+text6 @"""
+    \a\path\readme.md
+    """
+
+text7 @"""
+    slash: \
+    other_escapes: \t\f\n
+    \a\path\readme.md
+    """
+# Same as above but with the backtick alt for raw blocks
+text8 `
+    slash: \
+    other_escapes: \t\f\n
+    \a\path\readme.md
+    `

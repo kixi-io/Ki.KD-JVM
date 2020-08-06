@@ -1,3 +1,51 @@
+text1 """"""
+
+"---"
+
+text2 """line1"""
+
+"---"
+
+text3 """
+    line1
+        line2
+    line3
+    """
+
+text4 """
+    line1
+        line2
+    line3
+"""
+
+text4 """
+    line1
+        line2
+    line3"""
+
+text4 """
+  line1
+        line2
+  line3
+    """
+
+text4 """line1
+        line2
+line3
+"""
+"---"
+
+/*
+text3 """line1
+    line2
+line3"""
+
+text3 """line1
+    line2
+line3"""
+*/
+
+/*
 test1 "foo\n\\\t😋"
 
 test2 @"\root\readme.txt\n\t😋"
@@ -46,5 +94,4 @@ test9 `\root\readme.txt\n\t😋
 test10 `Working!`
 
 123
-
-
+*/

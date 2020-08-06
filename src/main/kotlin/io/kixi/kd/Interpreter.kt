@@ -6,7 +6,9 @@ import io.kixi.log
 import io.kixi.text.ParseException
 import io.kixi.kd.antlr.KDLexer
 import io.kixi.kd.antlr.KDParser
+import io.kixi.text.escape
 import io.kixi.text.resolveEscapes
+import io.kixi.text.toList
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import java.io.Reader
@@ -239,24 +241,104 @@ class Interpreter {
     private fun makeString(parentCtx: KDParser.StringLiteralContext): String {
         var text = parentCtx.text
 
-        return when {
+        when {
             parentCtx.BasicString()!=null -> {
-                return text.substring(1, text.length-1).resolveEscapes(quoteChar='"')
+                text = text.substring(1, text.length-1).resolveEscapes(quoteChar='"')
             }
             parentCtx.RawString()!=null -> {
-                return text.substring(2, text.length-1)
+                text = text.substring(2, text.length-1)
             }
             parentCtx.BlockBasicString()!=null -> {
-                return text.substring(3, text.length-3).resolveEscapes(quoteChar=null)
+                text = trimStringBlockLinePrefixesAndNewLines(
+                        text.substring(3, text.length-3).resolveEscapes(quoteChar=null)
+                )
             }
             parentCtx.BlockRawString()!=null -> {
-                return text.substring(4, text.length-3)
+                text = trimStringBlockLinePrefixesAndNewLines(
+                        text.substring(4, text.length-3)
+                )
             }
             parentCtx.BlockRawAltString()!=null -> {
-                return text.substring(1, text.length-1)
+                text = trimStringBlockLinePrefixesAndNewLines(
+                        text.substring(1, text.length-1)
+                )
             }
             else -> throw ParseException("Unkown String literal type") // should never happen
         }
+
+        return text
+    }
+
+    /**
+     * KD String Blocks trim the beginning of each line to match the indentation of the
+     * closing quotes. Additionally, new lines are removed from the beginning and end
+     * of strings to allow for breaking immediately after the opening string block quotes
+     * and before the ending block quotes.
+     *
+     * ### Example
+     * ```
+     * var text = """
+     *     Lorem ipsum dolor sit amet,
+     *         consectetur adipiscing elit,
+     *     sed do eiusmod tempor incididunt
+     *     """
+     *  ```
+     *
+     *  This `text` string's closing quotes (`"""`) are prefixed with four spaces. These
+     *  four spaces are removed from the beginning of each line. Additionally the new line
+     *  after the opening `"""` and the closing `"""` are removed. The resulting String is
+     *  ```
+     *  Lorem ipsum dolor sit amet,
+     *      consectetur adipiscing elit,
+     *  sed do eiusmod tempor incididunt
+     *  ```
+     *
+     *  Note that the four space indent in the second line is preserved. See
+     *  [KD Strings](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)#String) for more
+     *  details.
+     */
+    fun trimStringBlockLinePrefixesAndNewLines(text:String) : String {
+
+        // TODO: When indent is greater than line start, numbers replace some lines
+
+        if(text.isEmpty() || !text.contains("\n"))
+            return text;
+
+        // remove newlines from beginning and end
+        var trimmedText = text
+
+        if(trimmedText.startsWith('\n'))
+            trimmedText = trimmedText.substring(1)
+
+
+        var lines = trimmedText.lines().toMutableList()
+        var lastLine = lines.last()
+
+        if(lastLine.isBlank()) {
+
+            // find the ws prefix of the last line
+            var wsEnd = 0
+            for (c in lastLine) {
+                if (!c.isWhitespace())
+                    break
+                wsEnd++
+            }
+
+            if (wsEnd != 0 || lastLine.isEmpty()) {
+                var wsPrefix = lastLine.substring(0, wsEnd)
+                lines.removeAt(lines.size-1)
+
+                var buf = StringBuilder()
+                for (i in 0..lines.size - 1) {
+                    buf.append(lines[i].removePrefix(wsPrefix))
+                    if (i != lines.size - 1)
+                        buf.append('\n')
+                }
+
+                trimmedText = buf.toString()
+            }
+        }
+        return trimmedText;
     }
 
     /**
@@ -631,8 +713,9 @@ class Interpreter {
 // TODO: Move to tests
 fun main() {
     var file = Interpreter::class.java.getResource("temp_tests.kd")
+
     var tags = KD.read(file)
     for(tag in tags.children) {
-        log(tag)
+        log(tag.value)
     }
 }
