@@ -21,7 +21,6 @@ Strings {
     string8 `line1
     line2
     line3` # note: the previous two lines are continued from "string8"
-    string9 `Anything should go in this line without escapes \ \\ \n \t " "" ' ''`
     string10 "escapes \"\\\n\t"
 
     # unicode strings - if these don't display properly download a unicode font
@@ -49,7 +48,6 @@ Strings {
             My friend said "hi!"
             My other friends said `bonjour!`
             My last friend said 'salama!'
-            "\""Escaped triple quote"\""
     """
     tabs_and_spaces """
       My friend said "hi!"
@@ -59,7 +57,7 @@ Strings {
 
     raw_string_block @"""
       My friend said "hi!"
-        My other friends said `hello!`
+        My other friends said "hello!"
       This is the third line
     """
 
@@ -82,9 +80,6 @@ Strings {
     """
 
     escape singleQuote '\''
-    escapeBackquote `Backquote \`hello\``
-
-    YellAnotherWay `Yell "Hi!"`
 
     triple_quotes_raw @"""
         line1
@@ -98,14 +93,8 @@ Strings {
     여보세요 "Korean"
     здравствулте "Russian"
 
-    xml `
-    <root type="widget">
-        <color red="255" green="0" blue="0"/>
-        <text>Hi there!</text>
-    </root>
-    `
     line_test `
-    new line above and below
+    no line above and below
     `
     emoji "😀"
 }
@@ -200,10 +189,10 @@ Versions {
     version1 12.0.0
     version2 5.6.2-beta
     version3 3-beta
-    version4 4.2-alpha
+    version4 4.2-alpha-5
 
     basic_version 12.23.5
-    include_build 3.0.2.34
+    include_build 3.0.2-RC-2
     includes_qualifier 315.24.52-beta
     # Not currently supported
     # includes_build 12.53.64.23523.alpha

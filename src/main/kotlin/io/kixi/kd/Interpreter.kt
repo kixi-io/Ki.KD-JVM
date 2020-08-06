@@ -233,14 +233,14 @@ class Interpreter {
 
         when {
             parentCtx.BasicString()!=null -> {
-                text = text.substring(1, text.length-1).resolveEscapes(quoteChar='"')
+                text = text.substring(1, text.length-1).resolveEscapes()
             }
             parentCtx.RawString()!=null -> {
                 text = text.substring(2, text.length-1)
             }
             parentCtx.BlockBasicString()!=null -> {
                 text = trimStringBlockLinePrefixesAndNewLines(
-                        text.substring(3, text.length-3).resolveEscapes(quoteChar=null)
+                        text.substring(3, text.length-3).resolveEscapes()
                 )
             }
             parentCtx.BlockRawString()!=null -> {
