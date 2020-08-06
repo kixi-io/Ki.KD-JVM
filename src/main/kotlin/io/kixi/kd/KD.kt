@@ -21,13 +21,13 @@ class KD {
          * called "root";
          */
         @JvmStatic fun read(reader: Reader) : Tag {
-            var tags = Interpreter().read(reader)
+            val tags = Interpreter().read(reader)
             if(tags.size == 0) {
                 return Tag("root")
             } else if(tags.size == 1) {
                 return tags[0]
             } else {
-                var tag = Tag("root")
+                val tag = Tag("root")
                 tag.children.addAll(tags)
                 return tag;
             }
@@ -36,7 +36,7 @@ class KD {
         @JvmStatic fun read(text: String) : Tag = read(StringReader(text))
         @JvmStatic fun read(file: File) : Tag = read(FileReader(file))
         @JvmStatic fun read(url: URL) : Tag = read(url.readText())
-        @JvmStatic fun readResource(resource:String) : Tag = read(javaClass
-                .getResource("/" + resource))
+        @JvmStatic fun readResource(resource:String) : Tag = read(this::class.java.
+                getResource("/" + resource))
     }
 }

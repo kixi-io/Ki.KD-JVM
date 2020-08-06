@@ -15,7 +15,7 @@ import io.kixi.Ki
  * ```
  *     size 4
  *     secure true
- *     version 5.2.3-beta
+ *     version 5.2.3-beta-3
  *     range 25..50
  *     oddValues 1 3 5 7
  *     valueAndAtt "manahoana" greeting=true
@@ -76,8 +76,8 @@ class Tag {
 
     var nsid: NSID
 
-    var values = mutableListOf<Any?>()
-    var attributes = HashMap<NSID, Any?>();
+    var values = ArrayList<Any?>()
+    var attributes = HashMap<NSID, Any?>()
 
     var children = ArrayList<Tag>()
 
@@ -143,28 +143,67 @@ class Tag {
         attributes.put(NSID(name, namespace), value)
 
     fun getAttribute(name: String, namespace: String = "") : Any? =
-        attributes.get(NSID(name, namespace))
+            attributes[NSID(name, namespace)]
 
     fun getAttributesInNamespace(namespace:String) : Map<String, Any?> {
-        var map = HashMap<String, Any?>();
+        val map = HashMap<String, Any?>()
         for(e in attributes.entries) {
             if(e.key.namespace == namespace)
                 map.put(e.key.name, e.value)
         }
-        return map;
+        return map
     }
 
     fun getChild(name: String, namespace: String = "") : Tag? = children.find {
         it.nsid.name == name && it.nsid.namespace == namespace
     }
 
+    fun findChild(name: String, namespace: String = "")  : Tag? {
+        val child = getChild(name, namespace)
+        if(child==null) {
+            for(kid in children) {
+                val grandChild = kid.getChild(name, namespace)
+                if(grandChild!=null)
+                    return grandChild
+            }
+        }
+        return null
+    }
+
+    fun getChildren(name: String, namespace: String = "") : List<Tag> = children.filter {
+        it.nsid.name == name && it.nsid.namespace == namespace
+    }
+
+    fun findChildren(name: String, namespace: String = "") : List<Tag> {
+        val descendents = ArrayList<Tag>()
+
+        descendents.addAll(children.filter {
+            it.nsid.name == name && it.nsid.namespace == namespace
+        })
+
+        for(descendent in children) {
+            descendents.addAll(descendent.children.filter {
+                it.nsid.name == name && it.nsid.namespace == namespace
+            })
+        }
+
+        return descendents
+    }
+
     fun getChildrenInNamespace(namespace: String) : List<Tag> = children.filter  {
         it.nsid.namespace == namespace
     }
 
-    // TODO: Get children values (for grids)
-
-    // TODO: find(function ((t:Tag))) search tag tree (optionally recursive)
+    // TODO: Allow a grid Type parameter
+    // TODO: Add a grid datatype to allow get(x,y) style access to grids
+    // Q: Should we have number grids with 0 defaults for missing values?
+    fun getChildrenValues() : List<List<Any?>> {
+        var rows = ArrayList<List<Any?>>()
+        for(child in children) {
+            rows.add(child.values)
+        }
+        return rows
+    }
 
     /**
      * Convenience method that returns the first value in the value list or null if there
@@ -187,4 +226,8 @@ class Tag {
      * @return The hash (based on the output from toString())
      */
     override fun hashCode(): Int = toString().hashCode()
+}
+
+fun main() {
+    println(KD.read("val 1 2").value)
 }

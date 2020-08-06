@@ -2,13 +2,11 @@ package io.kixi.kd
 import io.kixi.Ki
 import io.kixi.Range
 import io.kixi.Version
-import io.kixi.log
-import io.kixi.text.ParseException
 import io.kixi.kd.antlr.KDLexer
 import io.kixi.kd.antlr.KDParser
-import io.kixi.text.escape
+import io.kixi.log
+import io.kixi.text.ParseException
 import io.kixi.text.resolveEscapes
-import io.kixi.text.toList
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import java.io.Reader
@@ -20,20 +18,13 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
-import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.reflect.jvm.internal.impl.load.java.JavaClassesTracker
 
 /**
  * TODO:
- * 1. Review and get Strings working in line with the spec
- *    https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)
  * 2. Clean up files
  * 3. Finish the Tag class
  * 4. Fix all warnings
  * 5. Add annotations to allow KD to play nice with Java
- * 6. Update documentation
  * 7. -- Beta 1 release --
  */
 class Interpreter {
@@ -302,7 +293,7 @@ class Interpreter {
         // TODO: When indent is greater than line start, numbers replace some lines
 
         if(text.isEmpty() || !text.contains("\n"))
-            return text;
+            return text
 
         // remove newlines from beginning and end
         var trimmedText = text
@@ -311,8 +302,8 @@ class Interpreter {
             trimmedText = trimmedText.substring(1)
 
 
-        var lines = trimmedText.lines().toMutableList()
-        var lastLine = lines.last()
+        val lines = trimmedText.lines().toMutableList()
+        val lastLine = lines.last()
 
         if(lastLine.isBlank()) {
 
@@ -325,10 +316,10 @@ class Interpreter {
             }
 
             if (wsEnd != 0 || lastLine.isEmpty()) {
-                var wsPrefix = lastLine.substring(0, wsEnd)
+                val wsPrefix = lastLine.substring(0, wsEnd)
                 lines.removeAt(lines.size-1)
 
-                var buf = StringBuilder()
+                val buf = StringBuilder()
                 for (i in 0..lines.size - 1) {
                     buf.append(lines[i].removePrefix(wsPrefix))
                     if (i != lines.size - 1)
@@ -338,7 +329,7 @@ class Interpreter {
                 trimmedText = buf.toString()
             }
         }
-        return trimmedText;
+        return trimmedText
     }
 
     /**
@@ -385,7 +376,7 @@ class Interpreter {
         val map = HashMap<Any?,Any?>()
 
         for(pair in mapCtx.pair()) {
-            map.put(makeValue(pair.value(0)), makeValue(pair.value(1)))
+            map[makeValue(pair.value(0))] = makeValue(pair.value(1))
         }
 
         return map
@@ -659,7 +650,7 @@ class Interpreter {
     }
 
     private fun makeIntRange(ctx: KDParser.IntRangeContext) : Range<Int> {
-        val left = ctx.getChild(0).text;
+        val left = ctx.getChild(0).text
         val openLeft = (left == "_")
         val op = rangeOp(ctx.rangeOp().text)
         val right = ctx.getChild(2).text
@@ -687,35 +678,7 @@ class Interpreter {
         }
     }
 
-    /*
-    private fun stripQuotes(value:String): String{
-        var text = value
-
-        if(text.startsWith("\"\"\"")) {
-            text = text.substring(3, text.length-3)
-            if(text.startsWith("\n"))
-                text = text.substring(1)
-        } else if(text[0] == '"') {
-            text = text.substring(1, text.length-1)
-        } else if(text[0] == '`') {
-            text = text.substring(1, text.length-1)
-        }
-
-        return text
-    }
-    */
-
     fun read(code:String) : List<Tag> {
         return read(StringReader(code))
-    }
-}
-
-// TODO: Move to tests
-fun main() {
-    var file = Interpreter::class.java.getResource("temp_tests.kd")
-
-    var tags = KD.read(file)
-    for(tag in tags.children) {
-        log(tag.value)
     }
 }
