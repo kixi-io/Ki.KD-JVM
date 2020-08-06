@@ -89,55 +89,6 @@ BlockBasicString: '"""' ([\t\r\n] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)*
 BlockRawString:   '@"""' ([\t\r\n\\] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
 BlockRawAltString:   '`' ([\t\r\n\\] | Esc | SafeCodePoint)*? '`';
 
-// BlockRawAletString: '`' (~'`')*? '`';
-
-/*
-BlockRawString:   '@"""' ([\t\r\n\\] | '""' ~'"' | '"' ~'"' | SafeCodePoint)* '"""';
-BlockRawAltString:  '`' ([\t\r\n\\] | (~'`')  | SafeCodePoint)* '`';
-*/
-
-// '`' ([\t\r\n\\] | (~'`')  | SafeCodePoint)* '`';
-
-// '`' ('\\`' | ~'`')* '`';
-
-/*
-BlockRawString:   '@"""' ([\t\r\n\\] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
-BlockRawAltString:   '`' ([\t\r\n\\] | (~'`')  | Esc | SafeCodePoint)* '`';
-*/
-
-/*
-Static_string_literal : '"' Quoted_text? '"' ;
-fragment Quoted_text : Quoted_text_item+ ;
-fragment Quoted_text_item
-  : Escaped_character
-  | ~["\n\r\\]
-  ;
-fragment
-Escaped_character
-  : '\\' [0\\tnr"']
-  | '\\x' Hexadecimal_digit Hexadecimal_digit
-  | '\\u' '{' Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit '}'
-  | '\\u' '{' Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit '}'
-  ;
-*/
-
-
-/*
-StringLiteral
-   : ( '@'?  ( BlockStringLiteral | SimpleString ) ) | RawBlockStringLiteral
-   ;
-
-SimpleString: '"' (Esc | SafeCodePoint)* '"';
-BlockStringLiteral
-   : '"""' ([\t\r\n] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""'
-   ;
-RawBlockStringLiteral
-   : '`'  (~'`')* '`';
-*/
-
-// fragment EmptyString: '""';
-////
-
 fragment UniCharacterLiteral
     : '\\' 'u' HexDigit HexDigit HexDigit HexDigit
     ;

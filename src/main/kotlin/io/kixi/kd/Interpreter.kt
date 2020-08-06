@@ -20,12 +20,11 @@ import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 /**
- * TODO:
- * 2. Clean up files
- * 3. Finish the Tag class
- * 4. Fix all warnings
- * 5. Add annotations to allow KD to play nice with Java
- * 7. -- Beta 1 release --
+ * A [Ki Declarative (KD)](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD))
+ * interpreter utilizing an [ANTLR4](https://www.antlr.org/) grammar. Many thanks to
+ * [Terrance Parr](https://parrt.cs.usfca.edu/) for his superb parser generator and books.
+ *
+ * This implementation of KD implements all features and passes all tests.
  */
 class Interpreter {
 
