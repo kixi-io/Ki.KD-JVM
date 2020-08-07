@@ -87,7 +87,15 @@ BasicString: '"' (Esc | ~["\r\n\\])* '"';
 RawString: '@"' (~["\r\n])* '"';
 BlockBasicString: '"""' ([\t\r\n] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
 BlockRawString:   '@"""' ([\t\r\n\\] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
+BlockRawAltString:   '`' (~'`')* '`';
+
+/*
+BasicString: '"' (Esc | ~["\r\n\\])* '"';
+RawString: '@"' (~["\r\n])* '"';
+BlockBasicString: '"""' ([\t\r\n] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
+BlockRawString:   '@"""' ([\t\r\n\\] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
 BlockRawAltString:   '`' ([\t\r\n\\] | Esc | SafeCodePoint)*? '`';
+*/
 
 fragment UniCharacterLiteral
     : '\\' 'u' HexDigit HexDigit HexDigit HexDigit

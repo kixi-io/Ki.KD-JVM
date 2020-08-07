@@ -141,18 +141,33 @@ class Interpreter {
         //// Numbers --- ---
 
         if(ctx.IntegerLiteral() != null) return Integer.valueOf(text.replace("_", ""))
-        if(ctx.LongLiteral() != null) return text.replace("_", "").toLong()
 
-        if(ctx.DoubleLiteral() != null) return text.replace("_", "").toDouble()
-        if(ctx.FloatLiteral() !=null) return text.replace("_", "").toFloat()
+        if(ctx.LongLiteral() != null) {
+            var ntext = text.replace("_", "")
+            if(ntext.last().equals('L', ignoreCase = true)) ntext = ntext.dropLast(1)
+            return ntext.toLong()
+        }
+        if(ctx.DoubleLiteral() != null) {
+            var ntext = text.replace("_", "")
+            if(ntext.last().equals('D', ignoreCase = true)) ntext = ntext.dropLast(1)
+            return ntext.toDouble()
+        }
+        if(ctx.FloatLiteral() !=null) {
+            var ntext = text.replace("_", "")
+            if(ntext.last().equals('F', ignoreCase = true)) ntext = ntext.dropLast(1)
+            return ntext.toFloat()
+        }
+
         if(ctx.DecimalLiteral() !=null) {
             var decText = text.replace("_", "")
             if(decText.last().equals('m', ignoreCase = true)) decText = decText.dropLast(1)
             return decText.toBigDecimal()
         }
 
-        if(ctx.BinLiteral() != null) return Integer.parseInt(text.replace("_", "")
-                .substring(2), 2)
+        if(ctx.BinLiteral() != null) {
+            return Integer.parseInt(text.replace("_", "")
+                    .substring(2), 2)
+        }
 
         if(ctx.HexLiteral() != null) return Integer.parseInt(text.replace("_", "")
                 .substring(2), 16)
@@ -541,12 +556,12 @@ class Interpreter {
         val openRight = (right == "_")
 
         return when {
-            openLeft -> Range<Duration>(Duration.ofDays(Long.MIN_VALUE), Duration.parse(ctx.getChild(0).text),
+            openLeft -> Range<Duration>(Duration.ofDays(Long.MIN_VALUE), Ki.parseDuration(ctx.getChild(0).text),
                     op, openLeft, openRight)
-            openRight -> Range<Duration>(Duration.parse(ctx.getChild(0).text), Duration.ofDays(Long.MAX_VALUE),
+            openRight -> Range<Duration>(Ki.parseDuration(ctx.getChild(0).text), Duration.ofDays(Long.MAX_VALUE),
                     op, openLeft, openRight)
-            else -> Range<Duration>(Duration.parse(ctx.getChild(0).text),
-                    Duration.parse(ctx.getChild(2).text),
+            else -> Range<Duration>(Ki.parseDuration(ctx.getChild(0).text),
+                    Ki.parseDuration(ctx.getChild(2).text),
                     op, openLeft, openRight)
         }
     }

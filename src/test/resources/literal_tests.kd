@@ -21,6 +21,7 @@ Strings {
     string8 `line1
     line2
     line3` # note: the previous two lines are continued from "string8"
+    string9 `Anything should go in this line without escapes \ \\ \n \t " "" ' ''`
     string10 "escapes \"\\\n\t"
 
     # unicode strings - if these don't display properly download a unicode font
@@ -48,6 +49,7 @@ Strings {
             My friend said "hi!"
             My other friends said `bonjour!`
             My last friend said 'salama!'
+            "\""Escaped triple quote"\""
     """
     tabs_and_spaces """
       My friend said "hi!"
@@ -57,7 +59,7 @@ Strings {
 
     raw_string_block @"""
       My friend said "hi!"
-        My other friends said "hello!"
+        My other friends said `hello!`
       This is the third line
     """
 
@@ -81,8 +83,10 @@ Strings {
 
     escape singleQuote '\''
 
+    YellAnotherWay `Yell "Hi!"`
+
     triple_quotes_raw @"""
-        line1
+        line1 \
         line2\nline3
         tabstart    tabend
         tab_escape_start\ttab_escape_end
@@ -93,8 +97,14 @@ Strings {
     여보세요 "Korean"
     здравствулте "Russian"
 
+    xml `
+    <root type="widget">
+        <color red="255" green="0" blue="0"/>
+        <text>Hi there!</text>
+    </root>
+    `
     line_test `
-    no line above and below
+    new line above and below
     `
     emoji "😀"
 }
@@ -139,7 +149,7 @@ Numbers {
     int2 5
     int3 -100
     int4 234253532
-    int_binary 0b10100001010001011010000101000101
+    int_binary 0b10100001010001
     int_hex 0x0A2F
     long1 0L
     long3 5L
@@ -162,7 +172,7 @@ Numbers {
     decimal4 234535.3453453453454345345341242343m
     decimal5 982_342_462_234.163_932_352m
 
-    int_binary 0b1010000101000101101100010110101
+    int_binary 0b1010000101
     int_hex 0x0A2F
 }
 
@@ -187,12 +197,12 @@ Nulls {
 
 Versions {
     version1 12.0.0
-    version2 5.6.2-beta
+    version2 5.6.2-beta-1
     version3 3-beta
-    version4 4.2-alpha-5
+    version4 4.2-alpha-3
 
     basic_version 12.23.5
-    include_build 3.0.2-RC-2
+    include_build 3.0.2
     includes_qualifier 315.24.52-beta
     # Not currently supported
     # includes_build 12.53.64.23523.alpha
@@ -205,7 +215,6 @@ Dates {
     date2 1882/5/2
     date3 1882/05/02
     way_back 582/09/16
-    date_bce -50/09/16
 }
 
 # Date Time Tests -----------------------------------
@@ -218,7 +227,7 @@ DateTimes {
     date_time4b 1882/5/2@1:00-Z
     date_time5 2005/12/31@12:30:23.12
     date_time6 1882/5/2@22:30:23.123
-    date_time7 1882/5/2@10:30:23.123-JN/JST
+    date_time7 1882/5/2@10:30:23.123-JP/JST
     date_time8 985/04/11 @12:30:23.123-AU/NFT
     date_time9 1980/5/23@5:30:15.03+2
     date_time10 1980/5/23@15:30:15.03-3:30
@@ -257,7 +266,7 @@ Durations {
         days 15days
         hours 16h
         minutes 23min
-        minutes 2.5min # =30s
+        // minutes 2.5min # =30s - Fractional units are currently only supported for secs
         seconds 15s
         seconds 10.25s # =250ms
         milli 12ms
@@ -268,7 +277,7 @@ Durations {
     FractionalSeconds {
         dur8 12:30:23.1
         dur9 -12:30:23.12
-        dur10 12h:30:23.123
+        dur10 12days:20:23:6.123
         dur11 34days:12:30:23.1
         dur12 1day:12:30:0
         dur13 5days:12:30:23.12
@@ -285,7 +294,6 @@ Durations {
         days 15days
         hours 16h
         minutes 23min
-        minutes 2.5min # =150s
         seconds 15s
         seconds 10.25s # =250ms
         milli 12ms
@@ -350,20 +358,13 @@ Ranges {
 
 Bin64 {
     # bytes for UTF8 string "hi"
-    hi .base64(aGk=)
+    hi .base64(SGVsbG8=)
 
     # bytes for a small PNG image
 
     png .base64(
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKnRFWHRDcmVhdGlvbiBUaW1l
-        AERpIDQgTXJ6IDIwMDMgMDA6MjQ6MDQgKzAxMDDdSQ6OAAAAB3RJTUUH0wMEAAcllPlrJgAA
-        AAlwSFlzAAAK8AAACvABQqw0mAAAAARnQU1BAACxjwv8YQUAAADQSURBVHjaY2CgEDCCyZn/
-        3YHkDhL1ejCkM+5kgXJ2zDQmXueShwwMh9+ALWSEGcCQfhZIvHlDnAk8PAwMHBxgJtyAa7bX
-        UdT8/cvA8Ps3hP7zB4FBYn/+vGbweqyJaoCmpiaKASDFv35BNMBoZMzwGKKOidJYoNgAuBdm
-        naXQgHRSDLfgagxD89w8S+iAaFICwGIHFAgjrHUczAByySAaAMEgDLBphhv7/D8EYLgDZhAxA
-        mkAKYYbAMMwwDAOQXYDuDXRXgDC6AR7SW8jITNQAACjZgdj4VjlqAAAAAElFTkSuQmCC
+        Qk1UAAAAAAAAAD4AAAAoAAAABQAAAAUAAAABAAEAAAAAABYAAA
+        ASCwAAEgsAAAAAAAAAAAAA////AAAAAAAAkEcCcAAAAHEBAABw
+        AAAAAAAAAAAA
     )
 }
-
-
-

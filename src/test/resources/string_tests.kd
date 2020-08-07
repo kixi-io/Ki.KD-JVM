@@ -39,3 +39,32 @@ text8 `
     other_escapes: \t\f\n
     \a\path\readme.md
     `
+# Testing embedded quotes
+s1 "hello\nfriend \"works\""
+s2 @"hello\friend"
+"""
+    Line 1
+    Line 2 \n
+    `foo`
+    "blah"
+    """
+s3 @"""
+    Line 1 \ Line 2
+    Line 3 \n
+    `foo`
+    "blah"
+    """
+
+s4 `
+    Line 1 \ Line 2
+    Line 3 \n
+    "blah"
+    """
+    `
+s5 `"`
+s6 `
+    """
+    A way to escape
+    triple quotes
+    """
+    `

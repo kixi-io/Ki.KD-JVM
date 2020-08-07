@@ -84,7 +84,8 @@ class KDStringTest {
         )
     }
 
+
     @Test fun testLiterals() {
-        val lits = KD.readResource("string_tests.kd")
+        val lits = KD.readResource("literal_tests.kd")
     }
 }
