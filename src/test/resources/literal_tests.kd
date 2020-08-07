@@ -104,7 +104,7 @@ Strings {
     </root>
     `
     line_test `
-    new line above and below
+    no new line above or below
     `
     emoji "😀"
 }
@@ -356,9 +356,9 @@ Ranges {
 
 # Base64 -----------------------------------
 
-Bin64 {
+Base64 {
     # bytes for UTF8 string "hi"
-    hi .base64(SGVsbG8=)
+    b64Greeting .base64(SGVsbG8=)
 
     # bytes for a small PNG image
 

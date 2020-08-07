@@ -270,7 +270,7 @@ Structs {
 
     fancyMap "crazy map" works=true map=[
         "nums"=[1 2 3]
-        "chars"=["a" "b" "c"]
+        "chars"=['a' 'b' 'c']
         "maps"=[
             "person"=["name"="Jim" "age"=25]
             "pet"=["name"="Rufus" "age"=3]

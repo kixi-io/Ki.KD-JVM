@@ -18,7 +18,7 @@ class KDBasicTest {
                 KD.read("personForID [253_23_5162=\"Jess\"]").toString())
     }
 
-    @Test fun testDataStructures() {
+    @Test fun testDurations() {
         var list = Ki.format(
                 listOf(
                         Ki.parseDuration("2s"),

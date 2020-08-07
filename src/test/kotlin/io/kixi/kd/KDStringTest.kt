@@ -83,9 +83,4 @@ class KDStringTest {
                 root.getChild("text8")!!.value
         )
     }
-
-
-    @Test fun testLiterals() {
-        val lits = KD.readResource("literal_tests.kd")
-    }
 }
