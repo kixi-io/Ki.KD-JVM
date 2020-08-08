@@ -183,9 +183,9 @@ class Interpreter {
         if(ctx.NULL() != null) return null
 
         if(ctx.CharLiteral() != null) {
-            if(text.length==3) {
+            if(text[1]!='\\') {
                 return text[1]
-            } else if(text.length==4 && text[1]=='\\')  {
+            } else if(text.length>3)  {
                 // We have an escaped char
                 when (text[2]) {
                     '\\' -> return '\\'
@@ -196,8 +196,8 @@ class Interpreter {
                 }
             }
 
-            throw ParseException("Malformed char literal at line ${ctx.start.line}, " +
-                "index ${ctx.start.charPositionInLine}")
+            throw ParseException("Malformed Char literal at line ${ctx.start.line}, " +
+                "index ${ctx.start.charPositionInLine}: $text")
         } // escapes
 
         if(ctx.URL() != null) {

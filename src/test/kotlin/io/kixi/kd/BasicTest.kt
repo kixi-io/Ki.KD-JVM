@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class KDBasicTest {
+class BasicTest {
 
     @Test fun testTagWithValuesAndAttributes() {
         assertEquals("myTag", KD.read("myTag").toString())

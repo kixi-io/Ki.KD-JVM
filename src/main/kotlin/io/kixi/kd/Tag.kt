@@ -154,10 +154,16 @@ class Tag {
         return map
     }
 
+    /**
+     * Gets the first child tag with the given name
+     */
     fun getChild(name: String, namespace: String = "") : Tag? = children.find {
         it.nsid.name == name && it.nsid.namespace == namespace
     }
 
+    /**
+     * Gets the first child tag with the given name, searching all descendants
+     */
     fun findChild(name: String, namespace: String = "")  : Tag? {
         val child = getChild(name, namespace)
         if(child==null) {
@@ -170,10 +176,16 @@ class Tag {
         return null
     }
 
+    /**
+     * Gets all child tags with the given name
+     */
     fun getChildren(name: String, namespace: String = "") : List<Tag> = children.filter {
         it.nsid.name == name && it.nsid.namespace == namespace
     }
 
+    /**
+     * Gets all child tags with the given name, searching all descendants
+     */
     fun findChildren(name: String, namespace: String = "") : List<Tag> {
         val descendents = ArrayList<Tag>()
 
@@ -190,13 +202,69 @@ class Tag {
         return descendents
     }
 
+    /**
+     * Gets all child tags in the given namespace
+     */
     fun getChildrenInNamespace(namespace: String) : List<Tag> = children.filter  {
         it.nsid.namespace == namespace
     }
 
-    // TODO: Allow a grid Type parameter
+    /**
+     * Finds the first child tag that tests true for the given predicate. The search is
+     * recursive.
+     *
+     * **Example**
+     * `
+     * val thing = tag.findChild { it.color = "green" && it.size > 5 }
+     * `
+     */
+    inline fun findChild(predicate: (Tag) -> Boolean): Tag? {
+        var searchMe = getDescendents()
+
+        for(child in searchMe) {
+            if(predicate(child))
+                return child
+        }
+
+        return null
+    }
+
+    /**
+     * Finds all tags that tests true for the given predicate. The search is recursive.
+     *
+     * **Example**
+     * `
+     * val things = tag.findChildren { it.color = "green" && it.size > 5 }
+     * `
+     */
+    inline fun findChildren(predicate: (Tag) -> Boolean): List<Tag> {
+        var searchMe = getDescendents()
+
+        val results = ArrayList<Tag>()
+        for(child in searchMe) {
+            if(predicate(child))
+                results+=child
+        }
+
+        return results
+    }
+
+    /**
+     * Creates a list of all contained tags (recursive).
+     */
+    fun getDescendents(descendents:MutableList<Tag> = ArrayList()) : List<Tag> {
+        descendents.addAll<Tag>(children)
+        children.forEach { it.getDescendents(descendents) }
+        return descendents
+    }
+
+    // TODO: Type parameter
     // TODO: Add a grid datatype to allow get(x,y) style access to grids
     // Q: Should we have number grids with 0 defaults for missing values?
+
+    /**
+     * Gets the values of all immediate children as a list of rows.
+     */
     fun getChildrenValues() : List<List<Any?>> {
         var rows = ArrayList<List<Any?>>()
         for(child in children) {
@@ -226,8 +294,4 @@ class Tag {
      * @return The hash (based on the output from toString())
      */
     override fun hashCode(): Int = toString().hashCode()
-}
-
-fun main() {
-    println(KD.read("val 1 2").value)
 }
