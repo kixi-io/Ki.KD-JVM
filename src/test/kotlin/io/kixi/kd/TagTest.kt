@@ -25,15 +25,23 @@ class TagTest {
         assertEquals(
                 """fi "red" size=6""".trim(),
                 root.findChild {
-                    it.value == "red" && it.getAttribute("size") as Int > 5
+                    it.value == "red" && it.getAttribute<Int>("size") > 5
                 }.toString()
         )
 
         // Find all tags that are red with sizes > 5
         assertEquals("""[fi "red" size=6, grandchild "red" size=7]""",
                 root.findChildren {
-                    it.value == "red" && it.getAttribute("size") as Int > 5
+                    it.value == "red" && it.getAttribute<Int>("size") > 5
                 }.toString()
         )
+    }
+
+    @Test fun gridTest() {
+        val intRows = KD.read("""
+                1 2 3
+                4 5 6
+        """).getChildrenValues<Int>()
+        assertEquals(6, intRows[1][2])
     }
 }

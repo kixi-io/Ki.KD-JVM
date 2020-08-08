@@ -139,19 +139,25 @@ class Tag {
         return builder.toString()
     }
 
+    fun <T> get(): T = value as T
+
     fun setAttribute(name: String, namespace: String = "", value: Any?) =
         attributes.put(NSID(name, namespace), value)
 
-    fun getAttribute(name: String, namespace: String = "") : Any? =
-            attributes[NSID(name, namespace)]
 
-    fun getAttributesInNamespace(namespace:String) : Map<String, Any?> {
+    // fun getAttribute(name: String, namespace: String = "") : Any? =
+    //      attributes[NSID(name, namespace)]
+
+    fun <T> getAttribute(name: String, namespace: String = "") : T =
+            attributes[NSID(name, namespace)] as T
+
+    fun <T> getAttributesInNamespace(namespace:String): Map<String, T> {
         val map = HashMap<String, Any?>()
         for(e in attributes.entries) {
             if(e.key.namespace == namespace)
                 map.put(e.key.name, e.value)
         }
-        return map
+        return map as Map<String, T>
     }
 
     /**
@@ -258,17 +264,29 @@ class Tag {
         return descendents
     }
 
-    // TODO: Type parameter
+
     // TODO: Add a grid datatype to allow get(x,y) style access to grids
     // Q: Should we have number grids with 0 defaults for missing values?
 
     /**
-     * Gets the values of all immediate children as a list of rows.
+     * Gets the values of all immediate children as a list of rows. This allows you to
+     * easily create grids.
+     *
+     * **Example**
+     * `
+     *     val intRows = KD.read("""
+     *         1 2 3
+     *         4 5 6
+     *     """).getChildrenValues<Int>()
+     *
+     *     // Prints "6"
+     *     println(intRows[1][2])
+     * `
      */
-    fun getChildrenValues() : List<List<Any?>> {
-        var rows = ArrayList<List<Any?>>()
+    fun <T> getChildrenValues() : List<List<T>> {
+        var rows = ArrayList<List<T>>()
         for(child in children) {
-            rows.add(child.values)
+            rows.add(child.values as List<T>)
         }
         return rows
     }
