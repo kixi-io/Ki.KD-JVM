@@ -81,6 +81,17 @@ class Interpreter {
 
         val tag = Tag(name, namespace)
 
+        // Add Annotations ////
+
+        val annotationCtx = tree.annotationList()
+        if(annotationCtx != null) {
+            for(anno in annotationCtx.annotation()) {
+                tag.annotations.add(makeAnnotation(anno))
+            }
+        }
+
+        // Add Values ////
+
         val valuesCtx = tree.valueList()
 
         if(valuesCtx != null) {
@@ -88,6 +99,8 @@ class Interpreter {
                 tag.values.add(makeValue(vc))
             }
         }
+
+        // Add Attributes ////
 
         val attsCtx = tree.attributeList()
 
@@ -121,6 +134,57 @@ class Interpreter {
         }
 
         return tag
+    }
+
+    private fun makeAnnotation(annoCtx: KDParser.AnnotationContext?): Annotation {
+        val nsNameCtx = annoCtx!!.nsName()
+        var namespace = ""; var name = ""
+
+        if(nsNameCtx != null) {
+            if(nsNameCtx.COLON()!=null) {
+                namespace = nsNameCtx.ID(0).text.trim()
+                name = nsNameCtx.ID(1).text.trim()
+            } else {
+                name = nsNameCtx.ID(0).text.trim()
+            }
+        }
+
+        val anno = Annotation(name, namespace)
+
+        val valuesCtx = annoCtx.valueList()
+
+        // Add Values
+
+        if(valuesCtx != null) {
+            for(vc in valuesCtx.value()) {
+                anno.values.add(makeValue(vc))
+            }
+        }
+
+        // Add Attributes ////
+
+        val attsCtx = annoCtx.attributeList()
+
+        if(attsCtx != null) {
+            for(att in attsCtx.attribute()) {
+                val attNSNameCtx = att.nsName()
+                var attNamespace = ""
+                var attName = ""
+
+                if(attNSNameCtx != null) {
+                    if(attNSNameCtx.COLON()!=null) {
+                        attNamespace = attNSNameCtx.ID(0).text.trim()
+                        attName = attNSNameCtx.ID(1).text.trim()
+                    } else {
+                        attName = attNSNameCtx.ID(0).text.trim()
+                    }
+                }
+
+                anno.setAttribute(attName, attNamespace, makeValue(att.value()))
+            }
+        }
+
+        return anno
     }
 
     // TODO: Ensure this is dealing only with values. Deal with formatting in toString().
@@ -214,10 +278,8 @@ class Interpreter {
             return Version.parse(text)
         }
 
-        //// TODO: Base64 - Finish implementation.
-
-        if(ctx.base64() != null) {
-            return Ki.parseBase64(ctx.base64().text)
+        if(ctx.Base64() != null) {
+            return Ki.parseBase64(ctx.Base64().text)
         }
 
         //// Duration --- ---

@@ -1,6 +1,6 @@
 /**
  * Test:
- * - Tags with values, attributes and namespaces
+ * - Tags with values, attributes, annotations and namespaces
  * - Complex types such as DateTime and Duration
  * - Struct literals such as lists and maps
  *
@@ -93,6 +93,19 @@ Attributes {
      */allergies=false
 }
 
+# Tags with annotations -----------------------------------
+
+@Test
+tagWithAnno1
+
+@Test(true)
+tagWithAnno2
+
+@Test(category="critical")
+tagWithAnno3
+
+@Test(true category="critical")
+tagWithAnno4
 
 # Comments -----------------------------------
 
@@ -226,6 +239,8 @@ ComplexTags {
         pet Fluffy size="large" sheds=true
     }
 
+    @Bio
+    @Output(false)
     person:grandparent3 name="Harold" age=93 {
         person:child name="Sabrina" age=93 allergies=false { #comment here...
             person:son name="Joe" # Good at soccer

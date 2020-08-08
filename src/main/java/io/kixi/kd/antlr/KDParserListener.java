@@ -248,15 +248,25 @@ public interface KDParserListener extends ParseTreeListener {
 	 */
 	void exitMap(KDParser.MapContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link KDParser#base64}.
+	 * Enter a parse tree produced by {@link KDParser#annotation}.
 	 * @param ctx the parse tree
 	 */
-	void enterBase64(KDParser.Base64Context ctx);
+	void enterAnnotation(KDParser.AnnotationContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link KDParser#base64}.
+	 * Exit a parse tree produced by {@link KDParser#annotation}.
 	 * @param ctx the parse tree
 	 */
-	void exitBase64(KDParser.Base64Context ctx);
+	void exitAnnotation(KDParser.AnnotationContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KDParser#annotationList}.
+	 * @param ctx the parse tree
+	 */
+	void enterAnnotationList(KDParser.AnnotationListContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KDParser#annotationList}.
+	 * @param ctx the parse tree
+	 */
+	void exitAnnotationList(KDParser.AnnotationListContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KDParser#dateTime}.
 	 * @param ctx the parse tree

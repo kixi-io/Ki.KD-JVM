@@ -9,7 +9,7 @@ options { tokenVocab = KDLexer; }
  */
 tagList: NL* (tag NL*)*;
 tag:
-    ( ( nsName valueList? ) | (valueList) ) attributeList? (';' | NL | ('{' tagList '}'))?;
+    ( ( (annotationList NL*)? nsName valueList? ) | (valueList) ) attributeList? (';' | NL | ('{' tagList '}'))?;
 
 value:
     // Strings
@@ -30,7 +30,7 @@ value:
     | range
     | Version
     // Encodings
-    | base64
+    | Base64
     ;
 
 // String
@@ -82,8 +82,12 @@ pair: NL* value '=' NL* value NL*;
 
 map: ('[' NL* pair (COMMA? pair)* NL* ']') | ('[' '=' ']');
 
+// ANNOTATIONS
+annotation: '@' nsName ('(' valueList? attributeList? ')')?;
+annotationList: annotation (NL* annotation)*;
+
 // ETC
 
-base64: BASE64 BASE64_DATA;
+// base64: BASE64 BASE64_DATA;
 
 dateTime: Date (Time TimeZone?)?;

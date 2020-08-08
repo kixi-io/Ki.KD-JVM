@@ -304,13 +304,25 @@ public class KDParserBaseListener implements KDParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterBase64(KDParser.Base64Context ctx) { }
+	@Override public void enterAnnotation(KDParser.AnnotationContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitBase64(KDParser.Base64Context ctx) { }
+	@Override public void exitAnnotation(KDParser.AnnotationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAnnotationList(KDParser.AnnotationListContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAnnotationList(KDParser.AnnotationListContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

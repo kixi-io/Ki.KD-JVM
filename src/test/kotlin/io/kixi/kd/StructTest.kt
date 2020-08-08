@@ -23,7 +23,7 @@ class StructTest {
 
     @Test fun testStructsFromFile() {
         val root = KD.readResource("structure_tests.kd")
-        log(root)
+        // log(root)
         val mapTag = root.findChild("fancyMap")!!
         assertEquals("[a, b, c]", (mapTag.getAttribute("map") as Map<*,*>)
                 ["chars"].toString())

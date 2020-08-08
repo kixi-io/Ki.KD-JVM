@@ -7,7 +7,7 @@ import io.kixi.text.isKiIdentifier
  * NSIDs are an ID (key identifier) with an optional namespace. They are used for
  * tag names and attributes. Anonymous tags all use the ANONYMOUS key.
  */
-data class NSID(val name:String, val namespace:String = "") {
+data class NSID(val name:String, val namespace:String = "") : Comparable<NSID> {
 
     companion object {
         /**
@@ -27,4 +27,6 @@ data class NSID(val name:String, val namespace:String = "") {
     }
 
     override fun toString() = if(namespace != "") "$namespace:$name" else name
+
+    override fun compareTo(other: NSID): Int = toString().compareTo(other.toString())
 }

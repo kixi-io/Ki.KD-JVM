@@ -155,11 +155,17 @@ public interface KDParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitMap(KDParser.MapContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link KDParser#base64}.
+	 * Visit a parse tree produced by {@link KDParser#annotation}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitBase64(KDParser.Base64Context ctx);
+	T visitAnnotation(KDParser.AnnotationContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#annotationList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAnnotationList(KDParser.AnnotationListContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KDParser#dateTime}.
 	 * @param ctx the parse tree

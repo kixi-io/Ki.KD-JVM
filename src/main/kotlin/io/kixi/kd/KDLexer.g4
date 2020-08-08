@@ -198,11 +198,12 @@ UNDERSCORE: '_';
 
 // Encodings --- ---
 
-BASE64: '.base64';
+Base64: '.base64' BASE64_DATA;
 
 // Complies with "The Base64 Alphabet" as specified in Table 1 of RFC 4648
 // BASE64_DATA: [A-Za-z0-9+=/ \t\r\n]+; // '(' [ \t\r\n]* ([A-Za-z0-9+=/]* [ \t\r\n]*)* ')';
-BASE64_DATA: '(' [ \t\r\n]* ([A-Za-z0-9+=/] [ \t\r\n]*)+ ')';
+// BASE64_DATA: '(' [ \t\r\n]* ([A-Za-z0-9+=/] [ \t\r\n]*)+ ')';
+fragment BASE64_DATA: '(' [ \t\r\n]* ([A-Za-z0-9+=/] [ \t\r\n]*)+ ')';
 
 // Identifiers --- ---
 

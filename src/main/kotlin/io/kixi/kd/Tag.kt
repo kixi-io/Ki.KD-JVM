@@ -1,15 +1,19 @@
 package io.kixi.kd
 
 import io.kixi.Ki
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 /**
- * KD documents are composed of KD tags. Tags contain:
+ * KD documents are composed of KD tags. Tags can contain the following components:
  *
- * 1. a name (if not present, the empty string "" is used)
+ * 1. a list of annotations (optional) - see details below
  * 1. a namespace (optional)
- * 1. 0 or more values
- * 1. 0 or more attributes
- * 1. 0 or more children
+ * 1. a name (if not present, the empty string "" is used)
+ * 1. 0 or more values (optional)
+ * 1. 0 or more attributes (optional)
+ * 1. 0 or more children (optional)
  *
  * KD tag examples:
  * ```
@@ -21,6 +25,9 @@ import io.kixi.Ki
  *     valueAndAtt "manahoana" greeting=true
  *     myList [2 4 6]
  *     myMap [name="Isabella" programmer=true]
+ *
+ *     @test // annotations start with @ and occur in front of or above tag names
+ *     @log(true, file="log.txt")
  *     kitchenSink 1 'a' true [1 2 3] [4 5 6] [pizza=true sardines=false] 3.0..<5.0
  * ```
  *
@@ -52,18 +59,37 @@ import io.kixi.Ki
  *
  * The full KD tag format is:
  * ```
+ *     @annotation_list
  *     namespace:name value_list attribute_list {
  *         children_tags
  *     }
  * ```
  *
- * ...where value_list is zero or more space separated KD literals and
- * attribute_list is zero or more space separated (namespace:)key=value pairs.
+ * 1. `annotation_list`: 0 or more annotations (space and/or line separated)
+ * 2. `namespace:name`: An optional namespace string followed ':' and a name string
+ * 3. `value_list`: 0 or more space separated KD literals and
+ * 4. `attribute_list` 0 or more space separated (namespace:)key=value pairs
+ *
  * The name, namespace, and keys are KD identifiers.  Values are KD literals.
  * Namespace is optional for tag names and attributes.  Tag bodies are also
  * optional.  KD identifiers begin with a unicode letter, underscore, dollar
  * sign or emoji followed by zero or more Unicode letters, numbers, underscores,
  * dollar signs or emoji.
+ *
+ * Annotations in the annotation list have the form `@namespace:name value_list attribute_list`
+ * Only the name is required.
+ *
+ * **Examples**
+ * ```
+ * @Test
+ * tag "Some data"
+ *
+ * @Test(true)
+ * tag "Some data"
+ *
+ * @Test(true log="output.txt")
+ * tag "Some data"
+ * ```
  *
  * KD also supports anonymous tags which have the name "" (the empty string).
  * An anonymous tag starts with a literal and is followed by zero or more
@@ -76,8 +102,9 @@ class Tag {
 
     var nsid: NSID
 
+    var annotations = ArrayList<Annotation>()
     var values = ArrayList<Any?>()
-    var attributes = HashMap<NSID, Any?>()
+    var attributes = TreeMap<NSID, Any?>()
 
     var children = ArrayList<Tag>()
 
@@ -99,7 +126,18 @@ class Tag {
      * TODO: break up long lines using the backslash
      */
      fun toString(linePrefix: String): String {
-        val builder = StringBuilder(linePrefix)
+
+        val builder = StringBuilder()
+
+        // If present, output annotations at the top, one per line.
+
+        if(annotations.isNotEmpty()) {
+            for(anno in annotations) {
+                builder.append(linePrefix).append(anno.toString() + "\n")
+            }
+        }
+
+        builder.append(linePrefix)
         var skipValueSpace = false
 
         if (isAnonymous()) {
@@ -143,10 +181,6 @@ class Tag {
 
     fun setAttribute(name: String, namespace: String = "", value: Any?) =
         attributes.put(NSID(name, namespace), value)
-
-
-    // fun getAttribute(name: String, namespace: String = "") : Any? =
-    //      attributes[NSID(name, namespace)]
 
     fun <T> getAttribute(name: String, namespace: String = "") : T =
             attributes[NSID(name, namespace)] as T
@@ -225,7 +259,7 @@ class Tag {
      * `
      */
     inline fun findChild(predicate: (Tag) -> Boolean): Tag? {
-        var searchMe = getDescendents()
+        var searchMe = getDescendants()
 
         for(child in searchMe) {
             if(predicate(child))
@@ -244,7 +278,7 @@ class Tag {
      * `
      */
     inline fun findChildren(predicate: (Tag) -> Boolean): List<Tag> {
-        var searchMe = getDescendents()
+        var searchMe = getDescendants()
 
         val results = ArrayList<Tag>()
         for(child in searchMe) {
@@ -258,10 +292,10 @@ class Tag {
     /**
      * Creates a list of all contained tags (recursive).
      */
-    fun getDescendents(descendents:MutableList<Tag> = ArrayList()) : List<Tag> {
-        descendents.addAll<Tag>(children)
-        children.forEach { it.getDescendents(descendents) }
-        return descendents
+    fun getDescendants(descendants:MutableList<Tag> = ArrayList()) : List<Tag> {
+        descendants.addAll<Tag>(children)
+        children.forEach { it.getDescendants(descendants) }
+        return descendants
     }
 
 
