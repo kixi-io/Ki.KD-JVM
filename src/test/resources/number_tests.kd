@@ -1,0 +1,43 @@
+Int {
+  basic 0 5 -5
+  int1 1000
+  int2 1_000
+  int3 1_000_123
+  int4 0b101
+  int5 0x23
+  int6 0xFF_EC_DE
+  int7 -0b101
+  int8 -0x23
+}
+
+Long {
+  basic 0L 5L -5L
+  long1 1000L
+  long2 1_000L
+  long3 3_904_857_398_753_453_453L
+}
+
+Float {
+  basic .2 0.3 0.521f
+  float1 0.253958f
+  float2 0.253_958f
+  float3 1.2345678E7f
+}
+
+Double {
+  basic .2 0.3 0.521
+  double1 0.253958
+  double2 0.253_958
+  double3 1.2345678E7
+  double4 123e5
+  double5 123e-5
+}
+
+Decimal {
+  basic .2m 0.3m 0.521m
+  decimal1 0m
+  decimal2 11.111111M
+  decimal3 143_523.521_535m
+  decimal4 234535.3453453453454345345341242343M
+  decimal5 982_342_462_234.163_932_352m
+}

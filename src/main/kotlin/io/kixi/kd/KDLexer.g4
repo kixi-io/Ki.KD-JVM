@@ -59,14 +59,23 @@ IntegerLiteral
 fragment HexDigit: [0-9a-fA-F];
 fragment HexDigitOrSeparator: HexDigit | '_';
 HexLiteral
-    : '0' [xX] HexDigit HexDigitOrSeparator* HexDigit
-    | '0' [xX] HexDigit
+    : '-'?
+    (
+        '0' [xX] HexDigit HexDigitOrSeparator* HexDigit
+            |
+        '0' [xX] HexDigit
+    )
     ;
 fragment BinDigit: [01];
 fragment BinDigitOrSeparator: BinDigit | '_';
-BinLiteral
-    : '0' [bB] BinDigit BinDigitOrSeparator* BinDigit
-    | '0' [bB] BinDigit
+
+BinLiteral:
+    '-'?
+    (
+        '0' [bB] BinDigit BinDigitOrSeparator* BinDigit
+            |
+        '0' [bB] BinDigit
+    )
     ;
 LongLiteral
     : (IntegerLiteral | HexLiteral | BinLiteral) 'L'

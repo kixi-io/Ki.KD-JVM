@@ -229,12 +229,24 @@ class Interpreter {
         }
 
         if(ctx.BinLiteral() != null) {
-            return Integer.parseInt(text.replace("_", "")
-                    .substring(2), 2)
+            if(text[0] == '-') {
+                return -Integer.parseInt(text.replace("_", "")
+                        .substring(3), 2)
+            } else {
+                return Integer.parseInt(text.replace("_", "")
+                        .substring(2), 2)
+            }
         }
 
-        if(ctx.HexLiteral() != null) return Integer.parseInt(text.replace("_", "")
-                .substring(2), 16)
+        if(ctx.HexLiteral() != null) {
+            if(text[0] == '-') {
+                return -Integer.parseInt(text.replace("_", "")
+                        .substring(3), 16)
+            } else {
+                return Integer.parseInt(text.replace("_", "")
+                        .substring(2), 16)
+            }
+        }
 
         //// Booleans --- ---
 

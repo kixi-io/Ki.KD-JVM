@@ -19,6 +19,8 @@ class KD {
          * Reads tags from the reader. If there is a single tag it is returned as is.
          * If there are multiple tags they are returned as children of a root tag
          * called "root";
+         *
+         * @throws ParseException
          */
         @JvmStatic fun read(reader: Reader) : Tag {
             val tags = Interpreter().read(reader)
@@ -32,6 +34,7 @@ class KD {
                 return tag;
             }
         }
+
 
         @JvmStatic fun read(text: String) : Tag = read(StringReader(text))
         @JvmStatic fun read(file: File) : Tag = read(FileReader(file))
