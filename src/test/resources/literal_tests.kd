@@ -358,11 +358,11 @@ Ranges {
 
 Base64 {
     # bytes for UTF8 string "hi"
-    b64Greeting .base64(SGVsbG8=)
+    b64Greeting .blob(SGVsbG8=)
 
     # bytes for a small PNG image
 
-    png .base64(
+    png .blob(
         Qk1UAAAAAAAAAD4AAAAoAAAABQAAAAUAAAABAAEAAAAAABYAAA
         ASCwAAEgsAAAAAAAAAAAAA////AAAAAAAAkEcCcAAAAHEBAABw
         AAAAAAAAAAAA

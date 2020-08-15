@@ -30,7 +30,7 @@ value:
     | range
     | Version
     // Encodings
-    | Base64
+    | Blob
     ;
 
 // String
@@ -87,7 +87,5 @@ annotation: '@' nsName ('(' valueList? attributeList? ')')?;
 annotationList: annotation (NL* annotation)*;
 
 // ETC
-
-// base64: BASE64 BASE64_DATA;
 
 dateTime: Date (Time TimeZone?)?;

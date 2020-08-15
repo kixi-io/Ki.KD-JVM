@@ -1,5 +1,5 @@
 // Generated from /Users/danielleuck/projects/Ki/JVM/Ki.KD-JVM/src/main/kotlin/io/kixi/kd/KDLexer.g4 by ANTLR 4.8
-package io.kixi.kd.antlr;
+package io.kixi.kd;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;

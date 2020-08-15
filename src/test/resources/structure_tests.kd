@@ -68,7 +68,7 @@ Attributes {
         allergies=false
     atts7 name="joe" /* size=5 */ # allergies=false
     atts8 name="joe" size=5 allergies=false text="hi" birthday=1972/05/23
-    atts9 key=.base64(bXlrZXk=)
+    atts9 key=.blob(bXlrZXk=)
 
     # test values and attributes
     valatts1 "joe" size=5

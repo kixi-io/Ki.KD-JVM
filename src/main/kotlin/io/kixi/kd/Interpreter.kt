@@ -290,8 +290,8 @@ class Interpreter {
             return Version.parse(text)
         }
 
-        if(ctx.Base64() != null) {
-            return Ki.parseBase64(ctx.Base64().text)
+        if(ctx.Blob() != null) {
+            return Ki.parseBlob(ctx.Blob().text)
         }
 
         //// Duration --- ---
