@@ -119,7 +119,7 @@ class Tag : TagEntityBase {
      *
      * TODO: break up long lines using the backslash
      */
-     fun toString(linePrefix: String): String {
+    fun toString(linePrefix: String): String {
 
         val builder = StringBuilder()
 
@@ -170,6 +170,8 @@ class Tag : TagEntityBase {
         }
         return builder.toString()
     }
+
+    override fun toString(): String = toString("")
 
     /**
      * Gets the first child tag with the given name
