@@ -98,19 +98,13 @@ import kotlin.collections.HashMap
  * For more information on the KD language see the
  * [KD Wiki Page](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)).
  */
-class Tag {
-
-    var nsid: NSID
+class Tag : TagEntityBase {
 
     var annotations = ArrayList<Annotation>()
-    var values = ArrayList<Any?>()
-    var attributes = TreeMap<NSID, Any?>()
 
     var children = ArrayList<Tag>()
 
-    constructor(nsid: NSID) {
-        this.nsid = nsid
-    }
+    constructor(_nsid: NSID): super(_nsid) {}
 
     constructor(name:String, namespace:String = ""): this(NSID(name, namespace)) {}
 
@@ -175,23 +169,6 @@ class Tag {
             builder.append("$linePrefix}")
         }
         return builder.toString()
-    }
-
-    fun <T> get(): T = value as T
-
-    fun setAttribute(name: String, namespace: String = "", value: Any?) =
-        attributes.put(NSID(name, namespace), value)
-
-    fun <T> getAttribute(name: String, namespace: String = "") : T =
-            attributes[NSID(name, namespace)] as T
-
-    fun <T> getAttributesInNamespace(namespace:String): Map<String, T> {
-        val map = HashMap<String, Any?>()
-        for(e in attributes.entries) {
-            if(e.key.namespace == namespace)
-                map.put(e.key.name, e.value)
-        }
-        return map as Map<String, T>
     }
 
     /**
@@ -324,26 +301,4 @@ class Tag {
         }
         return rows
     }
-
-    /**
-     * Convenience method that returns the first value in the value list or null if there
-     * are no values.
-     */
-    var value: Any? = null
-        get() = if(values.size == 0) null else values[0]
-
-    override fun toString(): String = toString("")
-
-    /**
-     * Returns true if this tag (including all of its values, attributes, and
-     * children) is equivalent to the given tag.
-     *
-     * @return true if the tags are equivalent
-     */
-    override fun equals(other: Any?): Boolean = other is Tag && other.toString() == toString()
-
-    /**
-     * @return The hash (based on the output from toString())
-     */
-    override fun hashCode(): Int = toString().hashCode()
 }

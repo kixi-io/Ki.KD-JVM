@@ -14,7 +14,6 @@ class NumberTest {
 
     @Test
     fun testInts() {
-        log(root)
         val ints = root.getChild("Int")!!
         assertEquals("[0, 5, -5]", ints.getChild("basic")!!.values.toString())
         assertEquals(5, ints.getChild("int4")!!.value) // 0b101
