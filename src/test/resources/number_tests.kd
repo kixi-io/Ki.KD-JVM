@@ -18,7 +18,7 @@ Long {
 }
 
 Float {
-  basic .2 0.3 0.521f
+  basic .2f 0.3f 0.521f
   float1 0.253958f
   float2 0.253_958f
   float3 1.2345678E7f
