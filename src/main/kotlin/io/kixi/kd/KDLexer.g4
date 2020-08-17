@@ -126,6 +126,8 @@ fragment SafeCodePoint
 fragment CharSafeCodePoint
    : ~ ['\\\u0000-\u001F]
    ;
+
+// TODO: This doesn't capture some emoji correctly
 CharLiteral: '\'' (Esc | CharSafeCodePoint) '\'';
 
 // End String --- ---
@@ -226,10 +228,10 @@ ID: IDStart IDChar*;
 
 // COMMENTS --- ---
 
-BlockComment: '/*' ( BlockComment | . )*? '*/' -> skip; //-> channel(COMMENTS);
+BlockComment: '/*' ( BlockComment | . )*? '*/' -> channel(HIDDEN); //-> skip; //-> channel(COMMENTS);
 
-LineComment: ('#' | '//') ~[\u000A\u000D]* -> skip; //-> channel(COMMENTS);
+LineComment: ('#' | '//') ~[\u000A\u000D]* -> channel(HIDDEN); //-> skip; //-> channel(COMMENTS);
 
 // WHITE_SPACE --- ---
-WS: ([ \t\r] | '\\' '\n')+ -> skip;
+WS: ([ \t\r] | '\\' '\n')+ -> channel(HIDDEN); //-> skip;
 NL: ('\n' | ';')+;

@@ -949,7 +949,7 @@ public class KDLexer extends Lexer {
 		"\u01d8\u01ed\u01ef\u01fa\u020b\u021a\u0225\u0236\u023b\u023f\u0244\u024b"+
 		"\u024d\u0250\u0265\u026b\u0270\u027b\u027d\u027f\u0284\u028a\u028f\u0295"+
 		"\u029e\u02a6\u02a8\u02aa\u02e8\u02ef\u02f4\u02ff\u0305\u030d\u030f\u031a"+
-		"\u031f\u0327\u0329\u0330\3\b\2\2";
+		"\u031f\u0327\u0329\u0330\3\2\3\2";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
