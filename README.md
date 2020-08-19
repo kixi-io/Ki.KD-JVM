@@ -10,4 +10,4 @@ Jython and JRuby.
 KD is a simple delcarative language with rich type inferencing and the ability to easily
 work with portable high precision numeric and temporal data. It is well suited for
 everything from configuration files to financial and scientific applications that require
-type safety and precision.
+type safety and precision. See ***[KD Documentation (Wiki)](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD))***
