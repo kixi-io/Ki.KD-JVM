@@ -92,9 +92,9 @@ fragment VersionQualifierAndNum: VersionQualifier ('-'? NumberPart)?;
 
 // String --- ---
 
-BasicString: '"' (Esc | ~["\r\n\\])* '"';
+SimpleString: '"' (Esc | ~["\r\n\\])* '"';
 RawString: '@"' (~["\r\n])* '"';
-BlockBasicString: '"""' ([\t\r\n] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
+BlockString: '"""' ([\t\r\n] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
 BlockRawString:   '@"""' ([\t\r\n\\] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
 BlockRawAltString:   '`' (~'`')* '`';
 

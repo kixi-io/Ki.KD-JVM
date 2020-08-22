@@ -337,13 +337,13 @@ class Interpreter {
         var text = parentCtx.text
 
         when {
-            parentCtx.BasicString()!=null -> {
+            parentCtx.SimpleString()!=null -> {
                 text = text.substring(1, text.length-1).resolveEscapes()
             }
             parentCtx.RawString()!=null -> {
                 text = text.substring(2, text.length-1)
             }
-            parentCtx.BlockBasicString()!=null -> {
+            parentCtx.BlockString()!=null -> {
                 text = trimStringBlockLinePrefixesAndNewLines(
                         text.substring(3, text.length-3).resolveEscapes()
                 )

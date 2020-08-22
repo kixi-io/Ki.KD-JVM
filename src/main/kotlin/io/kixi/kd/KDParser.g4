@@ -35,9 +35,9 @@ value:
 
 // String
 stringLiteral:
-    BasicString |
+    SimpleString |
     RawString |
-    BlockBasicString |
+    BlockString |
     BlockRawString |
     BlockRawAltString;
 

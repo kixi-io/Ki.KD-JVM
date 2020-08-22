@@ -1,4 +1,4 @@
-// Generated from /Users/danielleuck/projects/Ki/JVM/Ki.KD-JVM/target/classes/io/kixi/kd/KDLexer.g4 by ANTLR 4.8
+// Generated from /Users/danielleuck/projects/Ki/JVM/Ki.KD-JVM/src/main/kotlin/io/kixi/kd/KDLexer.g4 by ANTLR 4.8
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
@@ -18,14 +18,14 @@ public class KDLexer extends Lexer {
 	public static final int
 		NULL=1, TRUE=2, FALSE=3, URL=4, FloatLiteral=5, DoubleLiteral=6, DecimalLiteral=7, 
 		IntegerLiteral=8, HexLiteral=9, BinLiteral=10, LongLiteral=11, Version=12, 
-		BasicString=13, RawString=14, BlockBasicString=15, BlockRawString=16, 
-		BlockRawAltString=17, CharLiteral=18, CompoundDuration=19, DayDuration=20, 
-		HourDuration=21, MinuteDuration=22, SecondDuration=23, MillisecondDuration=24, 
-		NanosecondDuration=25, Date=26, Time=27, TimeZone=28, InclusiveRangeOp=29, 
-		ExclusiveRangeOp=30, ExclusiveLeftOp=31, ExclusiveRightOp=32, DOT=33, 
-		COLON=34, SEMICOLON=35, EQUALS=36, OPEN=37, CLOSE=38, LPAREN=39, RPAREN=40, 
-		LSQUARE=41, RSQUARE=42, COMMA=43, SLASH=44, DASH=45, AT=46, PLUS=47, UNDERSCORE=48, 
-		Blob=49, ID=50, BlockComment=51, LineComment=52, WS=53, NL=54;
+		SimpleString=13, RawString=14, BlockString=15, BlockRawString=16, BlockRawAltString=17, 
+		CharLiteral=18, CompoundDuration=19, DayDuration=20, HourDuration=21, 
+		MinuteDuration=22, SecondDuration=23, MillisecondDuration=24, NanosecondDuration=25, 
+		Date=26, Time=27, TimeZone=28, InclusiveRangeOp=29, ExclusiveRangeOp=30, 
+		ExclusiveLeftOp=31, ExclusiveRightOp=32, DOT=33, COLON=34, SEMICOLON=35, 
+		EQUALS=36, OPEN=37, CLOSE=38, LPAREN=39, RPAREN=40, LSQUARE=41, RSQUARE=42, 
+		COMMA=43, SLASH=44, DASH=45, AT=46, PLUS=47, UNDERSCORE=48, Blob=49, ID=50, 
+		BlockComment=51, LineComment=52, WS=53, NL=54;
 	public static final int
 		WHITESPACE=2, COMMENTS=3;
 	public static String[] channelNames = {
@@ -43,7 +43,7 @@ public class KDLexer extends Lexer {
 			"FloatLiteral", "DoubleLiteral", "DecimalLiteral", "IntegerLiteral", 
 			"HexDigit", "HexDigitOrSeparator", "HexLiteral", "BinDigit", "BinDigitOrSeparator", 
 			"BinLiteral", "LongLiteral", "Number", "Version", "VersionQualifierAndNum", 
-			"BasicString", "RawString", "BlockBasicString", "BlockRawString", "BlockRawAltString", 
+			"SimpleString", "RawString", "BlockString", "BlockRawString", "BlockRawAltString", 
 			"UniCharacterLiteral", "EscapedIdentifier", "Esc", "Unicode", "SafeCodePoint", 
 			"CharSafeCodePoint", "CharLiteral", "DAYS", "HOURS", "MINUTES", "SECONDS", 
 			"MILLIS", "NANOS", "CompoundDuration", "DayDuration", "HourDuration", 
@@ -71,7 +71,7 @@ public class KDLexer extends Lexer {
 		return new String[] {
 			null, "NULL", "TRUE", "FALSE", "URL", "FloatLiteral", "DoubleLiteral", 
 			"DecimalLiteral", "IntegerLiteral", "HexLiteral", "BinLiteral", "LongLiteral", 
-			"Version", "BasicString", "RawString", "BlockBasicString", "BlockRawString", 
+			"Version", "SimpleString", "RawString", "BlockString", "BlockRawString", 
 			"BlockRawAltString", "CharLiteral", "CompoundDuration", "DayDuration", 
 			"HourDuration", "MinuteDuration", "SecondDuration", "MillisecondDuration", 
 			"NanosecondDuration", "Date", "Time", "TimeZone", "InclusiveRangeOp", 

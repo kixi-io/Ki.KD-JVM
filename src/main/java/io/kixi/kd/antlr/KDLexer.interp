@@ -69,9 +69,9 @@ HexLiteral
 BinLiteral
 LongLiteral
 Version
-BasicString
+SimpleString
 RawString
-BlockBasicString
+BlockString
 BlockRawString
 BlockRawAltString
 CharLiteral
@@ -139,9 +139,9 @@ LongLiteral
 Number
 Version
 VersionQualifierAndNum
-BasicString
+SimpleString
 RawString
-BlockBasicString
+BlockString
 BlockRawString
 BlockRawAltString
 UniCharacterLiteral

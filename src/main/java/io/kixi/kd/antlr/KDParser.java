@@ -19,14 +19,14 @@ public class KDParser extends Parser {
 	public static final int
 		NULL=1, TRUE=2, FALSE=3, URL=4, FloatLiteral=5, DoubleLiteral=6, DecimalLiteral=7, 
 		IntegerLiteral=8, HexLiteral=9, BinLiteral=10, LongLiteral=11, Version=12, 
-		BasicString=13, RawString=14, BlockBasicString=15, BlockRawString=16, 
-		BlockRawAltString=17, CharLiteral=18, CompoundDuration=19, DayDuration=20, 
-		HourDuration=21, MinuteDuration=22, SecondDuration=23, MillisecondDuration=24, 
-		NanosecondDuration=25, Date=26, Time=27, TimeZone=28, InclusiveRangeOp=29, 
-		ExclusiveRangeOp=30, ExclusiveLeftOp=31, ExclusiveRightOp=32, DOT=33, 
-		COLON=34, SEMICOLON=35, EQUALS=36, OPEN=37, CLOSE=38, LPAREN=39, RPAREN=40, 
-		LSQUARE=41, RSQUARE=42, COMMA=43, SLASH=44, DASH=45, AT=46, PLUS=47, UNDERSCORE=48, 
-		Blob=49, ID=50, BlockComment=51, LineComment=52, WS=53, NL=54;
+		SimpleString=13, RawString=14, BlockString=15, BlockRawString=16, BlockRawAltString=17, 
+		CharLiteral=18, CompoundDuration=19, DayDuration=20, HourDuration=21, 
+		MinuteDuration=22, SecondDuration=23, MillisecondDuration=24, NanosecondDuration=25, 
+		Date=26, Time=27, TimeZone=28, InclusiveRangeOp=29, ExclusiveRangeOp=30, 
+		ExclusiveLeftOp=31, ExclusiveRightOp=32, DOT=33, COLON=34, SEMICOLON=35, 
+		EQUALS=36, OPEN=37, CLOSE=38, LPAREN=39, RPAREN=40, LSQUARE=41, RSQUARE=42, 
+		COMMA=43, SLASH=44, DASH=45, AT=46, PLUS=47, UNDERSCORE=48, Blob=49, ID=50, 
+		BlockComment=51, LineComment=52, WS=53, NL=54;
 	public static final int
 		RULE_tagList = 0, RULE_tag = 1, RULE_value = 2, RULE_stringLiteral = 3, 
 		RULE_duration = 4, RULE_rangeOp = 5, RULE_intRange = 6, RULE_longRange = 7, 
@@ -60,7 +60,7 @@ public class KDParser extends Parser {
 		return new String[] {
 			null, "NULL", "TRUE", "FALSE", "URL", "FloatLiteral", "DoubleLiteral", 
 			"DecimalLiteral", "IntegerLiteral", "HexLiteral", "BinLiteral", "LongLiteral", 
-			"Version", "BasicString", "RawString", "BlockBasicString", "BlockRawString", 
+			"Version", "SimpleString", "RawString", "BlockString", "BlockRawString", 
 			"BlockRawAltString", "CharLiteral", "CompoundDuration", "DayDuration", 
 			"HourDuration", "MinuteDuration", "SecondDuration", "MillisecondDuration", 
 			"NanosecondDuration", "Date", "Time", "TimeZone", "InclusiveRangeOp", 
@@ -175,7 +175,7 @@ public class KDParser extends Parser {
 			setState(69);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NULL) | (1L << TRUE) | (1L << FALSE) | (1L << URL) | (1L << FloatLiteral) | (1L << DoubleLiteral) | (1L << DecimalLiteral) | (1L << IntegerLiteral) | (1L << HexLiteral) | (1L << BinLiteral) | (1L << LongLiteral) | (1L << Version) | (1L << BasicString) | (1L << RawString) | (1L << BlockBasicString) | (1L << BlockRawString) | (1L << BlockRawAltString) | (1L << CharLiteral) | (1L << CompoundDuration) | (1L << DayDuration) | (1L << HourDuration) | (1L << MinuteDuration) | (1L << SecondDuration) | (1L << MillisecondDuration) | (1L << NanosecondDuration) | (1L << Date) | (1L << LSQUARE) | (1L << AT) | (1L << UNDERSCORE) | (1L << Blob) | (1L << ID))) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NULL) | (1L << TRUE) | (1L << FALSE) | (1L << URL) | (1L << FloatLiteral) | (1L << DoubleLiteral) | (1L << DecimalLiteral) | (1L << IntegerLiteral) | (1L << HexLiteral) | (1L << BinLiteral) | (1L << LongLiteral) | (1L << Version) | (1L << SimpleString) | (1L << RawString) | (1L << BlockString) | (1L << BlockRawString) | (1L << BlockRawAltString) | (1L << CharLiteral) | (1L << CompoundDuration) | (1L << DayDuration) | (1L << HourDuration) | (1L << MinuteDuration) | (1L << SecondDuration) | (1L << MillisecondDuration) | (1L << NanosecondDuration) | (1L << Date) | (1L << LSQUARE) | (1L << AT) | (1L << UNDERSCORE) | (1L << Blob) | (1L << ID))) != 0)) {
 				{
 				{
 				setState(60);
@@ -588,9 +588,9 @@ public class KDParser extends Parser {
 	}
 
 	public static class StringLiteralContext extends ParserRuleContext {
-		public TerminalNode BasicString() { return getToken(KDParser.BasicString, 0); }
+		public TerminalNode SimpleString() { return getToken(KDParser.SimpleString, 0); }
 		public TerminalNode RawString() { return getToken(KDParser.RawString, 0); }
-		public TerminalNode BlockBasicString() { return getToken(KDParser.BlockBasicString, 0); }
+		public TerminalNode BlockString() { return getToken(KDParser.BlockString, 0); }
 		public TerminalNode BlockRawString() { return getToken(KDParser.BlockRawString, 0); }
 		public TerminalNode BlockRawAltString() { return getToken(KDParser.BlockRawAltString, 0); }
 		public StringLiteralContext(ParserRuleContext parent, int invokingState) {
@@ -621,7 +621,7 @@ public class KDParser extends Parser {
 			{
 			setState(122);
 			_la = _input.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << BasicString) | (1L << RawString) | (1L << BlockBasicString) | (1L << BlockRawString) | (1L << BlockRawAltString))) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << SimpleString) | (1L << RawString) | (1L << BlockString) | (1L << BlockRawString) | (1L << BlockRawAltString))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -2080,7 +2080,7 @@ public class KDParser extends Parser {
 				setState(314);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NULL) | (1L << TRUE) | (1L << FALSE) | (1L << URL) | (1L << FloatLiteral) | (1L << DoubleLiteral) | (1L << DecimalLiteral) | (1L << IntegerLiteral) | (1L << HexLiteral) | (1L << BinLiteral) | (1L << LongLiteral) | (1L << Version) | (1L << BasicString) | (1L << RawString) | (1L << BlockBasicString) | (1L << BlockRawString) | (1L << BlockRawAltString) | (1L << CharLiteral) | (1L << CompoundDuration) | (1L << DayDuration) | (1L << HourDuration) | (1L << MinuteDuration) | (1L << SecondDuration) | (1L << MillisecondDuration) | (1L << NanosecondDuration) | (1L << Date) | (1L << LSQUARE) | (1L << COMMA) | (1L << UNDERSCORE) | (1L << Blob) | (1L << ID))) != 0)) {
+				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << NULL) | (1L << TRUE) | (1L << FALSE) | (1L << URL) | (1L << FloatLiteral) | (1L << DoubleLiteral) | (1L << DecimalLiteral) | (1L << IntegerLiteral) | (1L << HexLiteral) | (1L << BinLiteral) | (1L << LongLiteral) | (1L << Version) | (1L << SimpleString) | (1L << RawString) | (1L << BlockString) | (1L << BlockRawString) | (1L << BlockRawAltString) | (1L << CharLiteral) | (1L << CompoundDuration) | (1L << DayDuration) | (1L << HourDuration) | (1L << MinuteDuration) | (1L << SecondDuration) | (1L << MillisecondDuration) | (1L << NanosecondDuration) | (1L << Date) | (1L << LSQUARE) | (1L << COMMA) | (1L << UNDERSCORE) | (1L << Blob) | (1L << ID))) != 0)) {
 					{
 					{
 					setState(309);
