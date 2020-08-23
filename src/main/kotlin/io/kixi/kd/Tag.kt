@@ -100,9 +100,10 @@ import kotlin.collections.HashMap
  */
 class Tag : TagEntityBase {
 
-    var annotations = ArrayList<Annotation>()
-
-    var children = ArrayList<Tag>()
+    // TODO: We need better lazy initialization.
+    // These will be initialized anytime find operations are used, or toString() is called.
+    val annotations: MutableList<Annotation> by lazy { ArrayList<Annotation>() }
+    val children: MutableList<Tag> by lazy { ArrayList<Tag>() }
 
     constructor(_nsid: NSID): super(_nsid) {}
 
@@ -113,6 +114,7 @@ class Tag : TagEntityBase {
     companion object {
         private val NEW_LINE = System.getProperty("line.separator")
     }
+
     /**
      * @param linePrefix A prefix to insert before every line.
      * @return A string representation of this tag using KD
@@ -234,7 +236,7 @@ class Tag : TagEntityBase {
      *
      * **Example**
      * `
-     * val thing = tag.findChild { it.color = "green" && it.size > 5 }
+     * val thing = tag.findChild { it.value == "green" && it.attributes["foo"] == "bar" }
      * `
      */
     inline fun findChild(predicate: (Tag) -> Boolean): Tag? {
@@ -253,7 +255,7 @@ class Tag : TagEntityBase {
      *
      * **Example**
      * `
-     * val things = tag.findChildren { it.color = "green" && it.size > 5 }
+     * val things = tag.findChildren { it.value == "green" && it.attributes["foo"] == "bar" }
      * `
      */
     inline fun findChildren(predicate: (Tag) -> Boolean): List<Tag> {

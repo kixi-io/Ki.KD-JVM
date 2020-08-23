@@ -7,14 +7,19 @@ import kotlin.collections.HashMap
 
 /**
  * This is the base class for entities that have an NSID, value list and attribute map.
+ * The values list, attributes list and attributes map use lazy initialization to
+ * conserve memory.
+ *
  * TagEntityBase is the superclass of Tag and Annotation.
  */
-
 abstract class TagEntityBase {
 
     var nsid: NSID
-    var values = ArrayList<Any?>()
-    var attributes = TreeMap<NSID, Any?>()
+
+    // TODO: We need better lazy initialization.
+    // These will be initialized anytime find operations are used, or toString() is called.
+    val values: MutableList<Any?> by lazy { ArrayList<Any?>() }
+    val attributes: MutableMap<NSID, Any?> by lazy { TreeMap<NSID, Any?>() }
 
     constructor(nsid: NSID) {
         this.nsid = nsid
