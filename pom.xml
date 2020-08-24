@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>ki</groupId>
+    <groupId>io.kixi</groupId>
     <artifactId>Ki.KD</artifactId>
     <version>1.0.0-beta-1</version>
     <name>ki-kd</name>
@@ -36,7 +36,7 @@
             <version>4.8-1</version>
         </dependency>
         <dependency>
-            <groupId>ki</groupId>
+            <groupId>io.kixi</groupId>
             <artifactId>Ki.Core</artifactId>
             <version>{ki.core.version}</version>
             <!-- change to Maven Central when available -->
