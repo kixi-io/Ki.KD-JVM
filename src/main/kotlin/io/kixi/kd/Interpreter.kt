@@ -211,23 +211,21 @@ class Interpreter {
             if(ntext.last().equals('L', ignoreCase = true)) ntext = ntext.dropLast(1)
             return ntext.toLong()
         }
-        if(ctx.DoubleLiteral() != null) {
-            var ntext = text.replace("_", "")
-            if(ntext.last().equals('D', ignoreCase = true)) ntext = ntext.dropLast(1)
-            return ntext.toDouble()
-        }
         if(ctx.FloatLiteral() !=null) {
             var ntext = text.replace("_", "")
             if(ntext.last().equals('F', ignoreCase = true)) ntext = ntext.dropLast(1)
             return ntext.toFloat()
         }
-
         if(ctx.DecimalLiteral() !=null) {
             var decText = text.replace("_", "")
-            if(decText.last().equals('m', ignoreCase = true)) decText = decText.dropLast(1)
+            if(decText.endsWith("bd", ignoreCase = true)) decText = decText.dropLast(2)
             return decText.toBigDecimal()
         }
-
+        if(ctx.DoubleLiteral() != null) {
+            var ntext = text.replace("_", "")
+            if(ntext.last().equals('D', ignoreCase = true)) ntext = ntext.dropLast(1)
+            return ntext.toDouble()
+        }
         if(ctx.BinLiteral() != null) {
             if(text[0] == '-') {
                 return -Integer.parseInt(text.replace("_", "")
@@ -712,10 +710,10 @@ class Interpreter {
         var rightText = ctx.getChild(2).text
         val rightOpen = (rightText == "_")
 
-        if(leftText.last().equals('m', ignoreCase = true))
-            leftText = leftText.substring(0, leftText.length-1)
-        if(rightText.last().equals('m', ignoreCase = true))
-            rightText = rightText.substring(0, rightText.length-1)
+        if(leftText.endsWith("bd", ignoreCase = true))
+            leftText = leftText.substring(0, leftText.length-2)
+        if(rightText.endsWith("bd", ignoreCase = true))
+            rightText = rightText.substring(0, rightText.length-2)
 
         val op = rangeOp(ctx.rangeOp().text)
 

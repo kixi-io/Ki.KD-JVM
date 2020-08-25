@@ -34,10 +34,10 @@ Double {
 }
 
 Decimal {
-  basic .2m 0.3m 0.521m
-  decimal1 0m
-  decimal2 11.111111M
-  decimal3 143_523.521_535m
-  decimal4 234535.3453453453454345345341242343M
-  decimal5 982_342_462_234.163_932_352m
+  basic .2bd 0.3bd 0.521bd
+  decimal1 0bd
+  decimal2 11.111111BD
+  decimal3 143_523.521_535bd
+  decimal4 234535.3453453453454345345341242343BD
+  decimal5 982_342_462_234.163_932_352bd
 }

@@ -166,11 +166,11 @@ Numbers {
     double5 521_789.231_834
     double_exp1 123e-5
     double_exp2 12.1e2
-    decimal1 0m
-    decimal2 11.111111M
-    decimal3 143_523.521_535m
-    decimal4 234535.3453453453454345345341242343m
-    decimal5 982_342_462_234.163_932_352m
+    decimal1 0bd
+    decimal2 11.111111BD
+    decimal3 143_523.521_535bd
+    decimal4 234535.3453453453454345345341242343bd
+    decimal5 982_342_462_234.163_932_352bd
 
     int_binary 0b1010000101
     int_hex 0x0A2F
@@ -323,7 +323,7 @@ Ranges {
     intOpenLeftRange _..15
     intOpenRightRange 2.5.._
     doubleRange 12.4<..15.1
-    decimalRange 12.4m<..15.1m
+    decimalRange 12.4bd<..15.1bd
     charRange 'f'..'z'
     stringRange "Bilbo".."Frodo"
     durationRange 5s..10s
@@ -346,7 +346,7 @@ Ranges {
 
     3f..6.2f
     2d..5.24
-    3.4m..205.4214m
+    3.4bd..205.4214bd
 
     2010/12/25 .. 2020/5/15
 

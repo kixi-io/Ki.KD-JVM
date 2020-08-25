@@ -49,8 +49,8 @@ DoubleLiteral
     ;
 
 DecimalLiteral
-    : '-'? NumberPart? '.' NumberPart DoubleExponent? [mM]
-    | '-'? NumberPart DoubleExponent? [mM]
+    : '-'? NumberPart? '.' NumberPart DoubleExponent? ('bd' | 'BD')
+    | '-'? NumberPart DoubleExponent? ('bd' | 'BD')
     ;
 IntegerLiteral
     : '-'? NumberPart
