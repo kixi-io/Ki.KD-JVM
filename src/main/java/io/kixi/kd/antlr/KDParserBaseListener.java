@@ -76,6 +76,18 @@ public class KDParserBaseListener implements KDParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterQuantity(KDParser.QuantityContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitQuantity(KDParser.QuantityContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterRangeOp(KDParser.RangeOpContext ctx) { }
 	/**
 	 * {@inheritDoc}

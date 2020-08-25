@@ -24,7 +24,7 @@ value:
     // Date, DateTime and Duration
     | dateTime
     | duration
-    //| duration
+    | quantity
     // etc
     | URL
     | range
@@ -44,6 +44,9 @@ stringLiteral:
 // Duration
 duration: CompoundDuration | DayDuration | HourDuration | MinuteDuration | SecondDuration | MillisecondDuration
           | NanosecondDuration;
+
+// Quantity
+quantity: IntegerQuantityLiteral | DecimalQuantityLiteral;
 
 // Range --- ---
 

@@ -183,6 +183,18 @@ TimeZone:
     )
 ;
 
+// Quantity ////
+
+// Assumed to be an Int or a Decimal unless Double, Float or Long is specified
+IntegerQuantityLiteral
+    : '-'? NumberPart ID (':' 'L')?
+    ;
+DecimalQuantityLiteral
+    : '-'? NumberPart ID ':' [dDfF]
+    | '-'? NumberPart? '.' NumberPart DoubleExponent? ID (':' [dDfFL])?
+    | '-'? NumberPart DoubleExponent ID (':' [dDfFL])?
+    ;
+
 // Range Operators
 InclusiveRangeOp: '..';
 ExclusiveRangeOp: '<..<';

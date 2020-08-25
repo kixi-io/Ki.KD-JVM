@@ -58,6 +58,16 @@ public interface KDParserListener extends ParseTreeListener {
 	 */
 	void exitDuration(KDParser.DurationContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link KDParser#quantity}.
+	 * @param ctx the parse tree
+	 */
+	void enterQuantity(KDParser.QuantityContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KDParser#quantity}.
+	 * @param ctx the parse tree
+	 */
+	void exitQuantity(KDParser.QuantityContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link KDParser#rangeOp}.
 	 * @param ctx the parse tree
 	 */
