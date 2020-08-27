@@ -288,8 +288,8 @@ class Interpreter {
             return Version.parse(text)
         }
 
-        if(ctx.Blob() != null) {
-            return Ki.parseBlob(ctx.Blob().text)
+        if(ctx.blob() != null) {
+            return Ki.parseBlob(ctx.blob().text)
         }
 
         //// Duration --- ---
@@ -341,17 +341,17 @@ class Interpreter {
             parentCtx.RawString()!=null -> {
                 text = text.substring(2, text.length-1)
             }
-            parentCtx.BlockString()!=null -> {
+            parentCtx.blockString()!=null -> {
                 text = trimStringBlockLinePrefixesAndNewLines(
                         text.substring(3, text.length-3).resolveEscapes()
                 )
             }
-            parentCtx.BlockRawString()!=null -> {
+            parentCtx.blockRawString()!=null -> {
                 text = trimStringBlockLinePrefixesAndNewLines(
                         text.substring(4, text.length-3)
                 )
             }
-            parentCtx.BlockRawAltString()!=null -> {
+            parentCtx.blockRawAltString()!=null -> {
                 text = trimStringBlockLinePrefixesAndNewLines(
                         text.substring(1, text.length-1)
                 )

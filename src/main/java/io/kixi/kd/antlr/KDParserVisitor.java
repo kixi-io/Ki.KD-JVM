@@ -1,4 +1,4 @@
-// Generated from /Users/danielleuck/projects/Ki/JVM/Ki.KD-JVM/src/main/kotlin/io/kixi/kd/KDParser.g4 by ANTLR 4.8
+// Generated from KDParser.g4 by ANTLR 4.8
 package io.kixi.kd.antlr;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -34,6 +34,24 @@ public interface KDParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitStringLiteral(KDParser.StringLiteralContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#blockString}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBlockString(KDParser.BlockStringContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#blockRawString}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBlockRawString(KDParser.BlockRawStringContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#blockRawAltString}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBlockRawAltString(KDParser.BlockRawAltStringContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KDParser#duration}.
 	 * @param ctx the parse tree
@@ -118,6 +136,12 @@ public interface KDParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitRange(KDParser.RangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#blob}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBlob(KDParser.BlobContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KDParser#valueList}.
 	 * @param ctx the parse tree

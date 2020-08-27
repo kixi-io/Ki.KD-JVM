@@ -1,4 +1,4 @@
-// Generated from /Users/danielleuck/projects/Ki/JVM/Ki.KD-JVM/src/main/kotlin/io/kixi/kd/KDParser.g4 by ANTLR 4.8
+// Generated from KDParser.g4 by ANTLR 4.8
 package io.kixi.kd.antlr;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -59,6 +59,42 @@ public class KDParserBaseListener implements KDParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitStringLiteral(KDParser.StringLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBlockString(KDParser.BlockStringContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBlockString(KDParser.BlockStringContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBlockRawString(KDParser.BlockRawStringContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBlockRawString(KDParser.BlockRawStringContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBlockRawAltString(KDParser.BlockRawAltStringContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBlockRawAltString(KDParser.BlockRawAltStringContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -227,6 +263,18 @@ public class KDParserBaseListener implements KDParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitRange(KDParser.RangeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBlob(KDParser.BlobContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBlob(KDParser.BlobContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

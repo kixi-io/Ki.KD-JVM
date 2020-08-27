@@ -30,16 +30,20 @@ value:
     | range
     | Version
     // Encodings
-    | Blob
+    | blob
     ;
 
 // String
 stringLiteral:
     SimpleString |
     RawString |
-    BlockString |
-    BlockRawString |
-    BlockRawAltString;
+    blockString |
+    blockRawString |
+    blockRawAltString;
+
+blockString: BlockStringStart BlockStringChunk* BlockStringEnd;
+blockRawString: BlockRawStringStart BlockRawStringChunk* BlockRawStringEnd;
+blockRawAltString: BlockRawAltStringStart BlockRawAltStringChunk* BlockRawAltStringEnd;
 
 // Duration
 duration: CompoundDuration | DayDuration | HourDuration | MinuteDuration | SecondDuration | MillisecondDuration
@@ -66,6 +70,8 @@ stringRange: ('_' rangeOp stringLiteral) | (stringLiteral rangeOp '_') | (string
 range: intRange | longRange | floatRange | doubleRange | decimalRange | durationRange | dateTimeRange | versionRange
        | charRange | stringRange;
 
+blob: BLOB_START BLOB_DATA+ BLOB_END;
+
 // Tag Parts --- ---
 
 valueList: value+;
@@ -86,7 +92,7 @@ pair: NL* value '=' NL* value NL*;
 map: ('[' NL* pair (COMMA? pair)* NL* ']') | ('[' '=' ']');
 
 // ANNOTATIONS
-annotation: '@' nsName ('(' valueList? attributeList? ')')?;
+annotation: '@' nsName (LPAREN valueList? attributeList? RPAREN)?;
 annotationList: annotation (NL* annotation)*;
 
 // ETC
