@@ -1,4 +1,4 @@
-// Generated from /Users/danielleuck/projects/Ki/JVM/Ki.KD-JVM/src/main/kotlin/io/kixi/kd/KDParser.g4 by ANTLR 4.8
+// Generated from KDParser.g4 by ANTLR 4.8
 package io.kixi.kd.antlr;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -47,6 +47,36 @@ public interface KDParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitStringLiteral(KDParser.StringLiteralContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KDParser#blockString}.
+	 * @param ctx the parse tree
+	 */
+	void enterBlockString(KDParser.BlockStringContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KDParser#blockString}.
+	 * @param ctx the parse tree
+	 */
+	void exitBlockString(KDParser.BlockStringContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KDParser#blockRawString}.
+	 * @param ctx the parse tree
+	 */
+	void enterBlockRawString(KDParser.BlockRawStringContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KDParser#blockRawString}.
+	 * @param ctx the parse tree
+	 */
+	void exitBlockRawString(KDParser.BlockRawStringContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KDParser#blockRawAltString}.
+	 * @param ctx the parse tree
+	 */
+	void enterBlockRawAltString(KDParser.BlockRawAltStringContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KDParser#blockRawAltString}.
+	 * @param ctx the parse tree
+	 */
+	void exitBlockRawAltString(KDParser.BlockRawAltStringContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KDParser#duration}.
 	 * @param ctx the parse tree
@@ -187,6 +217,16 @@ public interface KDParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitRange(KDParser.RangeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KDParser#blob}.
+	 * @param ctx the parse tree
+	 */
+	void enterBlob(KDParser.BlobContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KDParser#blob}.
+	 * @param ctx the parse tree
+	 */
+	void exitBlob(KDParser.BlobContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KDParser#valueList}.
 	 * @param ctx the parse tree

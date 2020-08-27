@@ -94,9 +94,9 @@ fragment VersionQualifierAndNum: VersionQualifier ('-'? NumberPart)?;
 
 SimpleString: '"' (Esc | ~["\r\n\\])* '"';
 RawString: '@"' (~["\r\n])* '"';
-BlockString: '"""' ([\t\r\n] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
-BlockRawString:   '@"""' ([\t\r\n\\] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
-BlockRawAltString:   '`' (~'`')* '`';
+BlockStringStart: '"""' -> pushMode(blockString);
+BlockRawStringStart:   '@"""' -> pushMode(blockRawString);
+BlockRawAltStringStart:   '`' -> pushMode(blockRawAltString);
 
 /*
 BasicString: '"' (Esc | ~["\r\n\\])* '"';
@@ -221,10 +221,7 @@ UNDERSCORE: '_';
 
 // Encodings --- ---
 
-Blob: '.blob' BLOB_DATA;
-
-// Complies with "The Base64 Alphabet" as specified in Table 1 of RFC 4648
-fragment BLOB_DATA: '(' [ \t\r\n]* ([A-Za-z0-9+=/] [ \t\r\n]*)+ ')';
+BLOB_START: '.blob(' -> pushMode(blob);
 
 // Identifiers --- ---
 
@@ -247,3 +244,29 @@ LineComment: ('#' | '//') ~[\u000A\u000D]* -> channel(HIDDEN); //-> skip; //-> c
 // WHITE_SPACE --- ---
 WS: ([ \t\r] | '\\' '\n')+ -> channel(HIDDEN); //-> skip;
 NL: ('\n' | ';')+;
+
+// These are implemented using modes so that a single blob or block string is made up of several tokens (at least one
+// per line of code). This helps the syntax highlighter on IntelliJ IDEA as tokens that are too big, when you introduce
+// an error, are split into many tokens and, when you remove the error, the IDE doesn't do enough backtracking for the
+// lexer to be able to recognize a big chunk of text again. So, splitting it in multiple tokens helps.
+mode blob;
+// Complies with "The Base64 Alphabet" as specified in Table 1 of RFC 4648
+BLOB_DATA: [ \t\r\n]* [A-Za-z0-9+=/] [ \t\r\n]*;
+BLOB_END: ')' -> popMode;
+BLOB_ERROR: .;
+
+mode blockString;
+BlockStringChunk: [\t\r\n]+ BlockStringChar* | [\t\r\n]* BlockStringChar+;
+BlockStringEnd: '"""' -> popMode;
+BlockStringError: [\\]? .;
+fragment BlockStringChar: '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint;
+
+mode blockRawString;
+BlockRawStringChunk: [\t\r\n]+ BlockRawStringChar* | [\t\r\n]* BlockRawStringChar+;
+BlockRawStringEnd: '"""' -> popMode;
+BlockRawStringError: .;
+fragment BlockRawStringChar: [\\] | BlockStringChar;
+
+mode blockRawAltString;
+BlockRawAltStringChunk: [\t\r\n]+ (~'`')* | [\t\r\n]* (~'`')+;
+BlockRawAltStringEnd: '`' -> popMode;
