@@ -1,4 +1,4 @@
-// Generated from KDParser.g4 by ANTLR 4.8
+// Generated from /Users/danielleuck/projects/Ki/JVM/Ki.KD-JVM/src/main/kotlin/io/kixi/kd/KDParser.g4 by ANTLR 4.8
 package io.kixi.kd.antlr;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -207,6 +207,16 @@ public interface KDParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitStringRange(KDParser.StringRangeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KDParser#quantityRange}.
+	 * @param ctx the parse tree
+	 */
+	void enterQuantityRange(KDParser.QuantityRangeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KDParser#quantityRange}.
+	 * @param ctx the parse tree
+	 */
+	void exitQuantityRange(KDParser.QuantityRangeContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link KDParser#range}.
 	 * @param ctx the parse tree

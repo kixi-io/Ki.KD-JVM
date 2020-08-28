@@ -1,4 +1,4 @@
-// Generated from KDParser.g4 by ANTLR 4.8
+// Generated from /Users/danielleuck/projects/Ki/JVM/Ki.KD-JVM/src/main/kotlin/io/kixi/kd/KDParser.g4 by ANTLR 4.8
 package io.kixi.kd.antlr;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -251,6 +251,18 @@ public class KDParserBaseListener implements KDParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitStringRange(KDParser.StringRangeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterQuantityRange(KDParser.QuantityRangeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitQuantityRange(KDParser.QuantityRangeContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

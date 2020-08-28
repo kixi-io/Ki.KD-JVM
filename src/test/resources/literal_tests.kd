@@ -309,6 +309,25 @@ URLs {
     https://www.amazon.com/Wide-Angle-Quadcopter/dp/?ac_md=2-1-QmV0d2VlbiAkNTAgYW5kICQxMDA%3D-ac_d_pm&cv_ct_cx=drones
 }
 
+# Quantities
+
+Quantities {
+    3cm
+    -3cm
+    5.2m2
+    -5.2m2
+    5_000_000km²
+    7g
+    7.5g
+    7g:L
+    7g:f
+    7g:d
+    23ℓ
+    23LT
+    18.2mℓ
+    18.2mL
+}
+
 # Range Tests -----------------------------------
 
 Ranges {

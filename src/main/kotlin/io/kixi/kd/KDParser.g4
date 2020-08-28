@@ -66,9 +66,10 @@ dateTimeRange: ('_' rangeOp dateTime) | (dateTime rangeOp '_') | (dateTime range
 versionRange: ('_' rangeOp Version) | (Version rangeOp '_') | (Version rangeOp Version);
 charRange: ('_' rangeOp CharLiteral) | (CharLiteral rangeOp '_') | (CharLiteral rangeOp CharLiteral);
 stringRange: ('_' rangeOp stringLiteral) | (stringLiteral rangeOp '_') | (stringLiteral rangeOp stringLiteral);
+quantityRange: ('_' rangeOp quantity) | (quantity rangeOp '_') | (quantity rangeOp quantity);
 
 range: intRange | longRange | floatRange | doubleRange | decimalRange | durationRange | dateTimeRange | versionRange
-       | charRange | stringRange;
+       | charRange | stringRange | quantityRange;
 
 blob: BLOB_START BLOB_DATA+ BLOB_END;
 

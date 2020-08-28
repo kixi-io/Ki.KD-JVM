@@ -7,6 +7,7 @@ import io.kixi.kd.antlr.KDParser
 import io.kixi.log
 import io.kixi.text.ParseException
 import io.kixi.text.resolveEscapes
+import io.kixi.uom.Quantity
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import java.io.Reader
@@ -312,6 +313,10 @@ class Interpreter {
             return makeRange(ctx.range())
         }
 
+        if(ctx.quantity() != null) {
+            return Quantity(text)
+        }
+
         //// List --- ---
 
         val listCtx = ctx.list()
@@ -515,6 +520,9 @@ class Interpreter {
 
         val sCtx = ctx.stringRange()
         if(sCtx!= null) return makeStringRange(sCtx)
+
+        val qCtx = ctx.quantityRange()
+        if(qCtx!= null) return makeQuantityRange(qCtx)
 
         throw KDParseException("Uknown type in range", ctx.start.line, ctx.start.charPositionInLine)
     }
@@ -764,6 +772,27 @@ class Interpreter {
             openRight -> Range<Int>(ctx.getChild(0).text.toInt(), Integer.MAX_VALUE,
                     op, openLeft, openRight)
             else -> Range<Int>(ctx.getChild(0).text.toInt(), ctx.getChild(2).text.toInt(),
+                    op, openLeft, openRight)
+        }
+    }
+
+    private fun makeQuantityRange(ctx: KDParser.QuantityRangeContext) : Range<Quantity> {
+        val left = ctx.getChild(0).text
+        val openLeft = (left == "_")
+        val op = rangeOp(ctx.rangeOp().text)
+        val right = ctx.getChild(2).text
+        val openRight = (right == "_")
+
+        return when {
+            openLeft -> {
+                val range = Quantity(ctx.getChild(2).text)
+                Range<Quantity>(range, range, op, openLeft, openRight)
+            }
+            openRight -> {
+                val range = Quantity(ctx.getChild(0).text)
+                Range<Quantity>(range, range, op, openLeft, openRight)
+            }
+            else -> Range<Quantity>(Quantity(ctx.getChild(0).text), Quantity(ctx.getChild(2).text),
                     op, openLeft, openRight)
         }
     }

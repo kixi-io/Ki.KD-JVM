@@ -98,14 +98,6 @@ BlockStringStart: '"""' -> pushMode(blockString);
 BlockRawStringStart:   '@"""' -> pushMode(blockRawString);
 BlockRawAltStringStart:   '`' -> pushMode(blockRawAltString);
 
-/*
-BasicString: '"' (Esc | ~["\r\n\\])* '"';
-RawString: '@"' (~["\r\n])* '"';
-BlockBasicString: '"""' ([\t\r\n] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
-BlockRawString:   '@"""' ([\t\r\n\\] | '""' ~'"' | '"' ~'"' | Esc | SafeCodePoint)* '"""';
-BlockRawAltString:   '`' ([\t\r\n\\] | Esc | SafeCodePoint)*? '`';
-*/
-
 fragment UniCharacterLiteral
     : '\\' 'u' HexDigit HexDigit HexDigit HexDigit
     ;
@@ -187,12 +179,12 @@ TimeZone:
 
 // Assumed to be an Int or a Decimal unless Double, Float or Long is specified
 IntegerQuantityLiteral
-    : '-'? NumberPart ID (':' 'L')?
+    : '-'? NumberPart UnitID (':' 'L')?
     ;
 DecimalQuantityLiteral
-    : '-'? NumberPart ID ':' [dDfF]
-    | '-'? NumberPart? '.' NumberPart DoubleExponent? ID (':' [dDfFL])?
-    | '-'? NumberPart DoubleExponent ID (':' [dDfFL])?
+    : '-'? NumberPart UnitID ':' [dDfF]
+    | '-'? NumberPart? '.' NumberPart DoubleExponent? UnitID (':' [dDfFL])?
+    | '-'? NumberPart DoubleExponent UnitID (':' [dDfFL])?
     ;
 
 // Range Operators
@@ -234,6 +226,8 @@ fragment IDChar: [$_\p{Alnum}\p{General_Category=Other_Letter}\p{Emoji}\p{Join_C
 fragment VersionQualifier: [\p{Alpha}]+;
 
 ID: IDStart IDChar*;
+
+fragment UnitID: (ID | 'ℓ' | 'mℓ') ('²' | '³')?;
 
 // COMMENTS --- ---
 

@@ -1,4 +1,4 @@
-// Generated from KDParser.g4 by ANTLR 4.8
+// Generated from /Users/danielleuck/projects/Ki/JVM/Ki.KD-JVM/src/main/kotlin/io/kixi/kd/KDParser.g4 by ANTLR 4.8
 package io.kixi.kd.antlr;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -130,6 +130,12 @@ public interface KDParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitStringRange(KDParser.StringRangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#quantityRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitQuantityRange(KDParser.QuantityRangeContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link KDParser#range}.
 	 * @param ctx the parse tree
