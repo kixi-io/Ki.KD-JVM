@@ -8,6 +8,7 @@ import io.kixi.log
 import io.kixi.text.ParseException
 import io.kixi.text.resolveEscapes
 import io.kixi.uom.Quantity
+import io.kixi.uom.Unit
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import java.io.Reader
@@ -314,7 +315,7 @@ class Interpreter {
         }
 
         if(ctx.quantity() != null) {
-            return Quantity(text)
+            return Quantity.parse(text)
         }
 
         //// List --- ---
@@ -776,7 +777,7 @@ class Interpreter {
         }
     }
 
-    private fun makeQuantityRange(ctx: KDParser.QuantityRangeContext) : Range<Quantity> {
+    private fun makeQuantityRange(ctx: KDParser.QuantityRangeContext) : Range<Quantity<Unit>> {
         val left = ctx.getChild(0).text
         val openLeft = (left == "_")
         val op = rangeOp(ctx.rangeOp().text)
@@ -785,15 +786,17 @@ class Interpreter {
 
         return when {
             openLeft -> {
-                val range = Quantity(ctx.getChild(2).text)
-                Range<Quantity>(range, range, op, openLeft, openRight)
+                val bound = Quantity.parse(ctx.getChild(2).text) as Quantity<Unit>
+                Range<Quantity<Unit>>(bound, bound, op, openLeft, openRight)
             }
             openRight -> {
-                val range = Quantity(ctx.getChild(0).text)
-                Range<Quantity>(range, range, op, openLeft, openRight)
+                val bound = Quantity.parse(ctx.getChild(0).text) as Quantity<Unit>
+                Range<Quantity<Unit>>(bound, bound, op, openLeft, openRight)
             }
-            else -> Range<Quantity>(Quantity(ctx.getChild(0).text), Quantity(ctx.getChild(2).text),
-                    op, openLeft, openRight)
+            else -> Range<Quantity<Unit>>(
+                    Quantity.parse(ctx.getChild(0).text) as Quantity<Unit>,
+                    Quantity.parse(ctx.getChild(2).text) as Quantity<Unit>,
+                        op, openLeft, openRight)
         }
     }
 

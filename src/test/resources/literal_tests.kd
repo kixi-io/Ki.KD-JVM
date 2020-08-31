@@ -349,6 +349,8 @@ Ranges {
     durationRange2 5days:23:01:02..8days
     dateTimeRange 1990/12/5@5:12..2000/02/5@5:23:01
     versionRanges 3.1.0.._  3.0.23-beta-2<..5.0.0
+    quantityRange 5g..20g
+    quantityRange2 5g..20kg
 
     0..5
     5..0
