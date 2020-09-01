@@ -1,6 +1,7 @@
 package io.kixi.kd
 
 import io.kixi.Ki
+import java.lang.reflect.Array
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -146,7 +147,28 @@ class Tag : TagEntityBase {
             val i: Iterator<*> = values.iterator()
             while (i.hasNext()) {
                 if (skipValueSpace) skipValueSpace = false else builder.append(" ")
-                builder.append(Ki.format(i.next()))
+
+                val next = i.next()
+                var literalText = Ki.format(next).trim()
+
+                // Deal with multiline blob literals
+                if(next is ByteArray && literalText.contains('\n')) {
+                    var buf = StringBuilder()
+                    var lines = literalText.lines()
+
+                    var first = true
+                    for (line in lines) {
+                        if (first) {
+                            buf.append(line + "\n")
+                            first = false
+                        } else {
+                            buf.append(linePrefix + line + "\n")
+                        }
+                    }
+                    builder.append(buf.toString().trimEnd())
+                } else {
+                    builder.append(literalText)
+                }
             }
         }
 
