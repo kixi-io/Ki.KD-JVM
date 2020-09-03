@@ -4,7 +4,6 @@ import io.kixi.kd.Tag
 
 class TagDef {
 
-    fun matches(tag: Tag): Boolean  {
-        return false
-    }
+    // TODO
+    fun matches(tag: Tag) = false
 }
