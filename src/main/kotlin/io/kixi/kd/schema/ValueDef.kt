@@ -10,7 +10,7 @@ import kotlin.reflect.full.isSubclassOf
  * A value pattern for a single value, which can be any KTS type, including a generic
  * structure.
  */
-open class ValueDef(val def: TypeDef) {
+open class ValueDef(val def: TypeDef, optional: Boolean) {
 
     // TODO
     fun matches(value: Any?) = false
