@@ -1,10 +1,7 @@
 package io.kixi.kd
 
 import io.kixi.Ki
-import java.lang.reflect.Array
-import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 /**
  * KD documents are composed of KD tags. Tags can contain the following components:
@@ -99,7 +96,7 @@ import kotlin.collections.HashMap
  * For more information on the KD language see the
  * [KD Wiki Page](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)).
  */
-class Tag : TagEntityBase {
+class Tag : TagEntity {
 
     // TODO: We need better lazy initialization.
     // These will be initialized anytime find operations are used, or toString() is called.

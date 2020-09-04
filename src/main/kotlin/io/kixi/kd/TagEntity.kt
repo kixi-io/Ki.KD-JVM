@@ -12,7 +12,7 @@ import kotlin.collections.HashMap
  *
  * TagEntityBase is the superclass of Tag and Annotation.
  */
-abstract class TagEntityBase {
+abstract class TagEntity {
 
     var nsid: NSID
 

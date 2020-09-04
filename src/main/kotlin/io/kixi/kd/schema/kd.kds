@@ -1,2 +1,5 @@
+kd:version 1.0.0-beta-1
 
-# TODO - Create the KD Schema for KD Schema
+kd:tag [regex "*"] Any_U 0.._ kd:values kd:atts {
+    tag 0.._
+}

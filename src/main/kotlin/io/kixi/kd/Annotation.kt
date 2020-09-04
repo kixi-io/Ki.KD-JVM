@@ -5,7 +5,7 @@ import io.kixi.Ki
 /**
  * An annotation for a tag.
  */
-class Annotation : TagEntityBase {
+class Annotation : TagEntity {
 
     constructor(_nsid: NSID): super(_nsid) {}
 
