@@ -1,12 +1,13 @@
 package io.kixi.kd.schema
 
 import io.kixi.kd.Tag
+import io.kixi.kd.Annotation
 
 class AnnoDef(
         namespaceMatcher:StringMatcher = StringMatcher.EMPTY,
-        nameMatcher: StringMatcher,
-        valueDefs:List<ValueDef>,
-        attDefs:List<AttDef>,
+        nameMatcher: StringMatcher = StringMatcher.EMPTY,
+        valueDefs:List<ValueDef> = TagEntityDef.EMPTY_VALUES,
+        attDefs:List<AttDef> = TagEntityDef.EMPTY_ATTS,
 ) : TagEntityDef(namespaceMatcher, nameMatcher, valueDefs, attDefs) {
 
     // TODO

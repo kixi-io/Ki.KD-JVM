@@ -86,11 +86,11 @@ nsName: (ID ':')? ID;
 
 // DATA STRUCTURES --- ---
 
-list: ('[' NL* value (COMMA? value)* NL* ']') | ('[' ']');
+list: ('[' NL* value (COMMA? NL* value)* NL* ']') | ('[' ']');
 
 pair: NL* value '=' NL* value NL*;
 
-map: ('[' NL* pair (COMMA? pair)* NL* ']') | ('[' '=' ']');
+map: ('[' NL* pair (COMMA? NL* pair)* NL* ']') | ('[' '=' ']');
 
 // ANNOTATIONS
 annotation: '@' nsName (LPAREN valueList? attributeList? RPAREN)?;

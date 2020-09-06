@@ -2,8 +2,8 @@ package io.kixi.kd.schema
 
 import io.kixi.kd.Tag
 
-class AttDef(name:String, valueDef:ValueDef, optional:Boolean) {
+class AttDef(name:String, valueDef:ValueDef, defaultValue:Any? = null) {
 
     // TODO
-    fun matches(tag: Pair<String, Any?>) =  false
+    fun matches(namespaceMatcher: StringMatcher, nameMatcher: StringMatcher, valueDef: ValueDef) =  false
 }
