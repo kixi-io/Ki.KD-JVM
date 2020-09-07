@@ -1,6 +1,7 @@
 package io.kixi.kd.schema
 
 interface StringMatcher {
+
     companion object {
         val EMPTY = StringMatcher.ID("")
     }
@@ -11,5 +12,6 @@ interface StringMatcher {
         override fun matches(text:String): Boolean {
             return value == text
         }
+        override fun toString() = value
     }
 }

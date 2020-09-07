@@ -5,20 +5,20 @@ import io.kixi.kd.Annotation
 
 class AnnoDef(
         namespaceMatcher:StringMatcher = StringMatcher.EMPTY,
-        nameMatcher: StringMatcher = StringMatcher.EMPTY,
+        nameMatcher:StringMatcher = StringMatcher.EMPTY,
         valueDefs:List<ValueDef> = TagEntityDef.EMPTY_VALUES,
-        attDefs:List<AttDef> = TagEntityDef.EMPTY_ATTS,
-) : TagEntityDef(namespaceMatcher, nameMatcher, valueDefs, attDefs) {
-
-    // TODO
-    fun matches(anno: Annotation): Boolean {
-        return false
-    }
+        varValueDef:ValueDef? = null,
+        attDefs:Map<String, ValueDef> = EMPTY_ATTS,
+        openAtts:Boolean = false
+) : TagEntityDef(namespaceMatcher, nameMatcher, valueDefs, varValueDef, attDefs, openAtts) {
 
     /**
-     * @throws MalformedTagException
+     * Verifies the structure and applies default values.
+     *
+     * @throws KDSException If anno does not match this definition
      * @param tag Tag
      */
-    // TODO
-    fun verify(anno: Annotation) {}
+    fun apply(anno: Annotation) {
+        applyTagEntity(anno)
+    }
 }

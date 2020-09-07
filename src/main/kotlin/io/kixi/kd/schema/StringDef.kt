@@ -15,4 +15,13 @@ class StringDef(typeDef: TypeDef, val matcher:StringMatcher) : ValueDef(typeDef)
         if(typeDef != TypeDef.String && typeDef != TypeDef.String_N)
             throw IllegalArgumentException("StringDef type must be String or String_N.")
     }
+
+    override fun matches(value: Any?): Boolean {
+        if(value==null)
+            return typeDef == TypeDef.String_N
+
+        return matcher.matches(value as String)
+    }
+
+    override fun toString() = matcher.toString()
 }
