@@ -9,8 +9,8 @@ class AnnoDef(
         valueDefs:List<ValueDef> = TagEntityDef.EMPTY_VALUES,
         varValueDef:ValueDef? = null,
         attDefs:Map<String, ValueDef> = EMPTY_ATTS,
-        openAtts:Boolean = false
-) : TagEntityDef(namespaceMatcher, nameMatcher, valueDefs, varValueDef, attDefs, openAtts) {
+        varAttDef:ValueDef? = null,
+) : TagEntityDef(namespaceMatcher, nameMatcher, valueDefs, varValueDef, attDefs, varAttDef) {
 
     /**
      * Verifies the structure and applies default values.

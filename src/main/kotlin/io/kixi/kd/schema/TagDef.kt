@@ -12,9 +12,9 @@ class TagDef(
         valueDefs:List<ValueDef> = TagEntityDef.EMPTY_VALUES,
         varValueDef:ValueDef? = null,
         attDefs:Map<String, ValueDef> = EMPTY_ATTS,
-        openAtts:Boolean = false,
+        varAttDef:ValueDef? = null,
         val childDefs:List<TagDef> = EMPTY_CHILDREN
-    ) : TagEntityDef(namespaceMatcher, nameMatcher, valueDefs, varValueDef, attDefs, openAtts) {
+    ) : TagEntityDef(namespaceMatcher, nameMatcher, valueDefs, varValueDef, attDefs, varAttDef) {
 
     companion object {
         val EMPTY_ANNOS = ArrayList<AnnoDef>()

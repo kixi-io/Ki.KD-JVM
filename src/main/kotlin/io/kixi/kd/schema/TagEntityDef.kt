@@ -11,7 +11,7 @@ abstract class TagEntityDef(
         val valueDefs:List<ValueDef> = EMPTY_VALUES,
         val varValueDef: ValueDef? = null,
         val attDefs:Map<String, ValueDef> = EMPTY_ATTS,
-        val openAtts: Boolean = false
+        val varAttDef: ValueDef? = null
 ) {
 
     companion object {
@@ -53,6 +53,7 @@ abstract class TagEntityDef(
     }
 
     val hasVarValues: Boolean = varValueDef != null
+    val hasVarAtts: Boolean = varAttDef != null
 
     /**
      * Sets default values and verifies tag entity structure.
