@@ -2,6 +2,7 @@ package io.kixi.kd.schema
 
 import io.kixi.TypeDef
 import io.kixi.kd.KD
+import io.kixi.kd.NSID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -11,7 +12,7 @@ class TagDefTest {
 
     @Test
     fun basic() {
-        val tagDef = TagDef(
+        var tagDef = TagDef(
             TagDef.EMPTY_ANNOS,
             StringMatcher.EMPTY,
             StringMatcher.ID("Foo"),
@@ -20,7 +21,6 @@ class TagDefTest {
                 ValueDef(TypeDef.Int, 5),
                 ValueDef(TypeDef.Bool, true)
             )
-            // varValueDef:ValueDef? = null
         )
 
         var tag = KD.read("""
@@ -46,6 +46,24 @@ class TagDefTest {
             tag = KD.read("""
                 Foo "HelloKDS" 12L false
             """.trimIndent())
+            tagDef.apply(tag)
+        }
+
+        tagDef = TagDef(
+                TagDef.EMPTY_ANNOS,
+                StringMatcher.EMPTY,
+                StringMatcher.ID("Foo"),
+                listOf<ValueDef>(
+                        ValueDef(TypeDef.String),
+                        ValueDef(TypeDef.Int),
+                        ValueDef(TypeDef.Bool, true)
+                )
+        )
+
+        assertThrows<KDSException>("io.kixi.kd.schema.KDSException: Foo: Missing value for Int") {
+            tag = KD.read("""
+                        Foo "poodle"
+                    """.trimIndent())
             tagDef.apply(tag)
         }
     }
@@ -96,5 +114,71 @@ class TagDefTest {
                 """.trimIndent())
             tagDef.apply(tag)
         }
+    }
+
+    @Test
+    fun attributes() {
+        var tagDef = TagDef(
+                TagDef.EMPTY_ANNOS,
+                StringMatcher.ID("animal"),
+                StringMatcher.ID("bug"),
+                attDefs = mapOf<NSID, ValueDef>(
+                        NSID("name") to ValueDef(TypeDef.String)
+                )
+        )
+        var tag = KD.read("""
+                    animal:bug name="cricket"
+                """.trimIndent())
+
+        tagDef.apply(tag)
+        assertEquals("animal:bug name=\"cricket\"", tag.toString())
+
+        tag = KD.read("""
+                    animal:bug name="cricket" insect=true
+                """.trimIndent())
+        assertThrows<KDSException>(
+                "io.kixi.kd.schema.KDSException: animal:bug: Attribute key insect is not declared") {
+            tagDef.apply(tag)
+        }
+
+        tagDef = TagDef(
+                TagDef.EMPTY_ANNOS,
+                StringMatcher.ID("animal"),
+                StringMatcher.ID("bug"),
+                attDefs = mapOf<NSID, ValueDef>(
+                        NSID("name") to ValueDef(TypeDef.String),
+                        NSID("insect") to ValueDef(TypeDef.Bool, true)
+                )
+        )
+        tag = KD.read("""
+                    animal:bug name="cricket"
+                """.trimIndent())
+        tagDef.apply(tag)
+        assertEquals("animal:bug name=\"cricket\" insect=true", tag.toString())
+
+        tag = KD.read("""
+                    animal:bug name="spider" insect=false
+                """.trimIndent())
+        assertEquals("animal:bug name=\"spider\" insect=false", tag.toString())
+    }
+
+    @Test
+    fun varAtts() {
+        var tagDef = TagDef(
+                TagDef.EMPTY_ANNOS,
+                StringMatcher.ID("animal"),
+                StringMatcher.ID("bug"),
+                attDefs = mapOf<NSID, ValueDef>(
+                        NSID("name") to ValueDef(TypeDef.String),
+                        NSID("insect") to ValueDef(TypeDef.Bool, true)
+                ),
+                varAttDef = ValueDef(TypeDef.Any)
+        )
+
+        var tag = KD.read("""
+            animal:bug name="water strider" aquatic=true
+        """.trimIndent())
+        tagDef.apply(tag)
+        assertEquals("animal:bug aquatic=true name=\"water strider\" insect=true", tag.toString())
     }
 }

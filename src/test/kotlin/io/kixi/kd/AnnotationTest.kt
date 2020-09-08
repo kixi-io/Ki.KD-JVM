@@ -45,7 +45,7 @@ class AnnotationTest {
 
     @Test fun testAttsAnnotation() {
         val annoDef = """
-            @Test(luck="good" working=true)
+            @Test(working=true luck="good")
             date "some data"
         """.trimIndent()
 
@@ -55,7 +55,7 @@ class AnnotationTest {
 
     @Test fun testValuesAttsAnnotation() {
         val annoDef = """
-            @Test(1 2 3 luck="good" working=true)
+            @Test(1 2 3 working=true luck="good")
             date "some data"
         """.trimIndent()
 
