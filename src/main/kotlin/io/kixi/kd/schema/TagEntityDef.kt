@@ -2,6 +2,7 @@ package io.kixi.kd.schema
 
 import io.kixi.ListDef
 import io.kixi.TypeDef
+import io.kixi.kd.NSID
 import io.kixi.kd.TagEntity
 import java.lang.IllegalArgumentException
 
@@ -10,13 +11,13 @@ abstract class TagEntityDef(
         val nameMatcher: StringMatcher  = StringMatcher.EMPTY,
         val valueDefs:List<ValueDef> = EMPTY_VALUES,
         val varValueDef: ValueDef? = null,
-        val attDefs:Map<String, ValueDef> = EMPTY_ATTS,
+        val attDefs:Map<NSID, ValueDef> = EMPTY_ATTS,
         val varAttDef: ValueDef? = null
 ) {
 
     companion object {
-        val EMPTY_VALUES = ArrayList<ValueDef>()
-        val EMPTY_ATTS = HashMap<String, ValueDef>()
+        val EMPTY_VALUES = listOf<ValueDef>()
+        val EMPTY_ATTS = mapOf<NSID, ValueDef>()
     }
 
     var beginDefaultValues = -1
@@ -79,9 +80,8 @@ abstract class TagEntityDef(
 
         // We have no regular value definitions
         if(valueDefs.isEmpty()) {
-            if(values.isEmpty()) {
-                return
-            }
+
+            if(values.isEmpty()) return
 
             // We have no regular value definitions but we have varValues
             if(hasVarValues) {
@@ -90,7 +90,11 @@ abstract class TagEntityDef(
                       throw KDSException("Value \"$value\" in variable length value list " +
                               "doesn't match $varValueDef", tagEntity)
                 }
+            } else {
+                if(!values.isEmpty())
+                    throw KDSException("Tag does not allow values", tagEntity)
             }
+
             return
         }
 
@@ -120,11 +124,6 @@ abstract class TagEntityDef(
 
             var valIndex = 0
 
-            // String, Int=5 Bool=true
-            // called with: "hi"
-            // called with: "hi" 2
-            // called with: "hi" 2 false
-
             val limit = if (beginDefaultValues==-1) values.size-1 else
                 beginDefaultValues
 
@@ -151,15 +150,47 @@ abstract class TagEntityDef(
         // TODO - check attributes
         if(!attDefs.isEmpty()) {
             var i = 0
+
+            // Check for missing attributes and attribute value type.
+            // Populate default values if the attribute isn't explicitly set
             attDefs.forEach {
-                // TODO: check value types
-                // TODO: set defaults
-                i++
+                var hasKey = tagEntity.attributes.containsKey(it.key)
+                if(!hasKey) {
+                    if(it.value.hasDefaultValue)
+                        tagEntity.attributes.put(it.key, it.value.defaultValue)
+                    else
+                        throw KDSException("Missing attribute ${it.key}", tagEntity)
+                } else {
+                    val entityValue = tagEntity.attributes.get(it.key)
+                    if(!it.value.matches(entityValue))
+                        throw KDSException("Attribute value type in ${it.key}=$entityValue does not match ${it.value}",
+                                tagEntity)
+                }
+            }
+
+            // Deal with undeclared atts ////
+
+            // Check values for varAtts
+            if(hasVarAtts) {
+                if(varAttDef!!.typeDef != TypeDef.Any_N) {
+                    for(entityAtt in tagEntity.attributes.entries) {
+                        if(!varAttDef.matches(entityAtt.value))
+                            throw KDSException("Attribute value type in ${entityAtt.key}=${entityAtt.value} does not " +
+                                    "match undeclared varatts type $varValueDef",
+                                    tagEntity)
+                    }
+                }
+            // No varatts allowed. Undeclared atts results in an exception
+            } else {
+                val declaredAttKeys = attDefs.keys
+                for(entityAttKey in tagEntity.attributes.keys) {
+                    if(!declaredAttKeys.contains(entityAttKey)) {
+                        throw KDSException("Attribute key $entityAttKey is not declared", tagEntity)
+                    }
+                }
             }
         }
     }
 }
-
-
 
 

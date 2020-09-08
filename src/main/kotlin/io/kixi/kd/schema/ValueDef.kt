@@ -17,4 +17,5 @@ open class ValueDef(val typeDef: TypeDef, val defaultValue: Any? = null) {
     override fun toString() = if(defaultValue == null) typeDef.toString() else
         typeDef.toString() + " (default $defaultValue)"
 
+    val hasDefaultValue: Boolean = defaultValue != null
 }

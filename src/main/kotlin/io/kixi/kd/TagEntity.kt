@@ -19,7 +19,7 @@ abstract class TagEntity {
     // TODO: We need better lazy initialization.
     // These will be initialized anytime find operations are used, or toString() is called.
     val values: MutableList<Any?> by lazy { ArrayList<Any?>() }
-    val attributes: MutableMap<NSID, Any?> by lazy { TreeMap<NSID, Any?>() }
+    val attributes: MutableMap<NSID, Any?> by lazy { HashMap<NSID, Any?>() }
 
     constructor(nsid: NSID) {
         this.nsid = nsid
