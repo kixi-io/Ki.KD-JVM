@@ -14,8 +14,7 @@ class TagDefTest {
     fun basic() {
         var tagDef = TagDef(
             TagDef.EMPTY_ANNOS,
-            StringMatcher.EMPTY,
-            StringMatcher.ID("Foo"),
+            NSID("Foo"),
             listOf<ValueDef>(
                 ValueDef(TypeDef.String),
                 ValueDef(TypeDef.Int, 5),
@@ -51,8 +50,7 @@ class TagDefTest {
 
         tagDef = TagDef(
                 TagDef.EMPTY_ANNOS,
-                StringMatcher.EMPTY,
-                StringMatcher.ID("Foo"),
+                NSID("Foo"),
                 listOf<ValueDef>(
                         ValueDef(TypeDef.String),
                         ValueDef(TypeDef.Int),
@@ -72,8 +70,7 @@ class TagDefTest {
     fun varValues() {
         val tagDef = TagDef(
                 TagDef.EMPTY_ANNOS,
-                StringMatcher.EMPTY,
-                StringMatcher.ID("Foo"),
+                NSID("Foo"),
                 listOf<ValueDef>(
                         ValueDef(TypeDef.String)
                 ),
@@ -91,8 +88,7 @@ class TagDefTest {
     fun stringMatcher() {
         val tagDef = TagDef(
                 TagDef.EMPTY_ANNOS,
-                StringMatcher.EMPTY,
-                StringMatcher.ID("gift"),
+                NSID("gift"),
                 listOf<ValueDef>(
                         StringDef(TypeDef.String, StringListMatcher("flowers", "ring", "hat"))
                 )
@@ -120,8 +116,7 @@ class TagDefTest {
     fun attributes() {
         var tagDef = TagDef(
                 TagDef.EMPTY_ANNOS,
-                StringMatcher.ID("animal"),
-                StringMatcher.ID("bug"),
+                NSID("bug", "animal"),
                 attDefs = mapOf<NSID, ValueDef>(
                         NSID("name") to ValueDef(TypeDef.String)
                 )
@@ -143,8 +138,7 @@ class TagDefTest {
 
         tagDef = TagDef(
                 TagDef.EMPTY_ANNOS,
-                StringMatcher.ID("animal"),
-                StringMatcher.ID("bug"),
+                NSID("bug", "animal"),
                 attDefs = mapOf<NSID, ValueDef>(
                         NSID("name") to ValueDef(TypeDef.String),
                         NSID("insect") to ValueDef(TypeDef.Bool, true)
@@ -164,10 +158,9 @@ class TagDefTest {
 
     @Test
     fun varAtts() {
-        var tagDef = TagDef(
+        val tagDef = TagDef(
                 TagDef.EMPTY_ANNOS,
-                StringMatcher.ID("animal"),
-                StringMatcher.ID("bug"),
+                NSID("bug", "animal"),
                 attDefs = mapOf<NSID, ValueDef>(
                         NSID("name") to ValueDef(TypeDef.String),
                         NSID("insect") to ValueDef(TypeDef.Bool, true)
@@ -175,7 +168,7 @@ class TagDefTest {
                 varAttDef = ValueDef(TypeDef.Any)
         )
 
-        var tag = KD.read("""
+        val tag = KD.read("""
             animal:bug name="water strider" aquatic=true
         """.trimIndent())
         tagDef.apply(tag)

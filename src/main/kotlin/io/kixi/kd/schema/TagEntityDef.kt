@@ -7,8 +7,7 @@ import io.kixi.kd.TagEntity
 import java.lang.IllegalArgumentException
 
 abstract class TagEntityDef(
-        val namespaceMatcher: StringMatcher = StringMatcher.EMPTY,
-        val nameMatcher: StringMatcher  = StringMatcher.EMPTY,
+        val nsid: NSID = NSID.ANONYMOUS,
         val valueDefs:List<ValueDef> = EMPTY_VALUES,
         val varValueDef: ValueDef? = null,
         val attDefs:Map<NSID, ValueDef> = EMPTY_ATTS,
@@ -31,10 +30,7 @@ abstract class TagEntityDef(
         for(valueDef in valueDefs) {
             if(valueDef.defaultValue == null) {
                 if(beginDefaultValues!=-1) {
-                    var id = if (nameMatcher == StringMatcher.EMPTY) "(anonymous)" else nameMatcher.toString()
-                    if (namespaceMatcher != StringMatcher.EMPTY)
-                        id = "${namespaceMatcher.toString()}:$id"
-
+                    var id = if (nsid.isAnonymous) "(anonymous)" else nsid.toString()
                     throw IllegalArgumentException("Tag Entity Definition $id cannot have a non-default value def " +
                             "($valueDef) after a default value def.")
                 }
@@ -45,9 +41,7 @@ abstract class TagEntityDef(
         }
 
         if(beginDefaultValues!=-1 && varValueDef!=null) {
-            var id = if (nameMatcher == StringMatcher.EMPTY) "(anonymous)" else nameMatcher.toString()
-            if (namespaceMatcher != StringMatcher.EMPTY)
-                id = "${namespaceMatcher.toString()}:$id"
+            var id = if (nsid.isAnonymous) "(anonymous)" else nsid.toString()
             throw IllegalArgumentException("Tag Entity Definition $id cannot declare a varValue ($varValueDef) in a " +
                     "definition with default values")
         }
@@ -63,16 +57,11 @@ abstract class TagEntityDef(
      *   defined by this tag entity definition.
      */
     protected fun applyTagEntity(tagEntity: TagEntity) {
-        verifyNSID(tagEntity)
+        if(nsid != tagEntity.nsid)
+            throw KDSException("NSID (namespace:)name ${tagEntity.nsid} != $nsid",
+                    tagEntity)
         applyValues(tagEntity)
         applyAtts(tagEntity)
-    }
-
-    private fun verifyNSID(tagEntity: TagEntity) {
-        if(!namespaceMatcher.matches(tagEntity.nsid.namespace))
-            throw KDSException("Namespace does not match \"${namespaceMatcher.toString()}\"", tagEntity)
-        if(!nameMatcher.matches(tagEntity.nsid.name))
-            throw KDSException("Name does not match \"${nameMatcher.toString()}\"", tagEntity)
     }
 
     private fun applyValues(tagEntity: TagEntity) {

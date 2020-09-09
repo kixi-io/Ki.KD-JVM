@@ -153,15 +153,15 @@ NanosecondDuration: IntegerLiteral NANOS;
 
 // See reference: https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)#ZonedDateTime
 
-// TODO: Consider adding ISO style representation
-//   https://en.wikipedia.org/wiki/ISO_8601#Times
+Date: '-'? (DecDigits '/' DecDigit DecDigit? '/' DecDigit DecDigit?) |
+           // ISO 8601 exhttps://en.wikipedia.org/wiki/ISO_8601#Times
+           (DecDigits '-' DecDigit DecDigit? '-' DecDigit DecDigit?);
 
-Date: '-'? DecDigits '/' DecDigit DecDigit? '/' DecDigit DecDigit?;
-
-Time: AT DecDigits':' DecDigits (':' DecDigits ('.' NumberPart DoubleExponent?)?)?;
+Time: (AT | 'T') DecDigits':' DecDigits (':' DecDigits ('.' NumberPart DoubleExponent?)?)? TimeZone?;
 
 // TODO - Break this into separate parser rules
-TimeZone:
+// TODO - Fix lexer issue where negative offset is treated as a negative number
+fragment TimeZone:
     // positive offset
     ('+' DecDigit DecDigit? (':' DecDigit DecDigit)?) |
     ('-'(
@@ -172,7 +172,9 @@ TimeZone:
         // KiTZ
         ( ASCIIAlpha ASCIIAlpha '/' ASCIIAlpha+ )
         )
-    )
+    ) |
+    // needed for ISO 8601
+    'Z'
 ;
 
 // Quantity ////
@@ -245,7 +247,7 @@ NL: ('\n' | ';')+;
 // lexer to be able to recognize a big chunk of text again. So, splitting it in multiple tokens helps.
 mode blob;
 // Complies with "The Base64 Alphabet" as specified in Table 1 of RFC 4648
-BLOB_DATA: [ \t\r\n]* [A-Za-z0-9+=/] [ \t\r\n]*;
+BLOB_DATA: [ \t\r\n]* [A-Za-z0-9+=/]* [ \t\r\n]*;
 BLOB_END: ')' -> popMode;
 BLOB_ERROR: .;
 

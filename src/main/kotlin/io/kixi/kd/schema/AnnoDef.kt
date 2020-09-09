@@ -5,13 +5,12 @@ import io.kixi.kd.Annotation
 import io.kixi.kd.NSID
 
 class AnnoDef(
-        namespaceMatcher:StringMatcher = StringMatcher.EMPTY,
-        nameMatcher:StringMatcher = StringMatcher.EMPTY,
+        nsid:NSID = NSID.ANONYMOUS,
         valueDefs:List<ValueDef> = TagEntityDef.EMPTY_VALUES,
         varValueDef:ValueDef? = null,
         attDefs:Map<NSID, ValueDef> = EMPTY_ATTS,
         varAttDef:ValueDef? = null,
-) : TagEntityDef(namespaceMatcher, nameMatcher, valueDefs, varValueDef, attDefs, varAttDef) {
+) : TagEntityDef(nsid, valueDefs, varValueDef, attDefs, varAttDef) {
 
     /**
      * Verifies the structure and applies default values.

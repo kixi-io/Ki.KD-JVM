@@ -98,4 +98,4 @@ annotationList: annotation (NL* annotation)*;
 
 // ETC
 
-dateTime: Date (Time TimeZone?)?;
+dateTime: Date Time?; // Date (Time TimeZone?)?;

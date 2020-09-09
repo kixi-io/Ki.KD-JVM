@@ -14,6 +14,7 @@ class LiteralTest {
 
     @Test fun testLiterals() {
         val root = KD.readResource("literal_tests.kd")
+        println(root)
 
         val bytes = root.findChild("b64Greeting")!!.value as ByteArray
         assertEquals("Hello", String(bytes))

@@ -44,7 +44,7 @@ class Interpreter {
 
         var tokens = lexer.allTokens
         for(token in tokens) {
-            log("$token ${vocab.getSymbolicName(token.type)}")
+            log("${vocab.getSymbolicName(token.type)}")
         }
         */
 
@@ -455,17 +455,36 @@ class Interpreter {
     private fun makeTemporal(ctx: KDParser.DateTimeContext, text:String): Any? {
 
         val timeNode = ctx.Time()
-        val zoneNode = ctx.TimeZone()
+        // val zoneNode = ctx.TimeZone()
 
         if(timeNode==null) {
             // LocalDate
-            return Ki.parseLocalDate(text)
-        } else if(zoneNode==null) {
+            return Ki.parseLocalDate(text.replace('-', '/'))
+        // } else if(zoneNode==null) {
             // LocalDateTime
-            return Ki.parseLocalDateTime(text)
+        //    return Ki.parseLocalDateTime(text)
         } else {
-            // ZonedDateTime
-            return Ki.parseZonedDateTime(ctx.text)
+            val dateText = ctx.Date().text.replace('-', '/')
+            val timeText = ctx.Time().text
+
+            // Needed for ISO 8601 support
+            var convertedTimeText = if (timeText.last()=='Z' && timeText[timeText.length-2].isDigit())
+                timeText.dropLast(1) + "-Z" else timeText
+
+            if(convertedTimeText.first()=='T') {
+                convertedTimeText = "@" + convertedTimeText.substring(1)
+            }
+            val newText = "${dateText}${convertedTimeText}"
+
+            try {
+                if(convertedTimeText.contains(REGEX_PLUS_MINUS))
+                    return Ki.parseZonedDateTime(newText)
+                else
+                    return Ki.parseLocalDateTime(newText)
+            } catch(pe:ParseException) {
+                throw KDParseException("Malformed DateTime $newText", line = ctx.start.line,
+                        index = ctx.start.charPositionInLine, pe)
+            }
         }
     }
 
@@ -814,5 +833,9 @@ class Interpreter {
 
     fun read(code:String) : List<Tag> {
         return read(StringReader(code))
+    }
+
+    companion object {
+        val REGEX_PLUS_MINUS = Regex("[+-]")
     }
 }

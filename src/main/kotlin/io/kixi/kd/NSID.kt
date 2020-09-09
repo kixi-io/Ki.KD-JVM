@@ -26,6 +26,8 @@ data class NSID(val name:String, val namespace:String = "") : Comparable<NSID> {
             throw ParseException("NSID namespace component $name is not a valid Ki Identifier.")
     }
 
+    val isAnonymous: Boolean = this == ANONYMOUS
+
     override fun toString() = if(namespace != "") "$namespace:$name" else name
 
     override fun compareTo(other: NSID): Int = toString().compareTo(other.toString())
