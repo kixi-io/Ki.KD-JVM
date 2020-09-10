@@ -1,6 +1,8 @@
-kd:version 1.0.0-beta
+kd:meta {
+  version 1.0.0-beta
+}
 
-// TODO - Natural package and import syntax
+# TODO - Natural package and import syntax
 
 /**
  * An example of KD Schema (KDS)
@@ -9,7 +11,7 @@ kd:version 1.0.0-beta
  * Syntax that is very similar to classes defined in languages like Kotlin, TypeScript
  * and Swing.
  */
-kd:tag Customer {
+tag customer {
     firstName String
     lastName String
     age Int
@@ -17,15 +19,15 @@ kd:tag Customer {
     affiliateReferrals List[String] # referral IDs
     phoneNumbers Map[String, String] # home, business, etc. = phone number
 
-    kd:children purchases {
-        Purchase 0.._ # zero or more Purchase tags
+    children {
+        purchase 0.._ # zero or more Purchase tags
     }
 }
 
 # Example
 Customer firstName="Jean-Luc" lastName="Picard" age=68
 
-kd:tag Button {
+tag Button {
     kd:value String # Text
     action String = ""
     enabled Bool = true

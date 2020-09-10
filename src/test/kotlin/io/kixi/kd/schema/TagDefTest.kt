@@ -1,19 +1,19 @@
 package io.kixi.kd.schema
 
+import io.kixi.Range
 import io.kixi.TypeDef
 import io.kixi.kd.KD
 import io.kixi.kd.NSID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 
 class TagDefTest {
 
-    @Test
-    fun basic() {
+    @Test fun basic() {
         var tagDef = TagDef(
-            TagDef.EMPTY_ANNOS,
             NSID("Foo"),
             listOf<ValueDef>(
                 ValueDef(TypeDef.String),
@@ -49,7 +49,6 @@ class TagDefTest {
         }
 
         tagDef = TagDef(
-                TagDef.EMPTY_ANNOS,
                 NSID("Foo"),
                 listOf<ValueDef>(
                         ValueDef(TypeDef.String),
@@ -66,10 +65,8 @@ class TagDefTest {
         }
     }
 
-    @Test
-    fun varValues() {
+    @Test fun varValues() {
         val tagDef = TagDef(
-                TagDef.EMPTY_ANNOS,
                 NSID("Foo"),
                 listOf<ValueDef>(
                         ValueDef(TypeDef.String)
@@ -84,38 +81,42 @@ class TagDefTest {
         assertEquals("Foo \"HelloKDS\" 1 2 3", tag.toString())
     }
 
-    @Test
-    fun stringMatcher() {
+    @Test fun optionsMatcher() {
         val tagDef = TagDef(
-                TagDef.EMPTY_ANNOS,
                 NSID("gift"),
                 listOf<ValueDef>(
-                        StringDef(TypeDef.String, StringListMatcher("flowers", "ring", "hat"))
+                    ValueDef(TypeDef.String, matcher = OptionsMatcher("flowers", "ring", "hat")),
+                    ValueDef(TypeDef.Int, matcher = RangeMatcher(Range(1, 5)))
                 )
         )
 
         var tag = KD.read("""
-                gift "flowers"
+                gift "flowers" 2
             """.trimIndent())
         tagDef.apply(tag)
 
         tag = KD.read("""
-                gift "hat"
+                gift "hat" 3
             """.trimIndent())
         tagDef.apply(tag)
 
-        assertThrows<KDSException>("gift: Value poodle doesn't match String[flowers, ring, hat]") {
-            tag = KD.read("""
-                    gift "poodle"
+        tag = KD.read("""
+                    gift "poodle" 1
                 """.trimIndent())
+        assertThrows<KDSException>("gift: Value poodle doesn't match String[flowers, ring, hat]") {
+            tagDef.apply(tag)
+        }
+
+        tag = KD.read("""
+                gift "hat" 6
+            """.trimIndent())
+        assertThrows<KDSException>("io.kixi.kd.schema.KDSException: gift: Value 6 doesn't match Int 1..5") {
             tagDef.apply(tag)
         }
     }
 
-    @Test
-    fun attributes() {
+    @Test fun attributes() {
         var tagDef = TagDef(
-                TagDef.EMPTY_ANNOS,
                 NSID("bug", "animal"),
                 attDefs = mapOf<NSID, ValueDef>(
                         NSID("name") to ValueDef(TypeDef.String)
@@ -137,7 +138,6 @@ class TagDefTest {
         }
 
         tagDef = TagDef(
-                TagDef.EMPTY_ANNOS,
                 NSID("bug", "animal"),
                 attDefs = mapOf<NSID, ValueDef>(
                         NSID("name") to ValueDef(TypeDef.String),
@@ -156,10 +156,8 @@ class TagDefTest {
         assertEquals("animal:bug name=\"spider\" insect=false", tag.toString())
     }
 
-    @Test
-    fun varAtts() {
+    @Test fun varAtts() {
         val tagDef = TagDef(
-                TagDef.EMPTY_ANNOS,
                 NSID("bug", "animal"),
                 attDefs = mapOf<NSID, ValueDef>(
                         NSID("name") to ValueDef(TypeDef.String),
@@ -175,10 +173,72 @@ class TagDefTest {
         assertEquals("animal:bug aquatic=true name=\"water strider\" insect=true", tag.toString())
     }
 
-    @Test
-    fun complex() {
+    @Test fun childDefs() {
         val tagDef = TagDef(
-                TagDef.EMPTY_ANNOS,
+                NSID("customer"),
+                childDefs = listOf<TagGroupDef>(
+                    TagGroupDef(TagDef(
+                            NSID("ID"),
+                            listOf<ValueDef>(
+                                    ValueDef(TypeDef.Int)
+                            )
+                    ), Range(1, 1)),
+                    TagGroupDef(TagDef(
+                            NSID("referredBy"),
+                            listOf<ValueDef>(
+                                    ValueDef(TypeDef.String)
+                            )
+                    ), Range(0, 1)),
+                    TagGroupDef(TagDef(
+                        NSID("purchase"),
+                            listOf<ValueDef>(
+                                    ValueDef(TypeDef.String)
+                            )
+                    ), Range(0, 0, openRight = true))
+                )
+        )
+
+        var tag = KD.read("""
+            customer {
+                ID 1232
+                referredBy "Bill"
+                purchase "blanket"
+                purchase "cup"
+            }
+        """.trimIndent())
+        assertDoesNotThrow {
+            tagDef.apply(tag)
+        }
+
+
+        tag = KD.read("""
+            customer {
+                referredBy "Bill"
+                purchase "blanket"
+                purchase "cup"
+            }
+        """.trimIndent())
+        assertThrows<KDSException>(
+                "io.kixi.kd.schema.KDSException: customer: " +
+                "Tag ID allows a range of 1..1 ID child tags. Found: 0") {
+            tagDef.apply(tag)
+        }
+
+        // referredBy is optional, so this should be OK
+        tag = KD.read("""
+            customer {
+                ID 1232
+                purchase "blanket"
+                purchase "cup"
+            }
+        """.trimIndent())
+        assertDoesNotThrow {
+            tagDef.apply(tag)
+        }
+    }
+
+    @Test fun complex() {
+        val tagDef = TagDef(
                 NSID("bug", "animal"),
                 listOf<ValueDef>(
                         ValueDef(TypeDef.String, "unknown") // name

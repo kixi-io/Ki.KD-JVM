@@ -1,5 +1,0 @@
-kd:version 1.0.0-beta-1
-
-kd:tag [regex "*"] Any_U 0.._ kd:values kd:atts {
-    tag 0.._
-}
