@@ -174,4 +174,29 @@ class TagDefTest {
         tagDef.apply(tag)
         assertEquals("animal:bug aquatic=true name=\"water strider\" insect=true", tag.toString())
     }
+
+    @Test
+    fun complex() {
+        val tagDef = TagDef(
+                TagDef.EMPTY_ANNOS,
+                NSID("bug", "animal"),
+                listOf<ValueDef>(
+                        ValueDef(TypeDef.String, "unknown") // name
+                ),
+                attDefs = mapOf<NSID, ValueDef>(
+                        NSID("location") to ValueDef(TypeDef.String),
+                        NSID("date") to ValueDef(TypeDef.ZonedDateTime),
+                        NSID("insect") to ValueDef(TypeDef.Bool, true)
+                ),
+                varAttDef = ValueDef(TypeDef.Any)
+        )
+
+        val tag = KD.read("""
+            animal:bug ranatra aquatic=true date=2020/11/16 @11:32-Z location=Peru
+        """)
+        tagDef.apply(tag)
+        assertEquals("""
+            animal:bug "ranatra" aquatic=true date=2020/11/16@11:32:00-Z location="Peru" insect=true
+        """.trim(), tag.toString())
+    }
 }

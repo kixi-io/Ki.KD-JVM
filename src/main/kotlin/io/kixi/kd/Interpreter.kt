@@ -287,11 +287,21 @@ class Interpreter {
         }
 
         if(ctx.Version() != null) {
-            return Version.parse(text)
+            try {
+                return Version.parse(text)
+            } catch(pe:ParseException) {
+                throw KDParseException("Malformed version ${ctx.text}", line = ctx.start.line,
+                        index = ctx.start.charPositionInLine, pe)
+            }
         }
 
         if(ctx.blob() != null) {
-            return Ki.parseBlob(ctx.blob().text)
+            try {
+                return Ki.parseBlob(ctx.blob().text)
+            } catch(pe:ParseException) {
+                throw KDParseException("Malformed blob ${ctx.text}", line = ctx.start.line,
+                        index = ctx.start.charPositionInLine, pe)
+            }
         }
 
         //// Duration --- ---
@@ -315,7 +325,12 @@ class Interpreter {
         }
 
         if(ctx.quantity() != null) {
-            return Quantity.parse(text)
+            try {
+                return Quantity.parse(text)
+            } catch(pe:ParseException) {
+                throw KDParseException("Malformed quantity ${ctx.text}", line = ctx.start.line,
+                        index = ctx.start.charPositionInLine, pe)
+            }
         }
 
         //// List --- ---
@@ -334,7 +349,7 @@ class Interpreter {
 
         val t = ctx.getStart()
 
-        throw KDParseException("Unknown literal type.", t.line, t.charPositionInLine)
+        throw KDParseException("Unknown literal type ${ctx.text}.", t.line, t.charPositionInLine)
     }
 
     private fun makeString(parentCtx: KDParser.StringLiteralContext): String {
@@ -607,14 +622,19 @@ class Interpreter {
         val right = ctx.getChild(2).text
         val openRight = (right == "_")
 
-        return when {
-            openLeft -> Range<Version>(Version.MIN, Version.parse(ctx.getChild(0).text),
-                    op, openLeft, openRight)
-            openRight -> Range<Version>(Version.parse(ctx.getChild(0).text), Version.MAX,
-                    op, openLeft, openRight)
-            else -> Range<Version>(Version.parse(ctx.getChild(0).text),
-                    Version.parse(ctx.getChild(2).text),
-                    op, openLeft, openRight)
+        try {
+            return when {
+                openLeft -> Range<Version>(Version.MIN, Version.parse(ctx.getChild(0).text),
+                        op, openLeft, openRight)
+                openRight -> Range<Version>(Version.parse(ctx.getChild(0).text), Version.MAX,
+                        op, openLeft, openRight)
+                else -> Range<Version>(Version.parse(ctx.getChild(0).text),
+                        Version.parse(ctx.getChild(2).text),
+                        op, openLeft, openRight)
+            }
+        } catch(pe:ParseException) {
+            throw KDParseException("Malformed version range ${ctx.text}", line = ctx.start.line,
+                    index = ctx.start.charPositionInLine, pe)
         }
     }
 
@@ -671,14 +691,19 @@ class Interpreter {
         val right = ctx.getChild(2).text
         val openRight = (right == "_")
 
-        return when {
-            openLeft -> Range<Duration>(Duration.ofDays(Long.MIN_VALUE), Ki.parseDuration(ctx.getChild(0).text),
-                    op, openLeft, openRight)
-            openRight -> Range<Duration>(Ki.parseDuration(ctx.getChild(0).text), Duration.ofDays(Long.MAX_VALUE),
-                    op, openLeft, openRight)
-            else -> Range<Duration>(Ki.parseDuration(ctx.getChild(0).text),
-                    Ki.parseDuration(ctx.getChild(2).text),
-                    op, openLeft, openRight)
+        try {
+            return when {
+                openLeft -> Range<Duration>(Duration.ofDays(Long.MIN_VALUE), Ki.parseDuration(ctx.getChild(0).text),
+                        op, openLeft, openRight)
+                openRight -> Range<Duration>(Ki.parseDuration(ctx.getChild(0).text), Duration.ofDays(Long.MAX_VALUE),
+                        op, openLeft, openRight)
+                else -> Range<Duration>(Ki.parseDuration(ctx.getChild(0).text),
+                        Ki.parseDuration(ctx.getChild(2).text),
+                        op, openLeft, openRight)
+            }
+        } catch(pe:ParseException) {
+            throw KDParseException("Malformed duration range ${ctx.text}", line = ctx.start.line,
+                    index = ctx.start.charPositionInLine, pe)
         }
     }
 
@@ -803,19 +828,24 @@ class Interpreter {
         val right = ctx.getChild(2).text
         val openRight = (right == "_")
 
-        return when {
-            openLeft -> {
-                val bound = Quantity.parse(ctx.getChild(2).text) as Quantity<Unit>
-                Range<Quantity<Unit>>(bound, bound, op, openLeft, openRight)
+        try {
+            return when {
+                openLeft -> {
+                    val bound = Quantity.parse(ctx.getChild(2).text) as Quantity<Unit>
+                    Range<Quantity<Unit>>(bound, bound, op, openLeft, openRight)
+                }
+                openRight -> {
+                    val bound = Quantity.parse(ctx.getChild(0).text) as Quantity<Unit>
+                    Range<Quantity<Unit>>(bound, bound, op, openLeft, openRight)
+                }
+                else -> Range<Quantity<Unit>>(
+                        Quantity.parse(ctx.getChild(0).text) as Quantity<Unit>,
+                        Quantity.parse(ctx.getChild(2).text) as Quantity<Unit>,
+                            op, openLeft, openRight)
             }
-            openRight -> {
-                val bound = Quantity.parse(ctx.getChild(0).text) as Quantity<Unit>
-                Range<Quantity<Unit>>(bound, bound, op, openLeft, openRight)
-            }
-            else -> Range<Quantity<Unit>>(
-                    Quantity.parse(ctx.getChild(0).text) as Quantity<Unit>,
-                    Quantity.parse(ctx.getChild(2).text) as Quantity<Unit>,
-                        op, openLeft, openRight)
+        } catch(pe:ParseException) {
+            throw KDParseException("Malformed quantity range ${ctx.text}", line = ctx.start.line,
+                    index = ctx.start.charPositionInLine, pe)
         }
     }
 
