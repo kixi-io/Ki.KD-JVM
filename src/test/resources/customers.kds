@@ -1,0 +1,56 @@
+kd:meta version=1.0.0-beta
+
+# ----
+# A KD schema provides a set of tag definitions and specifies one as the root via
+# the @root annotation.
+#
+# Tags are either templates or full tag definitions. Template tags are named "template".
+# Full tag definitions are named "tag".
+# ----
+
+/**
+ * A template is a simple tag definition. We could also have used tag here.
+ *
+ * This "purchase" template has a single String value for the product name, and two
+ * attributes: quantity and shipping. Shipping has a default value "true" so it is
+ * optional when writing KD for this schema.
+ */
+template purchase String quantity=Int shipping=true
+
+/**
+ * A tag definitions have a name (in this case, "customer" and three optional
+ * sections: values, attributes and children
+ */
+tag customer {
+    values { Int } # A unique ID
+    attributes {
+        familyName String
+        givenName String
+        birthday Date
+        interestAreas [String] # A list of Strings
+
+        # Bool is false by default, but providing a default value makes the attribute
+        # optional when writing KD for this schema.
+        premium false
+    }
+    children {
+
+        # Here we define a local tag "purchases" which allows zero or more purchase
+        # child tags. The "purchase" tag is defined in the "tags" section above.
+        # Definitions can also be imported.
+        tag purchases {
+
+            # The purchase tag is defined via a template at the top of this
+            # definitions section. The range 0.._ means it can occur zero or more
+            # times.
+            purchase 0.._
+        }
+    }
+}
+
+@root
+tag customers {
+    # A customers document contains zero or more customer tags
+    customer 0.._
+}
+

@@ -9,8 +9,8 @@ import io.kixi.kd.TagEntity
  * @property entity Any
  * @constructor
  */
-class KDSException(message:String, var entity: TagEntity, cause:Throwable? = null) :
-        RuntimeException(getTagDesc(entity) + ": $message", cause) {
+class KDSException(message:String, var entity: TagEntity? = null, cause:Throwable? = null) :
+        RuntimeException(if(entity==null) message else getTagDesc(entity) + ": $message", cause) {
 
 
     companion object {
