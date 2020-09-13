@@ -259,4 +259,5 @@ class TagDefTest {
             animal:bug "ranatra" aquatic=true date=2020/11/16@11:32:00-Z location="Peru" insect=true
         """.trim(), tag.toString())
     }
+
 }

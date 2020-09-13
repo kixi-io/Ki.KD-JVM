@@ -75,6 +75,20 @@ class TagDef(
         }
     }
 
+    override fun toString(): String {
+        var childDefsSB = StringBuilder("")
+        if(!childDefs.isEmpty()) {
+            childDefsSB.appendLine("{")
+            for(child in childDefs) {
+                childDefsSB.append('\t')
+                childDefsSB.appendLine(child)
+            }
+            childDefsSB.appendLine("}")
+        }
+
+        return "$nsid $valueDefs $attDefs$childDefsSB"
+    }
+
     private class TagGroupCounter(val nsid:NSID, var count:Int = 0) {
         override fun hashCode(): Int = nsid.hashCode()
         override fun equals(other: Any?): Boolean = other is TagGroupCounter && other.nsid == nsid

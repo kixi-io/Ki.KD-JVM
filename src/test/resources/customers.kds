@@ -48,7 +48,7 @@ tag customer {
     }
 }
 
-@root
+@Root
 tag customers {
     # A customers document contains zero or more customer tags
     customer 0.._
