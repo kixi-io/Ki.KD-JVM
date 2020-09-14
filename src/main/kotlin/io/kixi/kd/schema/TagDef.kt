@@ -78,7 +78,7 @@ class TagDef(
     override fun toString(): String {
         var childDefsSB = StringBuilder("")
         if(!childDefs.isEmpty()) {
-            childDefsSB.appendLine("{")
+            childDefsSB.appendLine(" {")
             for(child in childDefs) {
                 childDefsSB.append('\t')
                 childDefsSB.appendLine(child)

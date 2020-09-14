@@ -15,14 +15,16 @@ kd:meta version=1.0.0-beta
  * attributes: quantity and shipping. Shipping has a default value "true" so it is
  * optional when writing KD for this schema.
  */
-template purchase String quantity=Int shipping=true
+template Purchase String quantity=Int shipping=true
 
 /**
  * A tag definitions have a name (in this case, "customer" and three optional
  * sections: values, attributes and children
  */
-tag customer {
-    values { Int } # A unique ID
+tag Customer {
+    values {
+        Int # A unique ID
+    }
     attributes {
         familyName String
         givenName String
@@ -38,19 +40,19 @@ tag customer {
         # Here we define a local tag "purchases" which allows zero or more purchase
         # child tags. The "purchase" tag is defined in the "tags" section above.
         # Definitions can also be imported.
-        tag purchases {
+        tag Purchases {
 
             # The purchase tag is defined via a template at the top of this
             # definitions section. The range 0.._ means it can occur zero or more
             # times.
-            purchase 0.._
+            Purchase 0.._
         }
     }
 }
 
 @Root
-tag customers {
+tag Customers {
     # A customers document contains zero or more customer tags
-    customer 0.._
+    Customer 0.._
 }
 

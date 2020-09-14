@@ -2,16 +2,25 @@ package io.kixi.kd.schema
 
 // import io.kixi.kd.Interpreter
 // import io.kixi.kd.KD
-import io.kixi.kd.KD
+import io.kixi.Type
+import io.kixi.TypeDef
 import io.kixi.kd.NSID
 import io.kixi.kd.Tag
 
+/**
+ * A KD schema provides a set of tag definitions and specifies one as the root via
+ * the @root annotation.
+ *
+ * Tags are either templates or full tag definitions. Template tags are named "template".
+ * Full tag definitions are named "tag".
+ */
 class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
 
+    // TODO: Question - Should Schema subclass TagDef? Every document has a root, which
+    // is constrained by a TagDef.
+
     companion object {
-
         fun make(root:Tag): Schema {
-
             var rootDef: TagDef? = null
             val defs = mutableListOf<TagDef>()
 
@@ -53,8 +62,14 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
         }
 
         private fun makeTemplateDef(child: Tag): TagDef {
+            if(child.value == null)
+                throw KDSException("Template name cannot be empty or null", child)
             var nsid = NSID(child.value as String)
-            var valueDefs:List<ValueDef> = TagEntityDef.EMPTY_VALUES
+
+            var valueDefs:List<ValueDef> =
+                    if(child.values.size > 1) makeTemplateValueDefs(child, child.values.subList(1, child.values.size))
+                    else TagEntityDef.EMPTY_VALUES
+
             var varValueDef:ValueDef? = null
             var attDefs:Map<NSID, ValueDef> = TagEntityDef.EMPTY_ATTS
             var varAttDef:ValueDef? = null
@@ -65,13 +80,25 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
             return TagDef(nsid, valueDefs, varValueDef, attDefs, varAttDef, childDefs)
         }
 
-        private fun templateAddValueDefs(tag: Tag): List<ValueDef> {
-            return TagEntityDef.EMPTY_VALUES
+        private fun makeTemplateValueDefs(tag: Tag, values: List<Any?>): List<ValueDef> {
+            val valueDefs = ArrayList<ValueDef>()
+            for(value in values) {
+                val tdef = TypeDef.forName(value?.toString() ?: "nil")
+                if(tdef==null)
+                    throw KDSException("Unknow type name $value", tag)
+                valueDefs.add(ValueDef(tdef))
+            }
+            return valueDefs
         }
 
         private fun makeTagDef(child: Tag): TagDef {
             var nsid = NSID(child.value as String)
-            var valueDefs:List<ValueDef> = TagEntityDef.EMPTY_VALUES
+
+            val valuesTag = child.getChild("values")
+            var valueDefs:List<ValueDef> =
+                    if(valuesTag==null || valuesTag.children.isEmpty()) TagEntityDef.EMPTY_VALUES
+                    else makeTagValueDefs(valuesTag)
+
             var varValueDef:ValueDef? = null
             var attDefs:Map<NSID, ValueDef> = TagEntityDef.EMPTY_ATTS
             var varAttDef:ValueDef? = null
@@ -81,18 +108,15 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
 
             return TagDef(nsid, valueDefs, varValueDef, attDefs, varAttDef, childDefs)
         }
+
+        private fun makeTagValueDefs(tag: Tag): List<ValueDef> {
+            return TagEntityDef.EMPTY_VALUES
+        }
     }
+
+    fun apply(docRoot:Tag) = rootDef.apply(docRoot)
 
     override fun toString(): String {
         return rootDef.toString()
     }
 }
-
-/*
-fun main() {
-    val schemaKD = KD.readResource("customers.kds")
-    val schema = Schema.make(schemaKD)
-    println("nsid: ${schema.rootDef.nsid}")
-    println(schema)
-}
-*/
