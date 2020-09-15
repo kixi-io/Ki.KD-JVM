@@ -9,10 +9,7 @@ import io.kixi.kd.Tag
 
 /**
  * A KD schema provides a set of tag definitions and specifies one as the root via
- * the @root annotation.
- *
- * Tags are either templates or full tag definitions. Template tags are named "template".
- * Full tag definitions are named "tag".
+ * the @Root annotation.
  */
 class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
 
@@ -30,13 +27,10 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
 
                 var def: TagDef
                 when(child.nsid.name) {
-                    "template" -> { def= makeTemplateDef(child); defs.add(def) }
                     "tag" -> { def= makeTagDef(child); defs.add(def) }
                     else -> throw KDSException("Tag definitions must be of type \"tag\" or \"template\". " +
                             "Got: ${child.nsid}", child)
                 }
-
-                // if(!child.annotations.isEmpty()) println(child.annotations[0].nsid.name)
 
                 if(!child.annotations.isEmpty() && child.annotations[0].nsid.name == "Root") {
                     if(rootDef!=null) {
@@ -61,56 +55,55 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
             return Schema(rootDef!!, defs)
         }
 
-        private fun makeTemplateDef(child: Tag): TagDef {
+        private fun makeTagDef(child: Tag): TagDef {
             if(child.value == null)
-                throw KDSException("Template name cannot be empty or null", child)
+                throw KDSException("Tag name cannot be empty or null", child)
+
             var nsid = NSID(child.value as String)
 
             var valueDefs:List<ValueDef> =
-                    if(child.values.size > 1) makeTemplateValueDefs(child, child.values.subList(1, child.values.size))
+                    if(child.values.size > 1) makeValueDefs(child, child.values.subList(1, child.values.size))
                     else TagEntityDef.EMPTY_VALUES
 
+            var attDefs:Map<NSID, ValueDef> =
+                    if(child.attributes.isEmpty()) TagEntityDef.EMPTY_ATTS
+                    else makeAttDefs(child)
+
             var varValueDef:ValueDef? = null
-            var attDefs:Map<NSID, ValueDef> = TagEntityDef.EMPTY_ATTS
             var varAttDef:ValueDef? = null
             var childDefs:List<TagGroupDef> = TagDef.EMPTY_CHILDREN
 
-            // TODO: valueDefs, varValueDef, attDefs, varAttDef, childDefs
+            // TODO: varValueDef, attDefs, varAttDef, childDefs
 
             return TagDef(nsid, valueDefs, varValueDef, attDefs, varAttDef, childDefs)
         }
 
-        private fun makeTemplateValueDefs(tag: Tag, values: List<Any?>): List<ValueDef> {
+        private fun makeValueDefs(tag: Tag, values: List<Any?>): List<ValueDef> {
             val valueDefs = ArrayList<ValueDef>()
             for(value in values) {
                 val tdef = TypeDef.forName(value?.toString() ?: "nil")
                 if(tdef==null)
-                    throw KDSException("Unknow type name $value", tag)
+                    throw KDSException("Unknow type name in tag definition value list: $value", tag)
                 valueDefs.add(ValueDef(tdef))
             }
             return valueDefs
         }
 
-        private fun makeTagDef(child: Tag): TagDef {
-            var nsid = NSID(child.value as String)
+        private fun makeAttDefs(child: Tag): Map<NSID, ValueDef> {
+            val entryDefs = HashMap<NSID, ValueDef>()
+            for(pair in child.attributes.entries) {
+                val nsid = pair.key
+                if(nsid == null)
+                    throw throw KDSException("Attribute key cannot be nil.", child)
+                val valueDefText = pair.value
 
-            val valuesTag = child.getChild("values")
-            var valueDefs:List<ValueDef> =
-                    if(valuesTag==null || valuesTag.children.isEmpty()) TagEntityDef.EMPTY_VALUES
-                    else makeTagValueDefs(valuesTag)
+                // TODO: Deal with default values, infer type
+                val tdef = TypeDef.forName(valueDefText?.toString() ?: "nil")
+                        ?: throw KDSException("Unknow type name in tag definition value list: $valueDefText", child)
 
-            var varValueDef:ValueDef? = null
-            var attDefs:Map<NSID, ValueDef> = TagEntityDef.EMPTY_ATTS
-            var varAttDef:ValueDef? = null
-            var childDefs:List<TagGroupDef> = TagDef.EMPTY_CHILDREN
-
-            // TODO: valueDefs, varValueDef, attDefs, varAttDef, childDefs
-
-            return TagDef(nsid, valueDefs, varValueDef, attDefs, varAttDef, childDefs)
-        }
-
-        private fun makeTagValueDefs(tag: Tag): List<ValueDef> {
-            return TagEntityDef.EMPTY_VALUES
+                entryDefs.put(nsid, ValueDef(tdef))
+            }
+            return entryDefs
         }
     }
 

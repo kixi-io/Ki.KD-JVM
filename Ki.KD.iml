@@ -63,7 +63,6 @@
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib-common:1.4.0" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains:annotations:13.0" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.0" level="project" />
-    <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.4.0" level="project" />
     <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.8-1" level="project" />
     <orderEntry type="module-library">
       <library name="Maven: io.kixi:Ki.Core:{ki.core.version}">

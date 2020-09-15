@@ -1,58 +1,36 @@
 kd:meta version=1.0.0-beta
 
-# ----
 # A KD schema provides a set of tag definitions and specifies one as the root via
-# the @root annotation.
-#
-# Tags are either templates or full tag definitions. Template tags are named "template".
-# Full tag definitions are named "tag".
-# ----
+# the @Root annotation.
 
 /**
- * A template is a simple tag definition. We could also have used tag here.
- *
- * This "purchase" template has a single String value for the product name, and two
- * attributes: quantity and shipping. Shipping has a default value "true" so it is
+ * This `Purchase` tag has a single String value for the product name, and two
+ * attributes: `quantity` and `shipping`. Shipping has a default value `true` so it is
  * optional when writing KD for this schema.
  */
-template Purchase String quantity=Int shipping=true
+tag Purchase String quantity=Int // shipping=true # default att values not yet implemented
+
+tag Purchases { Purchase 0.._ } # Zero or more purchase tags
 
 /**
- * A tag definitions have a name (in this case, "customer" and three optional
- * sections: values, attributes and children
+ * This `Customer` tag has an Int id value and five attributes. Attributes can specify a
+ * type or a default value. Attributes with a default value are optional. This long-form
+ * tag uses values and attributes groups so it can specify more information about the
+ * constraints. Although Bool types are false by default, specifying false makes `premium`
+ * optional.
  */
-tag Customer {
-    values {
-        Int # A unique ID
-    }
+tag Customer  {
+    values { Int 0.._ } # An ID, which must be positive
     attributes {
         familyName String
         givenName String
         birthday Date
-        interestAreas [String] # A list of Strings
-
-        # Bool is false by default, but providing a default value makes the attribute
-        # optional when writing KD for this schema.
         premium false
     }
-    children {
 
-        # Here we define a local tag "purchases" which allows zero or more purchase
-        # child tags. The "purchase" tag is defined in the "tags" section above.
-        # Definitions can also be imported.
-        tag Purchases {
-
-            # The purchase tag is defined via a template at the top of this
-            # definitions section. The range 0.._ means it can occur zero or more
-            # times.
-            Purchase 0.._
-        }
-    }
+    // Child tags
+    Purchases 0..1 # A Customer tag has an optional Purchases tag child
 }
 
-@Root
-tag Customers {
-    # A customers document contains zero or more customer tags
-    Customer 0.._
-}
-
+# A customers tag contains zero or more customer tags
+@Root tag Customers { Customer 0.._ }
