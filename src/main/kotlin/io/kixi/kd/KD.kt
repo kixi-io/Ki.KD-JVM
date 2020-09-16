@@ -41,5 +41,19 @@ class KD {
         @JvmStatic fun read(url: URL) : Tag = read(url.readText())
         @JvmStatic fun readResource(resource:String) : Tag = read(this::class.java.
                 getResource("/" + resource))
+
+        /**
+         * Create an object from a KD literal. This can be used like so:
+         * ```
+         * val birthday = KD("1995/9/16")
+         * ```
+         *
+         * @param code A KD literal (https://github.com/kixi-io/Ki.Docs/wiki/Ki-Types)
+         * @return Any? A Ki object
+         * @throws KDParseException If `code` does not contain a valid KD literal
+         */
+        @JvmStatic operator fun invoke(code:String) = read(code).value
     }
 }
+
+

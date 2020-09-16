@@ -1,4 +1,5 @@
 package io.kixi.kd
+
 import io.kixi.Ki
 import io.kixi.Range
 import io.kixi.Version
@@ -9,8 +10,8 @@ import io.kixi.text.ParseException
 import io.kixi.text.resolveEscapes
 import io.kixi.uom.Quantity
 import io.kixi.uom.Unit
-import org.antlr.v4.runtime.CharStreams
-import org.antlr.v4.runtime.CommonTokenStream
+import org.antlr.v4.runtime.*
+import org.antlr.v4.runtime.misc.ParseCancellationException
 import java.io.Reader
 import java.io.StringReader
 import java.math.BigDecimal
@@ -20,6 +21,7 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
+
 
 /**
  * A [Ki Declarative (KD)](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD))
@@ -33,9 +35,11 @@ class Interpreter {
     private lateinit var lexer: KDLexer
     private lateinit var parser: KDParser
 
-    fun read(reader:Reader) : List<Tag> {
+    fun read(reader: Reader) : List<Tag> {
         lexer = KDLexer(CharStreams.fromReader(reader))
+        lexer.addErrorListener(ThrowingErrorListener.INSTANCE)
         parser = KDParser(CommonTokenStream(lexer))
+
         parser.buildParseTree = true
 
         // Watch the Lexer
@@ -199,7 +203,7 @@ class Interpreter {
             return makeString(ctx.stringLiteral())
         }
 
-        // Nakes strings (IDs treated as strings)
+        // Bare strings (IDs treated as strings)
         if(ctx.ID() != null) {
             return text
         }
@@ -273,23 +277,23 @@ class Interpreter {
             }
 
             throw ParseException("Malformed Char literal at line ${ctx.start.line}, " +
-                "index ${ctx.start.charPositionInLine}: $text")
+                    "index ${ctx.start.charPositionInLine}: $text")
         } // escapes
 
         if(ctx.URL() != null) {
             try {
                 return URL(text)
-            } catch (e:MalformedURLException) {
+            } catch (e: MalformedURLException) {
                 // already parsed - should never happen
                 throw ParseException("Malformed URL",
-                    ctx.start.line, ctx.start.charPositionInLine)
+                        ctx.start.line, ctx.start.charPositionInLine)
             }
         }
 
         if(ctx.Version() != null) {
             try {
                 return Version.parse(text)
-            } catch(pe:ParseException) {
+            } catch (pe: ParseException) {
                 throw KDParseException("Malformed version ${ctx.text}", line = ctx.start.line,
                         index = ctx.start.charPositionInLine, pe)
             }
@@ -298,7 +302,7 @@ class Interpreter {
         if(ctx.blob() != null) {
             try {
                 return Ki.parseBlob(ctx.blob().text)
-            } catch(pe:ParseException) {
+            } catch (pe: ParseException) {
                 throw KDParseException("Malformed blob ${ctx.text}", line = ctx.start.line,
                         index = ctx.start.charPositionInLine, pe)
             }
@@ -327,7 +331,7 @@ class Interpreter {
         if(ctx.quantity() != null) {
             try {
                 return Quantity.parse(text)
-            } catch(pe:ParseException) {
+            } catch (pe: ParseException) {
                 throw KDParseException("Malformed quantity ${ctx.text}", line = ctx.start.line,
                         index = ctx.start.charPositionInLine, pe)
             }
@@ -357,24 +361,24 @@ class Interpreter {
 
         when {
             parentCtx.SimpleString()!=null -> {
-                text = text.substring(1, text.length-1).resolveEscapes()
+                text = text.substring(1, text.length - 1).resolveEscapes()
             }
             parentCtx.RawString()!=null -> {
-                text = text.substring(2, text.length-1)
+                text = text.substring(2, text.length - 1)
             }
             parentCtx.blockString()!=null -> {
                 text = trimStringBlockLinePrefixesAndNewLines(
-                        text.substring(3, text.length-3).resolveEscapes()
+                        text.substring(3, text.length - 3).resolveEscapes()
                 )
             }
             parentCtx.blockRawString()!=null -> {
                 text = trimStringBlockLinePrefixesAndNewLines(
-                        text.substring(4, text.length-3)
+                        text.substring(4, text.length - 3)
                 )
             }
             parentCtx.blockRawAltString()!=null -> {
                 text = trimStringBlockLinePrefixesAndNewLines(
-                        text.substring(1, text.length-1)
+                        text.substring(1, text.length - 1)
                 )
             }
             else -> throw ParseException("Unkown String literal type") // should never happen
@@ -411,7 +415,7 @@ class Interpreter {
      *  [KD Strings](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)#String) for more
      *  details.
      */
-    fun trimStringBlockLinePrefixesAndNewLines(text:String) : String {
+    fun trimStringBlockLinePrefixesAndNewLines(text: String) : String {
 
         // TODO: When indent is greater than line start, numbers replace some lines
 
@@ -440,7 +444,7 @@ class Interpreter {
 
             if (wsEnd != 0 || lastLine.isEmpty()) {
                 val wsPrefix = lastLine.substring(0, wsEnd)
-                lines.removeAt(lines.size-1)
+                lines.removeAt(lines.size - 1)
 
                 val buf = StringBuilder()
                 for (i in 0..lines.size - 1) {
@@ -467,7 +471,7 @@ class Interpreter {
     /**
      * Can be Date, LocalDateTime, or ZonedDateTime
      */
-    private fun makeTemporal(ctx: KDParser.DateTimeContext, text:String): Any? {
+    private fun makeTemporal(ctx: KDParser.DateTimeContext, text: String): Any? {
 
         val timeNode = ctx.Time()
         // val zoneNode = ctx.TimeZone()
@@ -483,7 +487,7 @@ class Interpreter {
             val timeText = ctx.Time().text
 
             // Needed for ISO 8601 support
-            var convertedTimeText = if (timeText.last()=='Z' && timeText[timeText.length-2].isDigit())
+            var convertedTimeText = if (timeText.last()=='Z' && timeText[timeText.length - 2].isDigit())
                 timeText.dropLast(1) + "-Z" else timeText
 
             if(convertedTimeText.first()=='T') {
@@ -496,7 +500,7 @@ class Interpreter {
                     return Ki.parseZonedDateTime(newText)
                 else
                     return Ki.parseLocalDateTime(newText)
-            } catch(pe:ParseException) {
+            } catch (pe: ParseException) {
                 throw KDParseException("Malformed DateTime $newText", line = ctx.start.line,
                         index = ctx.start.charPositionInLine, pe)
             }
@@ -514,8 +518,8 @@ class Interpreter {
     }
 
     // TODO: Question - Should KD allow null keys?
-    private fun makeMap(mapCtx: KDParser.MapContext) : Map<Any?,Any?> {
-        val map = HashMap<Any?,Any?>()
+    private fun makeMap(mapCtx: KDParser.MapContext) : Map<Any?, Any?> {
+        val map = HashMap<Any?, Any?>()
 
         for(pair in mapCtx.pair()) {
             map[makeValue(pair.value(0))] = makeValue(pair.value(1))
@@ -632,7 +636,7 @@ class Interpreter {
                         Version.parse(ctx.getChild(2).text),
                         op, openLeft, openRight)
             }
-        } catch(pe:ParseException) {
+        } catch (pe: ParseException) {
             throw KDParseException("Malformed version range ${ctx.text}", line = ctx.start.line,
                     index = ctx.start.charPositionInLine, pe)
         }
@@ -649,10 +653,10 @@ class Interpreter {
             val rightDT = makeTemporal(ctx.dateTime(0)!!, right)!!
 
             return when (rightDT) {
-                is LocalDate -> Range<LocalDate>(LocalDate.MIN, rightDT, op, openLeft=true)
-                is LocalDateTime -> Range<LocalDateTime>(LocalDateTime.MIN, rightDT, op, openLeft=true)
+                is LocalDate -> Range<LocalDate>(LocalDate.MIN, rightDT, op, openLeft = true)
+                is LocalDateTime -> Range<LocalDateTime>(LocalDateTime.MIN, rightDT, op, openLeft = true)
                 is ZonedDateTime -> Range<ZonedDateTime>(ZonedDateTime.from(LocalDateTime.MIN),
-                        rightDT, op, openLeft=true)
+                        rightDT, op, openLeft = true)
                 else -> throw KDParseException(
                         "Error in DateTime Range calculation. Unknown type ${rightDT.javaClass.simpleName}",
                         ctx.start.line, ctx.start.charPositionInLine)
@@ -661,9 +665,9 @@ class Interpreter {
             val leftDT = makeTemporal(ctx.dateTime(0)!!, left)!!
 
             return when (leftDT) {
-                is LocalDate -> Range<LocalDate>(leftDT, LocalDate.MAX, op, openRight=true)
-                is LocalDateTime -> Range<LocalDateTime>(leftDT, LocalDateTime.MAX, openRight=true)
-                is ZonedDateTime -> Range<ZonedDateTime>(leftDT, ZonedDateTime.from(LocalDateTime.MAX), openRight=true)
+                is LocalDate -> Range<LocalDate>(leftDT, LocalDate.MAX, op, openRight = true)
+                is LocalDateTime -> Range<LocalDateTime>(leftDT, LocalDateTime.MAX, openRight = true)
+                is ZonedDateTime -> Range<ZonedDateTime>(leftDT, ZonedDateTime.from(LocalDateTime.MAX), openRight = true)
                 else -> throw KDParseException(
                         "Error in DateTime Range calculation. Unknown type ${leftDT.javaClass.simpleName}",
                         ctx.start.line, ctx.start.charPositionInLine)
@@ -701,7 +705,7 @@ class Interpreter {
                         Ki.parseDuration(ctx.getChild(2).text),
                         op, openLeft, openRight)
             }
-        } catch(pe:ParseException) {
+        } catch (pe: ParseException) {
             throw KDParseException("Malformed duration range ${ctx.text}", line = ctx.start.line,
                     index = ctx.start.charPositionInLine, pe)
         }
@@ -719,7 +723,7 @@ class Interpreter {
             val rightNum = rightText.replace("_", "").toFloat()
 
             return Range<Float>(Float.MIN_VALUE, rightNum,
-                        op, openLeft = true)
+                    op, openLeft = true)
         } else if (rightOpen) {
             val leftNum = leftText.replace("_", "").toFloat()
 
@@ -764,9 +768,9 @@ class Interpreter {
         val rightOpen = (rightText == "_")
 
         if(leftText.endsWith("bd", ignoreCase = true))
-            leftText = leftText.substring(0, leftText.length-2)
+            leftText = leftText.substring(0, leftText.length - 2)
         if(rightText.endsWith("bd", ignoreCase = true))
-            rightText = rightText.substring(0, rightText.length-2)
+            rightText = rightText.substring(0, rightText.length - 2)
 
         val op = rangeOp(ctx.rangeOp().text)
 
@@ -841,15 +845,15 @@ class Interpreter {
                 else -> Range<Quantity<Unit>>(
                         Quantity.parse(ctx.getChild(0).text) as Quantity<Unit>,
                         Quantity.parse(ctx.getChild(2).text) as Quantity<Unit>,
-                            op, openLeft, openRight)
+                        op, openLeft, openRight)
             }
-        } catch(pe:ParseException) {
+        } catch (pe: ParseException) {
             throw KDParseException("Malformed quantity range ${ctx.text}", line = ctx.start.line,
                     index = ctx.start.charPositionInLine, pe)
         }
     }
 
-    private fun rangeOp(rangeOpText:String): Range.Type {
+    private fun rangeOp(rangeOpText: String): Range.Type {
         return when(rangeOpText) {
             ".." -> Range.Type.Inclusive
             "<..<" -> Range.Type.Exclusive
@@ -861,11 +865,23 @@ class Interpreter {
         }
     }
 
-    fun read(code:String) : List<Tag> {
+    fun read(code: String) : List<Tag> {
         return read(StringReader(code))
     }
 
     companion object {
         val REGEX_PLUS_MINUS = Regex("[+-]")
+    }
+}
+
+class ThrowingErrorListener : BaseErrorListener() {
+    @Throws(ParseCancellationException::class)
+    override fun syntaxError(recognizer: Recognizer<*, *>?, offendingSymbol: Any?, line: Int, charPositionInLine: Int,
+                             msg: String, e: RecognitionException?) {
+        throw KDParseException("line $line:$charPositionInLine $msg", line=line, index=charPositionInLine)
+    }
+
+    companion object {
+        val INSTANCE = ThrowingErrorListener()
     }
 }

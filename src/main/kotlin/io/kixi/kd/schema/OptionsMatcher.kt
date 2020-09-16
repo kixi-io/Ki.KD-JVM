@@ -2,7 +2,7 @@ package io.kixi.kd.schema
 
 import io.kixi.toString
 
-class OptionsMatcher<T>(vararg val options: T) : Matcher {
+class OptionsMatcher(val options: List<Any?>) : Matcher {
     override fun matches(obj:Any?) = options.contains(obj)
     override fun toString() = "[${options.toString(", ")}]"
 }

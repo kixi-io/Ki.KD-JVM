@@ -85,7 +85,7 @@ class TagDefTest {
         val tagDef = TagDef(
                 NSID("gift"),
                 listOf<ValueDef>(
-                    ValueDef(TypeDef.String, matcher = OptionsMatcher("flowers", "ring", "hat")),
+                    ValueDef(TypeDef.String, matcher = OptionsMatcher(listOf("flowers", "ring", "hat"))),
                     ValueDef(TypeDef.Int, matcher = RangeMatcher(Range(1, 5)))
                 )
         )
