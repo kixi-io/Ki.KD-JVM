@@ -281,12 +281,3 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
         return rootDef.toString()
     }
 }
-
-fun main() {
-    println(Schema.makeListTypeDef(KD("[String]")!! as List<*>, "attribute", Tag("foo")))
-    println(Schema.makeListTypeDef(KD("[Number]")!! as List<*>, "attribute", Tag("foo")))
-    println(Schema.makeListTypeDef(KD("[[Int]]")!! as List<*>, "attribute", Tag("foo")))
-    println(Schema.makeListTypeDef(KD("[[String, Int]]")!! as List<*>, "attribute", Tag("foo")))
-
-    println(Schema.makeMapTypeDef(KD("[String, [Number]]")!! as List<*>, "attribute", Tag("foo")))
-}
