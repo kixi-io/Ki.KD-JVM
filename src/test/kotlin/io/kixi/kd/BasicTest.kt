@@ -22,7 +22,7 @@ class BasicTest {
         var list = Ki.format(
                 listOf(
                         Ki.parseDuration("2s"),
-                        listOf(Ki.parseDuration("3s"), Ki.parseDuration("4s"))
+                        listOf(KD("3s"), KD("4s"))
                 )
         )
         assertEquals("[2s, [3s, 4s]]", list)

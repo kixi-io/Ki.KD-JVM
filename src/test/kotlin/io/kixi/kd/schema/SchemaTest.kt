@@ -32,6 +32,23 @@ class SchemaTest {
         assertThrows<KDSException>("Person: Missing value for Int") { schema.apply(doc) }
         doc = KD.read("Person \"Joe\" 23.5")
         assertThrows<KDSException>("Person: Value 23.5 doesn't match Int") { schema.apply(doc) }
+
+        // Value with a default
+        schemaTag = KD.read("""
+                kd:meta version=1.0.0-beta-1
+                
+                @Root
+                tag Species "unknown"
+            """)
+        schema = Schema.make(schemaTag)
+
+        doc = KD.read("Species")
+        schema.apply(doc)
+        assertEquals("Species \"unknown\"", doc.toString())
+
+        doc = KD.read("Species \"Acontista brevipennis\"")
+        schema.apply(doc)
+        assertEquals("Species \"Acontista brevipennis\"", doc.toString())
     }
 
     @Test fun schemaWithValuesAndAtts() {
@@ -106,5 +123,129 @@ class SchemaTest {
             "Range<Int> (default 7) 5..10") {
             schema.apply(doc)
         }
+    }
+
+    @Test fun schemaWithLists() {
+        // Defining a list
+        var schemaTag = KD.read("""
+                kd:meta version=1.0.0-beta-1
+                
+                @Root
+                tag Box things=[String] // List of Strings
+            """)
+        var schema = Schema.make(schemaTag)
+
+        var doc = KD.read("""
+            Box things=["apples","oranges"]
+        """.trimIndent())
+        assertDoesNotThrow { schema.apply(doc) }
+
+        doc = KD.read("""
+            Box things=["apples","oranges", 12]
+        """.trimIndent())
+
+        assertThrows<KDSException>("Box: Attribute value type in " +
+                "things=[apples, oranges, 12] does not match List<String>") {
+            schema.apply(doc)
+        }
+
+        // Defining a list of lists
+        schemaTag = KD.read("""
+                kd:meta version=1.0.0-beta-1
+                
+                @Root
+                tag Box things=[[String]] // List of List of Strings
+            """)
+        schema = Schema.make(schemaTag)
+        doc = KD.read("""
+            Box things=[["apples","oranges"], ["dollars","yuan"]]
+        """.trimIndent())
+        assertDoesNotThrow { schema.apply(doc) }
+
+        doc = KD.read("""
+            Box things=[["apples","oranges"], ["dollars","yuan", 3]]
+        """.trimIndent())
+        assertThrows<KDSException>("Box: Attribute value type in " +
+                "things=[[apples, oranges], [dollars, yuan, 3]] does not match " +
+                "List<List<String>>") {
+            schema.apply(doc)
+        }
+
+        // Defining a list of maps
+        schemaTag = KD.read("""
+                kd:meta version=1.0.0-beta-1
+                
+                @Root
+                tag Box things=[[String,Int]] // List of Maps
+            """)
+        schema = Schema.make(schemaTag)
+        doc = KD.read("""
+            Box things=[[marbles=5, coins=7], [geodes=2, agates=11]]
+        """.trimIndent())
+        assertDoesNotThrow { schema.apply(doc) }
+
+        doc = KD.read("""
+            Box things=[[marbles=5, coins=7], [geodes=2, agates=11.5]]
+        """.trimIndent())
+        assertThrows<KDSException>("Box: Attribute value type in " +
+                "things=[{coins=7, marbles=5}, {geodes=2, agates=11.5}] does not match " +
+                "List<Map<String, Int>>") {
+            schema.apply(doc)
+        }
+
+        // List type for values
+        schemaTag = KD.read("""
+                kd:meta version=1.0.0-beta-1
+                
+                @Root
+                tag Box [String]
+            """)
+        schema = Schema.make(schemaTag)
+        doc = KD.read("""
+            Box ["marbles", "rocks"]
+        """.trimIndent())
+        assertDoesNotThrow { schema.apply(doc) }
+    }
+
+    @Test fun schemaWithMaps() {
+        // Defining a map
+        var schemaTag = KD.read("""
+                kd:meta version=1.0.0-beta-1
+                
+                @Root
+                tag Box things=[String, Number] // List of Strings
+            """)
+        var schema = Schema.make(schemaTag)
+
+        var doc = KD.read("""
+            Box things=["apples"=5,"oranges"=10]
+        """.trimIndent())
+        assertDoesNotThrow { schema.apply(doc) }
+
+        doc = KD.read("""
+            Box things=["apples"=5,"oranges"=true]
+        """.trimIndent())
+        assertThrows<KDSException>("Box: Attribute value type in things={oranges=true, apples=5} does not " +
+                "match Map<String, Number>") { schema.apply(doc) }
+
+        // Defining a map of lists
+        schemaTag = KD.read("""
+                kd:meta version=1.0.0-beta-1
+                
+                @Root
+                tag Game scores=[String, [Number]] // Map of Strings
+            """)
+        schema = Schema.make(schemaTag)
+
+        doc = KD.read("""
+            Game scores=["Benny"=[10,5,9],"Atsuko"=[9,5,10]]
+        """.trimIndent())
+        assertDoesNotThrow { schema.apply(doc) }
+
+        doc = KD.read("""
+            Game scores=["Benny"=[10,5,9],"Atsuko"=12]
+        """.trimIndent())
+        assertThrows<KDSException>("Game: Attribute value type in scores={Benny=[10, 5, 9], Atsuko=12} does " +
+                "not match Map<String, List<Number>>") { schema.apply(doc) }
     }
 }

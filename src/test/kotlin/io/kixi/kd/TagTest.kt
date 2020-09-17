@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 
 class TagTest {
 
-    @Test fun testFind() {
+    @Test fun find() {
         val root = KD.read("""
             fee purple size =2 {
                 child1 blue size =3
@@ -37,11 +37,24 @@ class TagTest {
         )
     }
 
-    @Test fun gridTest() {
+    @Test fun grid() {
         val intRows = KD.read("""
                 1 2 3
                 4 5 6
         """).getChildrenValues<Int>()
         assertEquals(6, intRows[1][2])
+    }
+
+    @Test fun indexers() {
+        val tag = KD.read("""
+            Widget "Box" color="green" size=5cm3
+        """.trimIndent())
+        assertEquals("""
+            Widget "Box" color="green" size=5cm³
+        """.trim(), tag.toString())
+
+        assertEquals("Box", tag[0])
+
+        assertEquals("5cm³", tag["size"].toString())
     }
 }
