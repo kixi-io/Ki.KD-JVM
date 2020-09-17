@@ -62,9 +62,15 @@ abstract class TagEntity {
         return builder.toString()
     }
 
-    fun <T> get(): T = value as T
+    // Values ////
+
+    operator fun get(valueIndex:Int): Any? = values[valueIndex]
+    operator fun set(valueIndex:Int, obj:Any?): Any? = values.set(valueIndex, obj)
 
     // Attributes ////
+
+    operator fun get(name: String, namespace: String = ""): Any? = getAttribute(name, namespace)
+    operator fun set(name: String, namespace: String = "", value:Any?): Any? = setAttribute(name, namespace, value)
 
     fun setAttribute(name: String, namespace: String = "", value: Any?) =
             attributes.put(NSID(name, namespace), value)

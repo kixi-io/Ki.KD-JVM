@@ -82,10 +82,7 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
         private fun makeValueDefs(tag: Tag, values: List<Any?>): List<ValueDef> {
             val valueDefs = ArrayList<ValueDef>()
             for(value in values) {
-                val tdef = TypeDef.forName(value?.toString() ?: "nil")
-                if(tdef==null)
-                    throw KDSException("Unknow type name in tag definition value list: $value", tag)
-                valueDefs.add(ValueDef(tdef))
+                valueDefs.add(makeValueDef(value, "value", tag))
             }
             return valueDefs
         }
@@ -108,14 +105,13 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
          * Make a value def. The matcher can be any of:
          * 1. A Ki type name such as `String` or `Bool`
          * 2. A default value such as `"unknown"` or `false`
-         * 3. A matcher such as a 5..10 (range), `["red" "green" "blue"]` (options) or `"*.jpg"` (regex)
-         * 4. A matcher and default value in a map, e.g. [matcher=["red","green","blue"] default="red"]
+         * 3. A matcher and optional default value in a map, e.g. [matcher=["red","green","blue"] default="red"]
          *
          * @param obj Any
          * @param location String
          * @throws KDSException for malformed schema (not a type name, default value, matcher, or matcher / default value
          */
-        private fun makeValueDef(defObj:Any, location:String, tag: Tag): ValueDef {
+        private fun makeValueDef(defObj:Any?, location:String, tag: Tag): ValueDef {
             if(defObj == null || defObj == "nil" || defObj == "null")
                 throw KDSException("$location type or default value in tag definition cannot be nil.", tag)
 
@@ -123,11 +119,25 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
 
             if(defObj is Map<*, *>) {
                 // matcher
-                return makeMatcherValueType(defObj as Map<*,*>, location, tag)
-            // } else if(defObj is List<*>) {
+                return makeMatcherValueDef(defObj as Map<*,*>, location, tag)
+            } else if(defObj is List<*>) {
+                // typed list or map structure
+                
+                if(defObj.isEmpty())
+                    throw KDSException("Generic list or map constraint must have a type", tag)
 
-            // return makeGenericValueType(defObj as List<*>, location, tag)
+                if(defObj.size==1) {
+                    // We have a ListDef
+                    val listDef = makeListTypeDef(defObj as List<*>, location, tag)
+                    return ValueDef(listDef)
+                } else if(defObj.size==2) {
+                    // We have a MapDef
+                    val mapDef = makeMapTypeDef(defObj as List<*>, location, tag)
+                    return ValueDef(mapDef)
+                }
             } else {
+                // simple type name or a literal default value
+
                 typeDef = if(defObj is String) TypeDef.forName(defObj) else null
 
                 if (typeDef == null) {
@@ -150,7 +160,72 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
             throw KDSException("$defObj is not a valid value type definition", tag)
         }
 
-        private fun makeMatcherValueType(map: Map<*, *>, location: String, tag: Tag): ValueDef = when {
+        fun makeListTypeDef(defObj:List<*>, location: String, tag: Tag): ListDef {
+            // list or map typedef
+            if(defObj.size!=1)
+                throw KDSException("Internal Error: List type def in $location must specify a value type. Got $defObj",
+                        tag)
+
+            val valueDef = makeTypeDefFromAny(defObj.first(), location, tag)
+            return ListDef(false, valueDef)
+
+            /*
+            val typeObj = defObj.first()
+
+            if(typeObj==null)
+                throw KDSException("List type definition in $location cannot have a null value type", tag)
+
+            if(typeObj is String) {
+                val typeDef = TypeDef.forName(typeObj) ?:
+                    throw KDSException("List type definition in $location has an unknown value type name $typeObj",
+                        tag)
+
+                return ListDef(false, typeDef) // For now, Lists can't be nullable
+            } else if(typeObj is List<*>) {
+                return ListDef(false, makeListTypeDef(typeObj, location, tag))
+            }
+            throw KDSException("Internal Error: List type def in $location must be a type name or a List. Got $defObj",
+                    tag)
+             */
+        }
+
+        fun makeMapTypeDef(defObj:List<*>, location: String, tag: Tag): MapDef {
+            // list or map typedef
+            if(defObj.size!=2)
+                throw KDSException("Internal Error: Map type def in $location must specify a key and value type. " +
+                        "Got $defObj", tag)
+
+            val keyDef = makeTypeDefFromAny(defObj.first(), location, tag)
+            val valueDef = makeTypeDefFromAny(defObj[1], location, tag)
+
+            return MapDef(false, keyDef, valueDef)
+        }
+
+        private fun makeTypeDefFromAny(obj: Any?, location: String, tag: Tag) : TypeDef {
+            if(obj==null)
+                throw KDSException("Map type definition in $location cannot have a null key type", tag)
+
+            if(obj is String) {
+                val def = TypeDef.forName(obj) ?:
+                    throw KDSException("Type definition in $location has an unknown value type name $obj",
+                        tag)
+                return def
+            } else if(obj is List<*>) {
+                if(obj.size==1) {
+                    return makeListTypeDef(obj as List<*>, location, tag)
+                } else if(obj.size==2) {
+                    return makeMapTypeDef(obj as List<*>, location, tag)
+                } else {
+                    throw KDSException("Type definition in $location is not valid: Too many type parameters. " +
+                            "Got $obj", tag)
+                }
+            }
+
+            throw KDSException("Internal Error: Type def in $location must be a type name or a List. Got $obj",
+                    tag)
+        }
+
+        private fun makeMatcherValueDef(map: Map<*, *>, location: String, tag: Tag): ValueDef = when {
             map.containsKey("options") -> {
                 val options = map.get("options")
                 if(options is List<*>) {
@@ -159,9 +234,11 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
 
                     if(map.containsKey("default")) {
                         val default = map.get("default")!!
-                        ValueDef(inferListType(options as List<Any?>), defaultValue=default, matcher=OptionsMatcher(options as List<Any?>))
+                        ValueDef(TypeDef.inferListType(options as List<Any?>), defaultValue=default,
+                                matcher=OptionsMatcher(options as List<Any?>))
                     } else {
-                        ValueDef(inferListType(options as List<Any?>), matcher=OptionsMatcher(options as List<Any?>))
+                        ValueDef(TypeDef.inferListType(options as List<Any?>),
+                                matcher=OptionsMatcher(options as List<Any?>))
                     }
                 } else {
                     throw KDSException("$location options matcher much be a List", tag)
@@ -196,35 +273,6 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
             }
             else -> throw KDSException("$location matcher much be a options, range or regex", tag)
         }
-
-        fun inferListType(options: List<Any?>): TypeDef {
-            var widestType = Type.nil
-            var gotNil = false
-
-            for(opt in options) {
-                if(opt == null) {
-                    gotNil = true
-                    continue
-                }
-
-                val itemType = Type.typeOf(opt)!!
-
-                if(widestType == Type.nil) {
-                    widestType = itemType
-                } else if(widestType != itemType && !widestType.isAssignableFrom(itemType)) {
-                    if(widestType.isNumber() && itemType.isNumber()) {
-                        widestType = Type.Number
-                    } else {
-                        widestType = Type.Any
-                    }
-                }
-            }
-
-            return TypeDef(widestType, gotNil)
-        }
-
-        // private fun makeGenericValueType(list: List<*>, location: String, tag: Tag): ValueDef {
-        // }
     }
 
     fun apply(docRoot:Tag) = rootDef.apply(docRoot)
@@ -235,9 +283,10 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
 }
 
 fun main() {
-    println(Schema.inferListType(listOf(1, 3)))
-    println(Schema.inferListType(listOf(1, 3, null)))
-    // We specify Object to avoid Kotlin coercing 1 to 1L
-    println(Schema.inferListType(listOf<Any>(1, 3L)))
-    println(Schema.inferListType(listOf(1, "hi")))
+    println(Schema.makeListTypeDef(KD("[String]")!! as List<*>, "attribute", Tag("foo")))
+    println(Schema.makeListTypeDef(KD("[Number]")!! as List<*>, "attribute", Tag("foo")))
+    println(Schema.makeListTypeDef(KD("[[Int]]")!! as List<*>, "attribute", Tag("foo")))
+    println(Schema.makeListTypeDef(KD("[[String, Int]]")!! as List<*>, "attribute", Tag("foo")))
+
+    println(Schema.makeMapTypeDef(KD("[String, [Number]]")!! as List<*>, "attribute", Tag("foo")))
 }
