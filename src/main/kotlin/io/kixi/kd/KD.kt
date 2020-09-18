@@ -7,14 +7,8 @@ import java.net.URL
  * Utility class for KD
  */
 class KD {
+
     companion object {
-
-        /*
-        fun value(text:String) : Any? {
-            // TODO
-        }
-        */
-
         /**
          * Reads tags from the reader. If there is a single tag it is returned as is.
          * If there are multiple tags they are returned as children of a root tag

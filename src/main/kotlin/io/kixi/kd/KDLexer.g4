@@ -181,7 +181,7 @@ fragment TimeZone:
 
 // Assumed to be an Int or a Decimal unless Double, Float or Long is specified
 IntegerQuantityLiteral
-    : '-'? NumberPart UnitID (':' 'L')?
+    : '-'? NumberPart UnitID (':' [Li])?
     ;
 DecimalQuantityLiteral
     : '-'? NumberPart UnitID ':' [dDfF]

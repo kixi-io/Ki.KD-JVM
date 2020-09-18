@@ -1,10 +1,7 @@
 package io.kixi.kd
 
 import io.kixi.Ki
-import io.kixi.log
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class BasicTest {
@@ -19,7 +16,7 @@ class BasicTest {
     }
 
     @Test fun testDurations() {
-        var list = Ki.format(
+        val list = Ki.format(
                 listOf(
                         Ki.parseDuration("2s"),
                         listOf(KD("3s"), KD("4s"))
@@ -27,7 +24,7 @@ class BasicTest {
         )
         assertEquals("[2s, [3s, 4s]]", list)
 
-        var map = Ki.format(
+        val map = Ki.format(
                 mapOf(
                         Pair("time", Ki.parseDuration("2s")),
                         Pair("date", Ki.parseLocalDate("1970/5/25"))

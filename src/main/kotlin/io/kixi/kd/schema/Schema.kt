@@ -1,21 +1,18 @@
 package io.kixi.kd.schema
 
-// import io.kixi.kd.Interpreter
-// import io.kixi.kd.KD
 import io.kixi.*
 import io.kixi.kd.KD
 import io.kixi.kd.KDParseException
 import io.kixi.kd.NSID
 import io.kixi.kd.Tag
+import io.kixi.uom.*
+import kotlin.reflect.KClass
 
 /**
  * A KD schema provides a set of tag definitions and specifies one as the root via
  * the @Root annotation.
  */
 class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
-
-    // TODO: Question - Should Schema subclass TagDef? Every document has a root, which
-    // is constrained by a TagDef.
 
     companion object {
         fun make(root:Tag): Schema {
@@ -29,7 +26,8 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
                 var def: TagDef
                 when(child.nsid.name) {
                     "tag" -> { def= makeTagDef(child); defs.add(def) }
-                    else -> throw KDSException("Tag definitions must be of type \"tag\" or \"template\". " +
+                    else -> throw KDSException("Schema documents allow only \"tag\" " +
+                            "tags in their body (i.e. everything below kd:meta) " +
                             "Got: ${child.nsid}", child)
                 }
 
@@ -53,26 +51,26 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
                 }
             }
 
-            return Schema(rootDef!!, defs)
+            return Schema(rootDef, defs)
         }
 
         private fun makeTagDef(child: Tag): TagDef {
             if(child.value == null)
                 throw KDSException("Tag name cannot be empty or null", child)
 
-            var nsid = NSID(child.value as String)
+            val nsid = NSID(child.value as String)
 
-            var valueDefs:List<ValueDef> =
+            val valueDefs:List<ValueDef> =
                     if(child.values.size > 1) makeValueDefs(child, child.values.subList(1, child.values.size))
                     else TagEntityDef.EMPTY_VALUES
 
-            var attDefs:Map<NSID, ValueDef> =
+            val attDefs:Map<NSID, ValueDef> =
                     if(child.attributes.isEmpty()) TagEntityDef.EMPTY_ATTS
                     else makeAttDefs(child)
 
-            var varValueDef:ValueDef? = null
-            var varAttDef:ValueDef? = null
-            var childDefs:List<TagGroupDef> = TagDef.EMPTY_CHILDREN
+            val varValueDef:ValueDef? = null
+            val varAttDef:ValueDef? = null
+            val childDefs:List<TagGroupDef> = TagDef.EMPTY_CHILDREN
 
             // TODO: varValueDef, attDefs, varAttDef, childDefs
 
@@ -107,7 +105,7 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
          * 2. A default value such as `"unknown"` or `false`
          * 3. A matcher and optional default value in a map, e.g. [matcher=["red","green","blue"] default="red"]
          *
-         * @param obj Any
+         * @param defObj Any
          * @param location String
          * @throws KDSException for malformed schema (not a type name, default value, matcher, or matcher / default value
          */
@@ -115,11 +113,11 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
             if(defObj == null || defObj == "nil" || defObj == "null")
                 throw KDSException("$location type or default value in tag definition cannot be nil.", tag)
 
-            val typeDef: TypeDef?
+            var typeDef: TypeDef? = null
 
             if(defObj is Map<*, *>) {
                 // matcher
-                return makeMatcherValueDef(defObj as Map<*,*>, location, tag)
+                return makeMatcherValueDef(defObj, location, tag)
             } else if(defObj is List<*>) {
                 // typed list or map structure
                 
@@ -128,18 +126,35 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
 
                 if(defObj.size==1) {
                     // We have a ListDef
-                    val listDef = makeListTypeDef(defObj as List<*>, location, tag)
+                    val listDef = makeListTypeDef(defObj, location, tag)
                     return ValueDef(listDef)
                 } else if(defObj.size==2) {
                     // We have a MapDef
-                    val mapDef = makeMapTypeDef(defObj as List<*>, location, tag)
+                    val mapDef = makeMapTypeDef(defObj, location, tag)
                     return ValueDef(mapDef)
                 }
+            } else if(defObj is Range<*>) {
+                return ValueDef(RangeDef(false, TypeDef(Type.typeOf(defObj.left)!!, false)),
+                        defaultValue=defObj)
+            } else if(defObj is Quantity<*>) {
+                val quantDef = QuantityDef(false, defObj.unit::class, Type.typeOf(defObj.value)!!)
+                return ValueDef(quantDef, defaultValue=defObj)
             } else {
-                // simple type name or a literal default value
+                // simple type name, unit axis or a literal default value
 
-                typeDef = if(defObj is String) TypeDef.forName(defObj) else null
+                // check type name or unit axis
+                if(defObj is String) {
+                    typeDef = TypeDef.forName(defObj)
+                    if (typeDef == null) {
+                        val unitClass = getBaseUnitClass(defObj)
+                        if(unitClass!=null) {
+                            // TODO: Support nullable quantities and specifying value number type
+                            return ValueDef(QuantityDef(false, unitClass, Type.Dec))
+                        }
+                    }
+                }
 
+                // check default value
                 if (typeDef == null) {
                     try {
                         // val value = // KD(defObj.toString())
@@ -151,7 +166,8 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
                         }
                     } catch (e: KDParseException) {
                         throw KDSException(
-                                "$defObj in ${tag.nsid} definition is not a Ki type or valid default value.", tag)
+                                "${defObj.toString()} in ${tag.nsid} definition is not a " +
+                                        "Ki type or valid default value.", tag)
                     }
                 } else {
                     return ValueDef(typeDef)
@@ -160,33 +176,30 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
             throw KDSException("$defObj is not a valid value type definition", tag)
         }
 
+        private fun getBaseUnitClass(axes: String): KClass<*>? = when(axes) {
+            // base types
+            "Length" -> Length::class
+            "Mass" -> Mass::class
+            "SubstanceAmount" -> SubstanceAmount::class
+            "Luminosity" -> Luminosity::class
+            "Temperature" -> Temperature::class
+            "Current" -> Current::class
+
+            // common derived units
+            "Area" -> Area::class
+            "Volume" -> Volume::class
+            "Speed" -> Speed::class
+            "Density" ->Density::class
+            else -> null
+        }
+
         fun makeListTypeDef(defObj:List<*>, location: String, tag: Tag): ListDef {
-            // list or map typedef
             if(defObj.size!=1)
                 throw KDSException("Internal Error: List type def in $location must specify a value type. Got $defObj",
                         tag)
 
             val valueDef = makeTypeDefFromAny(defObj.first(), location, tag)
             return ListDef(false, valueDef)
-
-            /*
-            val typeObj = defObj.first()
-
-            if(typeObj==null)
-                throw KDSException("List type definition in $location cannot have a null value type", tag)
-
-            if(typeObj is String) {
-                val typeDef = TypeDef.forName(typeObj) ?:
-                    throw KDSException("List type definition in $location has an unknown value type name $typeObj",
-                        tag)
-
-                return ListDef(false, typeDef) // For now, Lists can't be nullable
-            } else if(typeObj is List<*>) {
-                return ListDef(false, makeListTypeDef(typeObj, location, tag))
-            }
-            throw KDSException("Internal Error: List type def in $location must be a type name or a List. Got $defObj",
-                    tag)
-             */
         }
 
         fun makeMapTypeDef(defObj:List<*>, location: String, tag: Tag): MapDef {
@@ -212,9 +225,9 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
                 return def
             } else if(obj is List<*>) {
                 if(obj.size==1) {
-                    return makeListTypeDef(obj as List<*>, location, tag)
+                    return makeListTypeDef(obj, location, tag)
                 } else if(obj.size==2) {
-                    return makeMapTypeDef(obj as List<*>, location, tag)
+                    return makeMapTypeDef(obj, location, tag)
                 } else {
                     throw KDSException("Type definition in $location is not valid: Too many type parameters. " +
                             "Got $obj", tag)
@@ -249,11 +262,11 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
                 if(range is Range<*>) {
                     if(map.containsKey("default")) {
                         val default = map.get("default")!!
-                        ValueDef(RangeDef(false, TypeDef.forName(Type.typeOf(range.left)!!.name)!!),
+                        ValueDef(TypeDef.forName(Type.typeOf(range.left)!!.name)!!,
                                 defaultValue=default,
                                 matcher=RangeMatcher(range))
                     } else {
-                        ValueDef(RangeDef(false, TypeDef.forName(Type.typeOf(range.left)!!.name)!!),
+                        ValueDef(TypeDef.forName(Type.typeOf(range.left)!!.name)!!,
                                 matcher=RangeMatcher(range))
                     }
                 } else throw KDSException("$location range matcher much be a Range", tag)
@@ -263,9 +276,9 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
                 if(regex is String) {
                     if(map.containsKey("default")) {
                         val default = map.get("default")!!
-                        ValueDef(TypeDef.String, defaultValue=default, matcher=RegexMatcher(Regex(regex as String)))
+                        ValueDef(TypeDef.String, defaultValue=default, matcher=RegexMatcher(Regex(regex)))
                     } else {
-                        ValueDef(TypeDef.String, matcher=RegexMatcher(Regex(regex as String)))
+                        ValueDef(TypeDef.String, matcher=RegexMatcher(Regex(regex)))
                     }
                 } else {
                     throw KDSException("$location regex matcher much be a regular expression String", tag)

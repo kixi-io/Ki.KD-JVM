@@ -1,10 +1,6 @@
 package io.kixi.kd
 
-import io.kixi.Ki
-import io.kixi.log
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class AnnotationTest {

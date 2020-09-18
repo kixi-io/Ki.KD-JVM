@@ -127,6 +127,7 @@ abstract class TagEntityDef(
                     tagEntity.values.add(valueDef.defaultValue)
                 } else {
                     val value = values[i]
+
                     if(!valueDef.matches(value)) {
                         throw KDSException("Value $value doesn't match $valueDef", tagEntity)
                     }

@@ -102,10 +102,10 @@ abstract class TagEntity {
         }
 
     /**
-     * Returns true if this annotation (including its values and attributes) is
-     * equivalent to the given annotation.
+     * Returns true if this tag entity (including its values and attributes) is
+     * equivalent to the given tag entity.
      *
-     * @return true if the annotations are equivalent
+     * @return true if the tag entities are equivalent
      */
     override fun equals(other: Any?): Boolean = other is Annotation && other.toString() == toString()
 

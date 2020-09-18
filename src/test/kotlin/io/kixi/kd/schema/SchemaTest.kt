@@ -15,7 +15,7 @@ class SchemaTest {
         assertEquals("Customers", schema.rootDef.nsid.name)
     }
 
-    @Test fun schemaWithValues() {
+    @Test fun values() {
         var schemaTag = KD.read("""
                 kd:meta version=1.0.0-beta-1
                 
@@ -51,7 +51,7 @@ class SchemaTest {
         assertEquals("Species \"Acontista brevipennis\"", doc.toString())
     }
 
-    @Test fun schemaWithValuesAndAtts() {
+    @Test fun valuesAndAtts() {
         var schemaTag = KD.read("""
                 kd:meta version=1.0.0-beta-1
                 
@@ -82,7 +82,7 @@ class SchemaTest {
         }
     }
 
-    @Test fun schemaWithMatchers() {
+    @Test fun matchers() {
         var schemaTag = KD.read("""
                 kd:meta version=1.0.0-beta-1
                 
@@ -125,7 +125,7 @@ class SchemaTest {
         }
     }
 
-    @Test fun schemaWithLists() {
+    @Test fun lists() {
         // Defining a list
         var schemaTag = KD.read("""
                 kd:meta version=1.0.0-beta-1
@@ -207,7 +207,7 @@ class SchemaTest {
         assertDoesNotThrow { schema.apply(doc) }
     }
 
-    @Test fun schemaWithMaps() {
+    @Test fun maps() {
         // Defining a map
         var schemaTag = KD.read("""
                 kd:meta version=1.0.0-beta-1
@@ -247,5 +247,110 @@ class SchemaTest {
         """.trimIndent())
         assertThrows<KDSException>("Game: Attribute value type in scores={Benny=[10, 5, 9], Atsuko=12} does " +
                 "not match Map<String, List<Number>>") { schema.apply(doc) }
+    }
+
+    @Test fun ranges() {
+        var schema = Schema.make(KD.read("""
+            kd:meta version=1.0.0-beta-1
+            
+            @Root
+            tag Temp 80..99 
+        """.trimIndent()))
+
+        // Testing for a range as a default value
+        var doc = KD.read("Temp")
+        schema.apply(doc)
+        assertEquals("Temp 80..99", doc.toString())
+
+        schema = Schema.make(KD.read("""
+            kd:meta version=1.0.0-beta-1
+            
+            @Root
+            tag Temp within=80..99 
+        """.trimIndent()))
+
+        // Testing for a range as a default attribute value
+        doc = KD.read("Temp")
+        schema.apply(doc)
+        assertEquals("Temp within=80..99", doc.toString())
+
+        // Testing for overriding a default range value
+        doc = KD.read("Temp within=85..105")
+        schema.apply(doc)
+        assertEquals("Temp within=85..105", doc.toString())
+
+        // Testing for range as a matcher
+        schema = Schema.make(KD.read("""
+            kd:meta version=1.0.0-beta-1
+            
+            @Root
+            tag Temp is=[range=80..99] 
+        """.trimIndent()))
+
+        doc = KD.read("Temp is=82")
+        assertDoesNotThrow {
+            schema.apply(doc)
+        }
+
+        doc = KD.read("Temp is=79")
+        assertThrows<KDSException>("Temp: Attribute value type in is=79 does " +
+                "not match Int 80..99") { schema.apply(doc) }
+    }
+
+    @Test fun quantities() {
+        var schema = Schema.make(KD.read("""
+            kd:meta version=1.0.0-beta-1
+            
+            @Root
+            tag Temp 5cm
+        """.trimIndent()))
+
+        // Testing for a quantity as a default value
+        var doc = KD.read("Temp")
+        schema.apply(doc)
+        assertEquals("Temp 5cm", doc.toString())
+
+        // Testing for overriding quantity as a default value
+        doc = KD.read("Temp 51mm")
+        schema.apply(doc)
+        assertEquals("Temp 51mm", doc.toString())
+
+        // Testing failure with incompatible unit axes
+        doc = KD.read("Temp 6ℓ")
+        assertThrows<KDSException>("Temp: Value 6ℓ doesn't match " +
+                "Quantity<Length> (default 5cm)") { schema.apply(doc) }
+
+    }
+
+    @Test fun quantityAxes() {
+        var schema = Schema.make(KD.read("""
+            kd:meta version=1.0.0-beta-1
+            
+            @Root
+            tag Measures Length Current Volume
+        """.trimIndent()))
+
+        // Testing for a quantity as a default value
+        var doc = KD.read("Measures 23cm 5A 14cm3")
+        schema.apply(doc)
+        assertEquals("Measures 23cm 5A 14cm³", doc.toString())
+
+        doc = KD.read("Measures 23cm 5A 14cm2")
+        assertThrows<KDSException>("Measures: Value 14cm² doesn't match " +
+                "Quantity<Volume>") { schema.apply(doc) }
+
+        schema = Schema.make(KD.read("""
+            kd:meta version=1.0.0-beta-1
+            
+            @Root
+            tag Measures Length Current 5cm³
+        """.trimIndent()))
+        doc = KD.read("Measures 23cm 5A")
+        schema.apply(doc)
+        assertEquals("Measures 23cm 5A 5cm³", doc.toString())
+
+        doc = KD.read("Measures 23cm 5A 6.5cm³")
+        schema.apply(doc)
+        assertEquals("Measures 23cm 5A 6.5cm³", doc.toString())
     }
 }

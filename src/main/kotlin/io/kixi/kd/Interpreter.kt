@@ -447,7 +447,7 @@ class Interpreter {
                 lines.removeAt(lines.size - 1)
 
                 val buf = StringBuilder()
-                for (i in 0..lines.size - 1) {
+                for (i in 0 until lines.size) {
                     buf.append(lines[i].removePrefix(wsPrefix))
                     if (i != lines.size - 1)
                         buf.append('\n')
@@ -495,11 +495,11 @@ class Interpreter {
             }
             val newText = "${dateText}${convertedTimeText}"
 
-            try {
+            return try {
                 if(convertedTimeText.contains(REGEX_PLUS_MINUS))
-                    return Ki.parseZonedDateTime(newText)
+                    Ki.parseZonedDateTime(newText)
                 else
-                    return Ki.parseLocalDateTime(newText)
+                    Ki.parseLocalDateTime(newText)
             } catch (pe: ParseException) {
                 throw KDParseException("Malformed DateTime $newText", line = ctx.start.line,
                         index = ctx.start.charPositionInLine, pe)
@@ -529,7 +529,6 @@ class Interpreter {
     }
 
     private fun makeRange(ctx: KDParser.RangeContext): Range<*> {
-
         val irCtx = ctx.intRange()
         if(irCtx!= null) return makeIntRange(irCtx)
 
@@ -575,11 +574,11 @@ class Interpreter {
         val openRight = (right == "_")
 
         return when {
-            openLeft -> Range<String>("", right,
+            openLeft -> Range("", right,
                     op, openLeft, openRight)
-            openRight -> Range<String>(left, "",
+            openRight -> Range(left, "",
                     op, openLeft, openRight)
-            else -> Range<String>(left, right,
+            else -> Range(left, right,
                     op, openLeft, openRight)
         }
     }
@@ -611,11 +610,11 @@ class Interpreter {
         }
 
         return when {
-            openLeft -> Range<Char>(Char.MIN_VALUE, ctx.getChild(2).text[1],
+            openLeft -> Range(Char.MIN_VALUE, ctx.getChild(2).text[1],
                     op, openLeft, openRight)
-            openRight -> Range<Char>(ctx.getChild(0).text[1], Char.MAX_VALUE,
+            openRight -> Range(ctx.getChild(0).text[1], Char.MAX_VALUE,
                     op, openLeft, openRight)
-            else -> Range<Char>(leftChar, rightChar, op, openLeft, openRight)
+            else -> Range(leftChar, rightChar, op, openLeft, openRight)
         }
     }
 
@@ -628,11 +627,11 @@ class Interpreter {
 
         try {
             return when {
-                openLeft -> Range<Version>(Version.MIN, Version.parse(ctx.getChild(0).text),
+                openLeft -> Range(Version.MIN, Version.parse(ctx.getChild(0).text),
                         op, openLeft, openRight)
-                openRight -> Range<Version>(Version.parse(ctx.getChild(0).text), Version.MAX,
+                openRight -> Range(Version.parse(ctx.getChild(0).text), Version.MAX,
                         op, openLeft, openRight)
-                else -> Range<Version>(Version.parse(ctx.getChild(0).text),
+                else -> Range(Version.parse(ctx.getChild(0).text),
                         Version.parse(ctx.getChild(2).text),
                         op, openLeft, openRight)
             }
@@ -677,9 +676,9 @@ class Interpreter {
             val rightDT = makeTemporal(ctx.dateTime(1)!!, right)!!
 
             return when (leftDT) {
-                is LocalDate -> Range<LocalDate>(leftDT, rightDT as LocalDate, op)
-                is LocalDateTime -> Range<LocalDateTime>(leftDT, rightDT as LocalDateTime, op)
-                is ZonedDateTime -> Range<ZonedDateTime>(leftDT, rightDT as ZonedDateTime, op)
+                is LocalDate -> Range(leftDT, rightDT as LocalDate, op)
+                is LocalDateTime -> Range(leftDT, rightDT as LocalDateTime, op)
+                is ZonedDateTime -> Range(leftDT, rightDT as ZonedDateTime, op)
                 else -> throw KDParseException(
                         "Error in DateTime Range calculation. Unknown type ${leftDT.javaClass.simpleName}",
                         ctx.start.line, ctx.start.charPositionInLine)
@@ -722,17 +721,17 @@ class Interpreter {
         if(leftOpen) {
             val rightNum = rightText.replace("_", "").toFloat()
 
-            return Range<Float>(Float.MIN_VALUE, rightNum,
+            return Range(Float.MIN_VALUE, rightNum,
                     op, openLeft = true)
         } else if (rightOpen) {
             val leftNum = leftText.replace("_", "").toFloat()
 
-            return Range<Float>(leftNum, Float.MAX_VALUE, op, openLeft = true)
+            return Range(leftNum, Float.MAX_VALUE, op, openLeft = true)
         } else {
             val leftNum = leftText.replace("_", "").toFloat()
             val rightNum = rightText.replace("_", "").toFloat()
 
-            return Range<Float>(leftNum, rightNum, op)
+            return Range(leftNum, rightNum, op)
         }
     }
 
@@ -777,17 +776,17 @@ class Interpreter {
         if(leftOpen) {
             val rightNum = rightText.replace("_", "").toBigDecimal()
 
-            return Range<BigDecimal>(BigDecimal(Double.MIN_VALUE), rightNum,
+            return Range(BigDecimal(Double.MIN_VALUE), rightNum,
                     op, openLeft = true)
         } else if (rightOpen) {
             val leftNum = leftText.replace("_", "").toBigDecimal()
 
-            return Range<BigDecimal>(leftNum, BigDecimal(Double.MAX_VALUE), op, openLeft = true)
+            return Range(leftNum, BigDecimal(Double.MAX_VALUE), op, openLeft = true)
         } else {
             val leftNum = leftText.replace("_", "").toBigDecimal()
             val rightNum = rightText.replace("_", "").toBigDecimal()
 
-            return Range<BigDecimal>(leftNum, rightNum, op)
+            return Range(leftNum, rightNum, op)
         }
     }
 
@@ -799,11 +798,11 @@ class Interpreter {
         val openRight = (right == "_")
 
         return when {
-            openLeft -> Range<Long>(Long.MIN_VALUE, ctx.getChild(2).text.toLong(),
+            openLeft -> Range(Long.MIN_VALUE, ctx.getChild(2).text.toLong(),
                     op, openLeft, openRight)
-            openRight -> Range<Long>(ctx.getChild(0).text.toLong(), Long.MAX_VALUE,
+            openRight -> Range(ctx.getChild(0).text.toLong(), Long.MAX_VALUE,
                     op, openLeft, openRight)
-            else -> Range<Long>(ctx.getChild(0).text.toLong(), ctx.getChild(2).text.toLong(),
+            else -> Range(ctx.getChild(0).text.toLong(), ctx.getChild(2).text.toLong(),
                     op, openLeft, openRight)
         }
     }
@@ -816,11 +815,11 @@ class Interpreter {
         val openRight = (right == "_")
 
         return when {
-            openLeft -> Range<Int>(Int.MIN_VALUE, ctx.getChild(2).text.toInt(),
+            openLeft -> Range(Int.MIN_VALUE, ctx.getChild(2).text.toInt(),
                     op, openLeft, openRight)
-            openRight -> Range<Int>(ctx.getChild(0).text.toInt(), Integer.MAX_VALUE,
+            openRight -> Range(ctx.getChild(0).text.toInt(), Integer.MAX_VALUE,
                     op, openLeft, openRight)
-            else -> Range<Int>(ctx.getChild(0).text.toInt(), ctx.getChild(2).text.toInt(),
+            else -> Range(ctx.getChild(0).text.toInt(), ctx.getChild(2).text.toInt(),
                     op, openLeft, openRight)
         }
     }
