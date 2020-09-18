@@ -1,6 +1,7 @@
 package io.kixi.kd.schema
 
 import io.kixi.*
+import io.kixi.kd.Annotation
 import io.kixi.kd.KD
 import io.kixi.kd.KDParseException
 import io.kixi.kd.NSID
@@ -12,20 +13,40 @@ import kotlin.reflect.KClass
  * A KD schema provides a set of tag definitions and specifies one as the root via
  * the @Root annotation.
  */
-class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
+class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>, var version:Version? = null) {
 
     companion object {
+
+        val META_NSID = NSID("meta", namespace="kd")
+
         fun make(root:Tag): Schema {
             var rootDef: TagDef? = null
             val defs = mutableListOf<TagDef>()
 
-            for(child in root.children) {
-                if(child.nsid.toString() == "kd:meta")
-                    continue // skip for now
+            var schemaVersion: Version? = null
+
+            var newRoot = root
+
+            // We have a single tag, so we need to wrap it in a root tag
+            if(root.nsid.name!="root") {
+                newRoot = Tag("root")
+                root.annotations.add(Annotation("Root"))
+                newRoot.children.add(root)
+            }
+
+            for(child in newRoot.children) {
+
+                if(child.nsid == META_NSID) {
+                    schemaVersion = child["version"] as Version
+                    continue
+                }
 
                 var def: TagDef
                 when(child.nsid.name) {
-                    "tag" -> { def= makeTagDef(child); defs.add(def) }
+                    "tag" -> {
+                        def= makeTagDef(child);
+                        defs.add(def)
+                    }
                     else -> throw KDSException("Schema documents allow only \"tag\" " +
                             "tags in their body (i.e. everything below kd:meta) " +
                             "Got: ${child.nsid}", child)
@@ -291,6 +312,7 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>) {
     fun apply(docRoot:Tag) = rootDef.apply(docRoot)
 
     override fun toString(): String {
-        return rootDef.toString()
+        return if(version==null) rootDef.toString()
+            else "kd:meta version=$version\nrootDef.toString()"
     }
 }

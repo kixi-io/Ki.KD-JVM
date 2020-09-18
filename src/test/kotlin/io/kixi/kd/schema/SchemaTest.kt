@@ -16,12 +16,7 @@ class SchemaTest {
     }
 
     @Test fun values() {
-        var schemaTag = KD.read("""
-                kd:meta version=1.0.0-beta-1
-                
-                @Root
-                tag Person String Int
-            """)
+        var schemaTag = KD.read("tag Person String Int")
         var schema = Schema.make(schemaTag)
 
         var doc = KD.read("Person \"Joe\" 23")
@@ -34,12 +29,7 @@ class SchemaTest {
         assertThrows<KDSException>("Person: Value 23.5 doesn't match Int") { schema.apply(doc) }
 
         // Value with a default
-        schemaTag = KD.read("""
-                kd:meta version=1.0.0-beta-1
-                
-                @Root
-                tag Species "unknown"
-            """)
+        schemaTag = KD.read("tag Species \"unknown\"")
         schema = Schema.make(schemaTag)
 
         doc = KD.read("Species")
@@ -53,9 +43,6 @@ class SchemaTest {
 
     @Test fun valuesAndAtts() {
         var schemaTag = KD.read("""
-                kd:meta version=1.0.0-beta-1
-                
-                @Root
                 tag Person String age=Int birthday=Date nerd=true # nerd type is Bool, default is true
             """)
         var schema = Schema.make(schemaTag)
@@ -128,9 +115,6 @@ class SchemaTest {
     @Test fun lists() {
         // Defining a list
         var schemaTag = KD.read("""
-                kd:meta version=1.0.0-beta-1
-                
-                @Root
                 tag Box things=[String] // List of Strings
             """)
         var schema = Schema.make(schemaTag)
@@ -151,9 +135,6 @@ class SchemaTest {
 
         // Defining a list of lists
         schemaTag = KD.read("""
-                kd:meta version=1.0.0-beta-1
-                
-                @Root
                 tag Box things=[[String]] // List of List of Strings
             """)
         schema = Schema.make(schemaTag)
@@ -173,9 +154,6 @@ class SchemaTest {
 
         // Defining a list of maps
         schemaTag = KD.read("""
-                kd:meta version=1.0.0-beta-1
-                
-                @Root
                 tag Box things=[[String,Int]] // List of Maps
             """)
         schema = Schema.make(schemaTag)
@@ -195,9 +173,6 @@ class SchemaTest {
 
         // List type for values
         schemaTag = KD.read("""
-                kd:meta version=1.0.0-beta-1
-                
-                @Root
                 tag Box [String]
             """)
         schema = Schema.make(schemaTag)
@@ -210,9 +185,6 @@ class SchemaTest {
     @Test fun maps() {
         // Defining a map
         var schemaTag = KD.read("""
-                kd:meta version=1.0.0-beta-1
-                
-                @Root
                 tag Box things=[String, Number] // List of Strings
             """)
         var schema = Schema.make(schemaTag)
@@ -230,9 +202,6 @@ class SchemaTest {
 
         // Defining a map of lists
         schemaTag = KD.read("""
-                kd:meta version=1.0.0-beta-1
-                
-                @Root
                 tag Game scores=[String, [Number]] // Map of Strings
             """)
         schema = Schema.make(schemaTag)
@@ -251,9 +220,6 @@ class SchemaTest {
 
     @Test fun ranges() {
         var schema = Schema.make(KD.read("""
-            kd:meta version=1.0.0-beta-1
-            
-            @Root
             tag Temp 80..99 
         """.trimIndent()))
 
@@ -263,9 +229,6 @@ class SchemaTest {
         assertEquals("Temp 80..99", doc.toString())
 
         schema = Schema.make(KD.read("""
-            kd:meta version=1.0.0-beta-1
-            
-            @Root
             tag Temp within=80..99 
         """.trimIndent()))
 
@@ -281,9 +244,6 @@ class SchemaTest {
 
         // Testing for range as a matcher
         schema = Schema.make(KD.read("""
-            kd:meta version=1.0.0-beta-1
-            
-            @Root
             tag Temp is=[range=80..99] 
         """.trimIndent()))
 
@@ -299,9 +259,6 @@ class SchemaTest {
 
     @Test fun quantities() {
         var schema = Schema.make(KD.read("""
-            kd:meta version=1.0.0-beta-1
-            
-            @Root
             tag Temp 5cm
         """.trimIndent()))
 
@@ -324,9 +281,6 @@ class SchemaTest {
 
     @Test fun quantityAxes() {
         var schema = Schema.make(KD.read("""
-            kd:meta version=1.0.0-beta-1
-            
-            @Root
             tag Measures Length Current Volume
         """.trimIndent()))
 
@@ -340,9 +294,6 @@ class SchemaTest {
                 "Quantity<Volume>") { schema.apply(doc) }
 
         schema = Schema.make(KD.read("""
-            kd:meta version=1.0.0-beta-1
-            
-            @Root
             tag Measures Length Current 5cm³
         """.trimIndent()))
         doc = KD.read("Measures 23cm 5A")
