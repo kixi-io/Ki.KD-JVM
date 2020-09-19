@@ -72,11 +72,18 @@ abstract class TagEntity {
     operator fun get(name: String, namespace: String = ""): Any? = getAttribute(name, namespace)
     operator fun set(name: String, namespace: String = "", value:Any?): Any? = setAttribute(name, namespace, value)
 
+    operator fun get(nsid:NSID): Any? = attributes[nsid]
+    operator fun set(nsid:NSID, value:Any?): Any? = setAttribute(nsid, value)
+
     fun setAttribute(name: String, namespace: String = "", value: Any?) =
             attributes.put(NSID(name, namespace), value)
 
     fun <T> getAttribute(name: String, namespace: String = "") : T =
             attributes[NSID(name, namespace)] as T
+
+    fun setAttribute(nsid:NSID, value: Any?) = attributes.put(nsid, value)
+
+    fun <T> getAttribute(nsid:NSID) : T = attributes[nsid] as T
 
     fun <T> getAttributesInNamespace(namespace:String): Map<String, T> {
         val map = HashMap<String, Any?>()

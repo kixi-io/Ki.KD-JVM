@@ -17,6 +17,9 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
     companion object {
 
         val META_NSID = NSID("meta", namespace="kd")
+        val VAR_VAL = NSID("varVal", namespace="kd")
+        val ANY_ATTS = NSID("anyAtts", namespace="kd")
+
         val RANGE_1 = Range(1, 1)
 
         fun make(root:Tag): Schema {
@@ -86,17 +89,33 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
                     if(tag.values.size > 1) makeValueDefs(tag, tag.values.subList(1, tag.values.size))
                     else TagEntityDef.EMPTY_VALUES
 
+            var varValDef: ValueDef? = null
+            if(tag.attributes.containsKey(VAR_VAL)) {
+                val valueDef = makeValueDef(tag[VAR_VAL], "variable length value type", tag)
+                varValDef = valueDef
+                tag.attributes.remove(VAR_VAL)
+            }
+
+            var anyAttsDef: ValueDef? = null
+            if(tag.attributes.containsKey(ANY_ATTS)) {
+                val anyAttsValue = tag[ANY_ATTS] ?: ""
+                if(anyAttsValue !is Boolean)
+                    throw KDSException("$ANY_ATTS must be a boolean. Got $anyAttsValue", tag)
+
+                if(anyAttsValue == true) {
+                    anyAttsDef = ValueDef(TypeDef.Any_N)
+                }
+                tag.attributes.remove(ANY_ATTS)
+            }
+
             val attDefs:Map<NSID, ValueDef> =
                     if(tag.attributes.isEmpty()) TagEntityDef.EMPTY_ATTS
                     else makeAttDefs(tag)
 
-            val varValueDef:ValueDef? = null
-            val varAttDef:ValueDef? = null
-
             val childGroupDefs = if (tag.children.isEmpty()) TagDef.EMPTY_CHILD_GROUPS
                     else makeChildGroupDefs(tag)
 
-            return TagDef(nsid, valueDefs, varValueDef, attDefs, varAttDef, childGroupDefs, defs)
+            return TagDef(nsid, valueDefs, varValDef, attDefs, anyAttsDef, childGroupDefs, defs)
         }
 
         private fun makeChildGroupDefs(tag: Tag): List<TagGroupDef> {

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 
 class SchemaTest {
+
     @Test fun findRoot() {
         val schemaKD = KD.readResource("customers.kds")
         val schema = Schema.make(schemaKD)
@@ -345,5 +346,35 @@ class SchemaTest {
         );
         assertThrows<KDSException>("Customers: Tag Customer allows a range of " +
                 "1.._ Customer child tags. Found: 0") { schema.apply(doc) }
+    }
+
+    @Test fun varVal() {
+        // Thing tag with any number of Int values and an attribute
+        var schema = Schema.make(KD.read("""
+            tag Thing kd:varVal=Int name=String
+        """.trimIndent()))
+
+        var doc = KD.read("""
+            Thing 1 3 5 name="Odds"
+        """.trimIndent())
+        schema.apply(doc)
+
+        doc = KD.read("""
+            Thing 1 3 5L name="Odds"
+        """.trimIndent())
+        assertThrows<KDSException>("Thing: Value \"5\" in variable length " +
+                "value list doesn't match Int") { schema.apply(doc) }
+    }
+
+    @Test fun anyAtts() {
+        // Dog tag with a required "works" attribute and any other attributes
+        var schema = Schema.make(KD.read("""
+            tag Dog name=String kd:anyAtts=true
+        """.trimIndent()))
+
+        var doc = KD.read("""
+            Dog name="Bruno" breed="chihuahua" troubleMaker=true
+        """.trimIndent())
+        schema.apply(doc)
     }
 }
