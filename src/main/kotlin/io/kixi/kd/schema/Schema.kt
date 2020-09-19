@@ -165,14 +165,9 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>, var version:Version? 
 
                 // check type name or unit axis
                 if(defObj is String) {
-                    typeDef = TypeDef.forName(defObj)
-                    if (typeDef == null) {
-                        val unitClass = getBaseUnitClass(defObj)
-                        if(unitClass!=null) {
-                            // TODO: Support nullable quantities and specifying value number type
-                            return ValueDef(QuantityDef(false, unitClass, Type.Dec))
-                        }
-                    }
+                    val def = makeTypeDefFromName(defObj, location, tag)
+                    if(def!=null)
+                        return ValueDef(def)
                 }
 
                 // check default value
@@ -195,6 +190,35 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>, var version:Version? 
                 }
             }
             throw KDSException("$defObj is not a valid value type definition", tag)
+        }
+
+        /**
+         * Creates a typeDef from a String. If no type or unit axis is matched, return
+         * null.
+         */
+        private fun makeTypeDefFromName(text: String, location: String, tag: Tag): TypeDef? {
+            // TODO - Support nullable ranges
+            if(text.startsWith("Range.")) {
+                val def = makeTypeDefFromName(text.substring(text.indexOf('.') +1),
+                    location, tag)
+                if(def==null) {
+                    throw KDSException("Range type in $location must be a KTS type name or unit axis. Got $text", tag)
+                } else {
+                    return RangeDef(false, def)
+                }
+            }
+
+            var typeDef = TypeDef.forName(text)
+            if (typeDef == null) {
+                val unitClass = getBaseUnitClass(text)
+                if(unitClass!=null) {
+                    // TODO: Support nullable quantities and specifying value number type
+                    return QuantityDef(false, unitClass, Type.Dec)
+                }
+            } else {
+                return typeDef
+            }
+            return null
         }
 
         private fun getBaseUnitClass(axes: String): KClass<*>? = when(axes) {

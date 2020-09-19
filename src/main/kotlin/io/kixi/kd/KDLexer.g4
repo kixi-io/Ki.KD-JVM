@@ -222,14 +222,15 @@ BLOB_START: '.blob(' -> pushMode(blob);
 // Any unicode letter, emoji, $ or _
 fragment IDStart: [$_\p{Alpha}\p{General_Category=Other_Letter}\p{Emoji_Presentation}];  // [$_\p{Alpha}\p{General_Category=Other_Letter}\p{Emoji}\p{Join_Control}\p{Variation_Selector}];
 
-// Any unicode letter, digit, emoji, $ or _
+// Any unicode letter, digit, emoji, ., $ or _
 fragment IDChar: [$_\p{Alnum}\p{General_Category=Other_Letter}\p{Emoji}\p{Join_Control}\p{Variation_Selector}];
+
+// ('.' ID)? allows for dot separated paths that don't interfer with ranges
+ID: IDStart IDChar* ('.' ID)?;
 
 fragment VersionQualifier: [\p{Alpha}]+;
 
-ID: IDStart IDChar*;
-
-fragment UnitID: (ID | 'ℓ' | 'mℓ') ('²' | '³')?;
+fragment UnitID: (ID | 'ℓ' | 'mℓ' | '°') ('²' | '³')?;
 
 // COMMENTS --- ---
 

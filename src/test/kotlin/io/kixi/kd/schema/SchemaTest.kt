@@ -257,6 +257,15 @@ class SchemaTest {
                 "not match Int 80..99") { schema.apply(doc) }
     }
 
+    @Test fun typedRangeDefs() {
+        var schema = Schema.make(KD.read("tag Within Range.Length".trimIndent()))
+
+        // Testing for a range as a default value
+        var doc = KD.read("Within 5cm..10cm")
+        schema.apply(doc)
+        assertEquals("Within 5cm..10cm", doc.toString())
+    }
+
     @Test fun quantities() {
         var schema = Schema.make(KD.read("""
             tag Temp 5cm
