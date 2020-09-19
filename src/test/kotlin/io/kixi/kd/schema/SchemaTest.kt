@@ -264,6 +264,10 @@ class SchemaTest {
         var doc = KD.read("Within 5cm..10cm")
         schema.apply(doc)
         assertEquals("Within 5cm..10cm", doc.toString())
+
+        doc = KD.read("Within 5..10")
+        assertThrows<KDSException>("Within: Value 5..10 doesn't match " +
+            "Range<Quantity<Length>>") { schema.apply(doc) }
     }
 
     @Test fun quantities() {
@@ -312,5 +316,34 @@ class SchemaTest {
         doc = KD.read("Measures 23cm 5A 6.5cm³")
         schema.apply(doc)
         assertEquals("Measures 23cm 5A 6.5cm³", doc.toString())
+    }
+
+    @Test fun children() {
+        var schema = Schema.make(KD.read("""
+            tag Customer String
+            
+            @Root tag Customers group=String {
+                Customer 1.._ # Must have 1 or more customers
+            }
+        """.trimIndent()))
+
+        var doc = KD.read(
+          """
+              Customers group="premium" {
+                Customer "Natasha"
+                Customer "Jose"
+              }
+          """.trimIndent()
+        );
+        schema.apply(doc)
+
+        doc = KD.read(
+                """
+              Customers group="premium" {
+              }
+          """.trimIndent()
+        );
+        assertThrows<KDSException>("Customers: Tag Customer allows a range of " +
+                "1.._ Customer child tags. Found: 0") { schema.apply(doc) }
     }
 }

@@ -2,7 +2,6 @@ package io.kixi.kd.schema
 
 import io.kixi.*
 import io.kixi.kd.Annotation
-import io.kixi.kd.KD
 import io.kixi.kd.KDParseException
 import io.kixi.kd.NSID
 import io.kixi.kd.Tag
@@ -13,15 +12,16 @@ import kotlin.reflect.KClass
  * A KD schema provides a set of tag definitions and specifies one as the root via
  * the @Root annotation.
  */
-class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>, var version:Version? = null) {
+class Schema(val rootDef:TagDef, var version:Version? = null) {
 
     companion object {
 
         val META_NSID = NSID("meta", namespace="kd")
+        val RANGE_1 = Range(1, 1)
 
         fun make(root:Tag): Schema {
             var rootDef: TagDef? = null
-            val defs = mutableListOf<TagDef>()
+            val defs = mutableMapOf<NSID, TagDef>()
 
             var schemaVersion: Version? = null
 
@@ -44,8 +44,9 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>, var version:Version? 
                 var def: TagDef
                 when(child.nsid.name) {
                     "tag" -> {
-                        def= makeTagDef(child);
-                        defs.add(def)
+                        def= makeTagDef(child, defs);
+                        defs.put(def.nsid, def)
+
                     }
                     else -> throw KDSException("Schema documents allow only \"tag\" " +
                             "tags in their body (i.e. everything below kd:meta) " +
@@ -66,43 +67,61 @@ class Schema(val rootDef:TagDef, val tagDefs:List<TagDef>, var version:Version? 
             // root
             if(rootDef==null) {
                 if(defs.size==1) {
-                    rootDef = defs[0]
+                    rootDef = defs.entries.first().value
                 } else {
                     throw KDSException("No root was assigned in schema", null)
                 }
             }
 
-            return Schema(rootDef, defs)
+            return Schema(rootDef)
         }
 
-        private fun makeTagDef(child: Tag): TagDef {
-            if(child.value == null)
-                throw KDSException("Tag name cannot be empty or null", child)
+        private fun makeTagDef(tag: Tag, defs: MutableMap<NSID, TagDef>): TagDef {
+            if(tag.value == null)
+                throw KDSException("Tag name cannot be empty or null", tag)
 
-            val nsid = NSID(child.value as String)
+            val nsid = NSID(tag.value as String)
 
             val valueDefs:List<ValueDef> =
-                    if(child.values.size > 1) makeValueDefs(child, child.values.subList(1, child.values.size))
+                    if(tag.values.size > 1) makeValueDefs(tag, tag.values.subList(1, tag.values.size))
                     else TagEntityDef.EMPTY_VALUES
 
             val attDefs:Map<NSID, ValueDef> =
-                    if(child.attributes.isEmpty()) TagEntityDef.EMPTY_ATTS
-                    else makeAttDefs(child)
+                    if(tag.attributes.isEmpty()) TagEntityDef.EMPTY_ATTS
+                    else makeAttDefs(tag)
 
             val varValueDef:ValueDef? = null
             val varAttDef:ValueDef? = null
-            val childDefs:List<TagGroupDef> = TagDef.EMPTY_CHILDREN
 
-            // TODO: varValueDef, attDefs, varAttDef, childDefs
+            val childGroupDefs = if (tag.children.isEmpty()) TagDef.EMPTY_CHILD_GROUPS
+                    else makeChildGroupDefs(tag)
 
-            return TagDef(nsid, valueDefs, varValueDef, attDefs, varAttDef, childDefs)
+            return TagDef(nsid, valueDefs, varValueDef, attDefs, varAttDef, childGroupDefs, defs)
+        }
+
+        private fun makeChildGroupDefs(tag: Tag): List<TagGroupDef> {
+            var groupDefs = mutableListOf<TagGroupDef>()
+
+            for(child in tag.children) {
+                val nsid = child.nsid
+                if(nsid== NSID.ANONYMOUS) {
+                    throw KDSException("Tag child groups cannot be anonymous", child)
+                }
+                val range = if(child.values.isEmpty()) RANGE_1
+                    else child.value as Range<Int>
+                groupDefs.add(TagGroupDef(nsid, range))
+            }
+
+            return groupDefs
         }
 
         private fun makeValueDefs(tag: Tag, values: List<Any?>): List<ValueDef> {
             val valueDefs = ArrayList<ValueDef>()
+
             for(value in values) {
                 valueDefs.add(makeValueDef(value, "value", tag))
             }
+
             return valueDefs
         }
 

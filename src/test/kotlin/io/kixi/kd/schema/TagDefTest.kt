@@ -174,28 +174,39 @@ class TagDefTest {
     }
 
     @Test fun childDefs() {
+
+        val tagDefs = mapOf<NSID, TagDef>(
+            NSID("ID") to
+            TagDef(
+                    NSID("ID"),
+                    listOf<ValueDef>(
+                            ValueDef(TypeDef.Int)
+                    )
+            ),
+            NSID("referredBy") to
+            TagDef(
+                    NSID("referredBy"),
+                    listOf<ValueDef>(
+                            ValueDef(TypeDef.String)
+                    )
+            ),
+            NSID("purchase") to
+            TagDef(
+                    NSID("purchase"),
+                    listOf<ValueDef>(
+                            ValueDef(TypeDef.String)
+                    )
+            )
+        );
+
         val tagDef = TagDef(
                 NSID("customer"),
-                childDefs = listOf<TagGroupDef>(
-                    TagGroupDef(TagDef(
-                            NSID("ID"),
-                            listOf<ValueDef>(
-                                    ValueDef(TypeDef.Int)
-                            )
-                    ), Range(1, 1)),
-                    TagGroupDef(TagDef(
-                            NSID("referredBy"),
-                            listOf<ValueDef>(
-                                    ValueDef(TypeDef.String)
-                            )
-                    ), Range(0, 1)),
-                    TagGroupDef(TagDef(
-                        NSID("purchase"),
-                            listOf<ValueDef>(
-                                    ValueDef(TypeDef.String)
-                            )
-                    ), Range(0, 0, openRight = true))
-                )
+                childGroupDefs = listOf<TagGroupDef>(
+                    TagGroupDef(NSID("ID")), // defaults to 1..1
+                    TagGroupDef(NSID("referredBy"), Range(0, 1)),
+                    TagGroupDef(NSID("purchase"), Range(0, 0, openRight = true))
+                ),
+                tagDefs = tagDefs
         )
 
         var tag = KD.read("""

@@ -12,12 +12,14 @@ class TagDef(
         varValueDef:ValueDef? = null,
         attDefs:Map<NSID, ValueDef> = EMPTY_ATTS,
         varAttDef:ValueDef? = null,
-        val childDefs:List<TagGroupDef> = EMPTY_CHILDREN
+        val childGroupDefs:List<TagGroupDef> = EMPTY_CHILD_GROUPS,
+        val tagDefs:Map<NSID, TagDef> = EMPTY_TAG_DEFS
     ) : TagEntityDef(nsid, valueDefs, varValueDef, attDefs, varAttDef) {
 
     companion object {
         // val EMPTY_ANNOS = listOf<AnnoDef>()
-        val EMPTY_CHILDREN = listOf<TagGroupDef>()
+        val EMPTY_CHILD_GROUPS = listOf<TagGroupDef>()
+        val EMPTY_TAG_DEFS = mapOf<NSID, TagDef>()
     }
 
     /**
@@ -41,19 +43,23 @@ class TagDef(
     */
 
     fun applyChildDefs(tag: Tag) {
-        if(childDefs.isEmpty() && !tag.children.isEmpty())
+        if(childGroupDefs.isEmpty() && !tag.children.isEmpty())
             throw KDSException("$nsid does not allow child tags", tag)
 
         var counters = mutableMapOf<NSID, TagGroupCounter>()
         for(child in tag.children) {
-            val tgDef = childDefs.find{ it.def.nsid == child.nsid }
-            if(tgDef==null) {
+            val childGroupDef = childGroupDefs.find{ it.nsid == child.nsid }
+            if(childGroupDef==null) {
                 // No definition for this tag's nsid
                 throw KDSException("$nsid does not allow child tags of type ${child.nsid}", tag)
             } else {
-                tgDef.def.apply(child)
+                // tgDef.def.apply(child)
+                val tagDef = tagDefs[childGroupDef.nsid]
+                if(tagDef==null)
+                    throw KDSException("Tag id ${childGroupDef.nsid} not found", tag)
+                tagDef.apply(child)
 
-                var counter = counters[tgDef.def.nsid]
+                var counter = counters[childGroupDef.nsid]
                 if(counter==null) {
                     counter = TagGroupCounter(child.nsid)
                     counters.put(child.nsid, counter)
@@ -63,13 +69,13 @@ class TagDef(
         }
 
         // Check if we have too many or too few of children for a given tag type (nsid)
-        for(childGroupDef in childDefs) {
-            val nsid = childGroupDef.def.nsid
+        for(childGroupDef in childGroupDefs) {
+            val nsid = childGroupDef.nsid
             val counter = counters[nsid]
             val count = if (counter==null) 0 else counter.count
 
             if(!childGroupDef.pattern.contains(count)) {
-                throw KDSException("Tag $nsid allows a range of ${childGroupDef.pattern} ${childGroupDef.def.nsid} " +
+                throw KDSException("Tag $nsid allows a range of ${childGroupDef.pattern} ${childGroupDef.nsid} " +
                         "child tags. Found: $count", tag)
             }
         }
@@ -77,9 +83,9 @@ class TagDef(
 
     override fun toString(): String {
         var childDefsSB = StringBuilder("")
-        if(!childDefs.isEmpty()) {
+        if(!childGroupDefs.isEmpty()) {
             childDefsSB.appendLine(" {")
-            for(child in childDefs) {
+            for(child in childGroupDefs) {
                 childDefsSB.append('\t')
                 childDefsSB.appendLine(child)
             }
