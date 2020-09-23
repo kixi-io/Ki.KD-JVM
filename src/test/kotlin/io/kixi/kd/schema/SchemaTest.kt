@@ -307,6 +307,17 @@ class SchemaTest {
         assertThrows<KDSException>("Temp: Value 6ℓ doesn't match " +
                 "Quantity<Length> (default 5cm)") { schema.apply(doc) }
 
+        // Test nullable quantity
+        schema = Schema.make(KD.read("""
+            tag Board length=Length_N.Int 
+        """.trimIndent()))
+
+        doc = KD.read("Board length=2.5m")
+        assertDoesNotThrow { schema.apply(doc) }
+
+        // nil is allowed
+        doc = KD.read("Board length=nil")
+        assertDoesNotThrow { schema.apply(doc) }
     }
 
     @Test fun quantityAxes() {

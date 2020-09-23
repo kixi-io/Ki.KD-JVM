@@ -255,10 +255,23 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
 
             var typeDef = TypeDef.forName(text)
             if (typeDef == null) {
-                val unitClass = getBaseUnitClass(text)
+
+                // Check for unit axis name
+
+                var unitClass = getBaseUnitClass(text)
                 if(unitClass!=null) {
-                    // TODO: Support nullable quantities and specifying value number type
+                    // TODO: Support specifying value number type
                     return QuantityDef(false, unitClass, Type.Dec)
+                } else {
+                    val nIndex = text.indexOf("_N")
+                    if(nIndex!=-1) {
+                        // Possibly a nullable quantity unit axis
+                        unitClass = getBaseUnitClass(
+                                text.substring(0, nIndex))
+                        if(unitClass!=null) {
+                            return QuantityDef(true, unitClass, Type.Dec)
+                        }
+                    }
                 }
             } else {
                 return typeDef
