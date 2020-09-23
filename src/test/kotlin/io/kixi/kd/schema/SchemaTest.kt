@@ -269,6 +269,22 @@ class SchemaTest {
         doc = KD.read("Within 5..10")
         assertThrows<KDSException>("Within: Value 5..10 doesn't match " +
             "Range<Quantity<Length>>") { schema.apply(doc) }
+
+        doc = KD.read("Within nil")
+        assertThrows<KDSException>("Within: Value nil doesn't match " +
+                "Range<Quantity<Length>>") { schema.apply(doc) }
+
+        // Test a nullable range
+        schema = Schema.make(KD.read("""
+            tag Temp within=Range_N.Int 
+        """.trimIndent()))
+
+        doc = KD.read("Temp within=75..105")
+        assertDoesNotThrow { schema.apply(doc) }
+
+        // nil is allowed
+        doc = KD.read("Temp within=nil")
+        assertDoesNotThrow { schema.apply(doc) }
     }
 
     @Test fun quantities() {

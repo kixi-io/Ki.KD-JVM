@@ -235,7 +235,6 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
          * null.
          */
         private fun makeTypeDefFromName(text: String, location: String, tag: Tag): TypeDef? {
-            // TODO - Support nullable ranges
             if(text.startsWith("Range.")) {
                 val def = makeTypeDefFromName(text.substring(text.indexOf('.') +1),
                     location, tag)
@@ -243,6 +242,14 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
                     throw KDSException("Range type in $location must be a KTS type name or unit axis. Got $text", tag)
                 } else {
                     return RangeDef(false, def)
+                }
+            } else if(text.startsWith("Range_N.")) {
+                val def = makeTypeDefFromName(text.substring(text.indexOf('.') +1),
+                        location, tag)
+                if(def==null) {
+                    throw KDSException("Range_N type in $location must be a KTS type name or unit axis. Got $text", tag)
+                } else {
+                    return RangeDef(true, def)
                 }
             }
 
