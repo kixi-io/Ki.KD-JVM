@@ -144,6 +144,7 @@ abstract class TagEntityDef(
             // Check for missing attributes and attribute value type.
             // Populate default values if the attribute isn't explicitly set
             attDefs.forEach {
+
                 var hasKey = tagEntity.attributes.containsKey(it.key)
                 if(!hasKey) {
                     if(it.value.hasDefaultValue)
@@ -152,6 +153,7 @@ abstract class TagEntityDef(
                         throw KDSException("Missing attribute ${it.key}", tagEntity)
                 } else {
                     val entityValue = tagEntity.attributes.get(it.key)
+
                     if(!it.value.matches(entityValue))
                         throw KDSException("Attribute value type in ${it.key}=$entityValue does not match ${it.value}",
                                 tagEntity)
@@ -160,17 +162,17 @@ abstract class TagEntityDef(
 
             // Deal with undeclared atts ////
 
-            // Check values for varAtts
+            // Check values for anyAtts
             if(hasVarAtts) {
                 if(varAttDef!!.typeDef != TypeDef.Any_N) {
                     for(entityAtt in tagEntity.attributes.entries) {
                         if(!varAttDef.matches(entityAtt.value))
                             throw KDSException("Attribute value type in ${entityAtt.key}=${entityAtt.value} does not " +
-                                    "match undeclared varatts type $varValueDef",
+                                    "match undeclared anyAtts type $varValueDef",
                                     tagEntity)
                     }
                 }
-            // No varatts allowed. Undeclared atts results in an exception
+            // No anyAtts allowed. Undeclared atts results in an exception
             } else {
                 val declaredAttKeys = attDefs.keys
                 for(entityAttKey in tagEntity.attributes.keys) {

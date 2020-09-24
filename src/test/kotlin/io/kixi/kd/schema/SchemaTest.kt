@@ -111,6 +111,21 @@ class SchemaTest {
             "Range<Int> (default 7) 5..10") {
             schema.apply(doc)
         }
+
+        schema = Schema.make(KD.read("""
+            tag Yarn color=[options=[red green blue] default=green] length=[range=5cm..50cm]
+        """.trimIndent()))
+        doc = KD.read("""
+            Yarn color=blue length=6cm
+        """.trimIndent())
+        schema.apply(doc)
+        assertEquals("Yarn color=\"blue\" length=6cm", doc.toString())
+
+        doc = KD.read("""
+            Yarn length=6cm
+        """.trimIndent())
+        schema.apply(doc)
+        assertEquals("Yarn length=6cm color=\"green\"", doc.toString())
     }
 
     @Test fun lists() {

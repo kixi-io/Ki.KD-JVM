@@ -365,11 +365,12 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
                 if(range is Range<*>) {
                     if(map.containsKey("default")) {
                         val default = map.get("default")!!
-                        ValueDef(TypeDef.forName(Type.typeOf(range.left)!!.name)!!,
+                        ValueDef(makeValueDef(range.left, location, tag).typeDef,
                                 defaultValue=default,
                                 matcher=RangeMatcher(range))
                     } else {
-                        ValueDef(TypeDef.forName(Type.typeOf(range.left)!!.name)!!,
+                        val rangeDef = RangeDef(false, makeValueDef(range.left, location, tag).typeDef)
+                        ValueDef(makeValueDef(range.left, location, tag).typeDef,
                                 matcher=RangeMatcher(range))
                     }
                 } else throw KDSException("$location range matcher much be a Range", tag)
