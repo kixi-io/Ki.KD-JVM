@@ -449,4 +449,27 @@ class SchemaTest {
         """.trimIndent())
         schema.apply(doc)
     }
+
+    @Test fun recursiveTags() {
+        val schema = Schema.make(KD.read("""
+            tag Component type="Pane" {
+                Component 0.._
+            }
+        """.trimIndent()))
+
+        var doc = KD.read("""
+            Component {
+                Component type="Toolbar" {
+                    Component type="Button"
+                }
+            }
+        """.trimIndent())
+        schema.apply(doc)
+        assertEquals("""
+            Component type="Pane" {
+                Component type="Toolbar" {
+                    Component type="Button"
+                }
+            }""".trimIndent(), doc.toString())
+    }
 }
