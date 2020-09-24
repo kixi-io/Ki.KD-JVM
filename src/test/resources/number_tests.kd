@@ -33,7 +33,7 @@ Double {
   double5 123e-5
 }
 
-Decimal {
+Dec {
   basic .2bd 0.3bd 0.521bd
   decimal1 0bd
   decimal2 11.111111BD

@@ -198,6 +198,21 @@ class SchemaTest {
         assertDoesNotThrow { schema.apply(doc) }
     }
 
+    @Test fun listWithDefault() {
+        var schemaTag = KD.read("""
+                tag Box things=[default=["cat", "hat"]] // List of Strings
+            """)
+        var schema = Schema.make(schemaTag)
+
+        var doc = KD.read("Box")
+        schema.apply(doc)
+        assertEquals("""Box things=["cat", "hat"]""", doc.toString())
+
+        doc = KD.read("""Box things=["monkey", "car"]""")
+        schema.apply(doc)
+        assertEquals("""Box things=["monkey", "car"]""", doc.toString())
+    }
+
     @Test fun maps() {
         // Defining a map
         var schemaTag = KD.read("""
@@ -232,6 +247,21 @@ class SchemaTest {
         """.trimIndent())
         assertThrows<KDSException>("Game: Attribute value type in scores={Benny=[10, 5, 9], Atsuko=12} does " +
                 "not match Map<String, List<Number>>") { schema.apply(doc) }
+    }
+
+    @Test fun mapWithDefault() {
+        var schemaTag = KD.read("""
+                tag Game players=[default=["Mika"=23, "Joe"=15]] // List of Strings
+            """)
+        var schema = Schema.make(schemaTag)
+
+        var doc = KD.read("Game")
+        schema.apply(doc)
+        assertEquals("""Game players=["Joe"=15, "Mika"=23]""", doc.toString())
+
+        doc = KD.read("""Game players=["Jose"=15, "Sajjad"=3]""")
+        schema.apply(doc)
+        assertEquals("""Game players=["Jose"=15, "Sajjad"=3]""", doc.toString())
     }
 
     @Test fun ranges() {

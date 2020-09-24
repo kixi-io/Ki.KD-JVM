@@ -19,7 +19,7 @@ class AnnotationTest {
         assertEquals("@Capybara(funny=true name=\"Harry\")", a1.toString())
     }
 
-    @Test fun testSimpleAnnotation() {
+    @Test fun simpleAnnotation() {
         val annoDef = """
             @Test
             date "some data"
@@ -29,7 +29,7 @@ class AnnotationTest {
         assertEquals(annoDef, anno.toString())
     }
 
-    @Test fun testValuesAnnotation() {
+    @Test fun valuesAnnotation() {
         val annoDef = """
             @Test(1 2 3)
             date "some data"
@@ -39,7 +39,7 @@ class AnnotationTest {
         assertEquals(annoDef, anno.toString())
     }
 
-    @Test fun testAttsAnnotation() {
+    @Test fun attsAnnotation() {
         val annoDef = """
             @Test(working=true luck="good")
             date "some data"
@@ -49,7 +49,7 @@ class AnnotationTest {
         assertEquals(annoDef, anno.toString())
     }
 
-    @Test fun testValuesAttsAnnotation() {
+    @Test fun valuesAttsAnnotation() {
         val annoDef = """
             @Test(1 2 3 working=true luck="good")
             date "some data"

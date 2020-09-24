@@ -13,7 +13,7 @@ import java.math.BigDecimal as Dec
 
 class LiteralTest {
 
-    @Test fun testLiterals() {
+    @Test fun literals() {
         val root = KD.readResource("literal_tests.kd")
 
         val bytes = root.findChild("b64Greeting")!!.value as ByteArray

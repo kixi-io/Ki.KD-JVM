@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 
 class BasicTest {
 
-    @Test fun testTagWithValuesAndAttributes() {
+    @Test fun tagWithValuesAndAttributes() {
         assertEquals("myTag", KD.read("myTag").toString())
         assertEquals("myTag 123", KD.read("myTag 123").toString())
         assertEquals("myTag name=\"Tagaroo\"", KD.read("myTag name=\"Tagaroo\"").toString())
@@ -15,7 +15,7 @@ class BasicTest {
                 KD.read("personForID [253_23_5162=\"Jess\"]").toString())
     }
 
-    @Test fun testDurations() {
+    @Test fun durations() {
         val list = Ki.format(
                 listOf(
                         Ki.parseDuration("2s"),

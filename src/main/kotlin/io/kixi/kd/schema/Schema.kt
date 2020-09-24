@@ -350,10 +350,10 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
 
                     if(map.containsKey("default")) {
                         val default = map.get("default")!!
-                        ValueDef(TypeDef.inferListType(options as List<Any?>), defaultValue=default,
+                        ValueDef(TypeDef.inferCollectionType(options as List<Any?>), defaultValue=default,
                                 matcher=OptionsMatcher(options as List<Any?>))
                     } else {
-                        ValueDef(TypeDef.inferListType(options as List<Any?>),
+                        ValueDef(TypeDef.inferCollectionType(options as List<Any?>),
                                 matcher=OptionsMatcher(options as List<Any?>))
                     }
                 } else {
@@ -388,7 +388,39 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
                     throw KDSException("$location regex matcher much be a regular expression String", tag)
                 }
             }
-            else -> throw KDSException("$location matcher much be a options, range or regex", tag)
+            map.containsKey("default") -> inferDefaultValueDef(map.get("default")!!, location, tag)
+
+            else -> throw KDSException("$location matcher must be options, range, regex or default", tag)
+        }
+
+        private fun inferDefaultValueDef(default: Any?, location: String, tag: Tag) = when(default) {
+            null -> ValueDef(TypeDef.Any_N, null)
+            is Range<*> -> ValueDef(RangeDef(false,
+                    makeValueDef(default.left, location, tag).typeDef), default)
+            is Quantity<*> -> ValueDef(QuantityDef(false, default.unit::class,
+                    Type.typeOf(default.value)!!), default)
+            is List<*> -> {
+                val typeDef = if(default.isEmpty()) ListDef(false, TypeDef.Any_N)
+                    else ListDef(false, TypeDef.inferCollectionType(default))
+                ValueDef(typeDef, default)
+            }
+            is Map<*,*> -> {
+                val empty = default.isEmpty()
+                val keyDef = if(empty) TypeDef.Any_N
+                    else TypeDef.inferCollectionType(default.keys)
+                val valueDef = if(empty) TypeDef.Any_N
+                    else TypeDef.inferCollectionType(default.values)
+
+                ValueDef(MapDef(false, keyDef, valueDef), default)
+            }
+            else -> {
+                val typeDef = Type.typeOf(default)
+                if(typeDef==null) {
+                    throw KDSException("$default in $location is not a recognized type description", tag)
+                } else {
+                    ValueDef(TypeDef(typeDef, false), default)
+                }
+            }
         }
     }
 

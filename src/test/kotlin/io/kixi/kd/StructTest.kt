@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 
 class StructTest {
 
-    @Test fun testGrid() {
+    @Test fun grid() {
         val intGrid = KD.read("""
             1 2 3
             4 5 6
@@ -21,7 +21,7 @@ class StructTest {
         """.trimIndent(), "${intGrid[0]}\n${intGrid[1]}")
     }
 
-    @Test fun testStructsFromFile() {
+    @Test fun structsFromFile() {
         val root = KD.readResource("structure_tests.kd")
         // log(root)
         val mapTag = root.findChild("fancyMap")!!

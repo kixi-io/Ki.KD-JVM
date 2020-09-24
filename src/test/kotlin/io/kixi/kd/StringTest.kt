@@ -14,7 +14,7 @@ class StringTest {
     /**
      * Test basic strings
      */
-    @Test fun testBasicStrings() {
+    @Test fun basicStrings() {
         assertEquals("Foo", KD.read("""
             "Foo"
         """.trimIndent()).value)
@@ -26,7 +26,7 @@ class StringTest {
         """.trimIndent()).value)
     }
 
-    @Test fun testRawStrings() {
+    @Test fun bareStrings() {
         assertEquals("Foo\\Bar", KD.read("""
             @"Foo\Bar"
         """.trimIndent()).value)
@@ -40,7 +40,7 @@ class StringTest {
      * string blocks don't trim line prefixed white-space with the indentation of the
      * closing quotes. This gives you much better control than Kotlin's .trimIndent().
      */
-    @Test fun testBasicBlocks() {
+    @Test fun basicBlocks() {
         assertEquals("Line1", root.getChild("text1")!!.value)
         assertEquals("Line1", root.getChild("text2")!!.value)
 
@@ -63,7 +63,7 @@ class StringTest {
                 root.getChild("text5")!!.value)
     }
 
-    @Test fun testRawBlocks() {
+    @Test fun rawBlocks() {
         assertEquals("""
             \a\path\readme.md
             """.trimIndent(),

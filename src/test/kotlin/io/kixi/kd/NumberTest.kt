@@ -6,14 +6,14 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal as Decimal
+import java.math.BigDecimal as Dec
 
 class NumberTest {
 
     val root = KD.readResource("number_tests.kd")
 
     @Test
-    fun testInts() {
+    fun ints() {
         val ints = root.getChild("Int")!!
         assertEquals("[0, 5, -5]", ints.getChild("basic")!!.values.toString())
         assertEquals(5, ints.getChild("int4")!!.value) // 0b101
@@ -21,7 +21,7 @@ class NumberTest {
     }
 
     @Test
-    fun testLongs() {
+    fun longs() {
         val longs = root.getChild("Long")!!
         assertEquals("[0, 5, -5]", longs.getChild("basic")!!.values.toString())
         assertEquals(1000L, longs.getChild("long1")!!.value)
@@ -31,7 +31,7 @@ class NumberTest {
     }
 
     @Test
-    fun testFloats() {
+    fun floats() {
         val floats = root.getChild("Float")!!
         assertEquals("[0.2, 0.3, 0.521]", floats.getChild("basic")!!.values.toString())
         assertEquals(0.253958f, floats.getChild("float1")!!.value)
@@ -40,7 +40,7 @@ class NumberTest {
     }
 
     @Test
-    fun testDoubles() {
+    fun doubles() {
         val doubles = root.getChild("Double")!!
         assertEquals("[0.2, 0.3, 0.521]", doubles.getChild("basic")!!.values.toString())
         assertEquals(0.253958, doubles.getChild("double1")!!.value)
@@ -49,13 +49,13 @@ class NumberTest {
     }
 
     @Test
-    fun testDecimals() {
-        val decimals = root.getChild("Decimal")!!
-        assertEquals("[0.2, 0.3, 0.521]", decimals.getChild("basic")!!.values.toString())
-        assertEquals(Decimal(0), decimals.getChild("decimal1")!!.value)
-        assertEquals(Decimal("11.111111"), decimals.getChild("decimal2")!!.value) // 0.253_958f
-        assertEquals(Decimal("143523.521535"), decimals.getChild("decimal3")!!.value)
-        assertEquals(Decimal("234535.3453453453454345345341242343"), decimals.getChild("decimal4")!!.value)
-        assertEquals(Decimal("982342462234.163932352"), decimals.getChild("decimal5")!!.value)
+    fun decs() {
+        val decs = root.getChild("Dec")!!
+        assertEquals("[0.2, 0.3, 0.521]", decs.getChild("basic")!!.values.toString())
+        assertEquals(Dec(0), decs.getChild("decimal1")!!.value)
+        assertEquals(Dec("11.111111"), decs.getChild("decimal2")!!.value) // 0.253_958f
+        assertEquals(Dec("143523.521535"), decs.getChild("decimal3")!!.value)
+        assertEquals(Dec("234535.3453453453454345345341242343"), decs.getChild("decimal4")!!.value)
+        assertEquals(Dec("982342462234.163932352"), decs.getChild("decimal5")!!.value)
     }
 }
