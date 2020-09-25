@@ -824,6 +824,7 @@ class Interpreter {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun makeQuantityRange(ctx: KDParser.QuantityRangeContext) : Range<Quantity<Unit>> {
         val left = ctx.getChild(0).text
         val openLeft = (left == "_")

@@ -2,12 +2,11 @@ package io.kixi.kd.schema
 
 import io.kixi.kd.KD
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 
+@Suppress("unused")
 class SchemaTest {
 
     @Test fun findRoot() {
@@ -43,10 +42,10 @@ class SchemaTest {
     }
 
     @Test fun valuesAndAtts() {
-        var schemaTag = KD.read("""
+        val schemaTag = KD.read("""
                 tag Person String age=Int birthday=Date nerd=true # nerd type is Bool, default is true
             """)
-        var schema = Schema.make(schemaTag)
+        val schema = Schema.make(schemaTag)
         assertEquals("Person [String] {nerd=Bool (default true), age=Int, birthday=Date}",
                 schema.toString())
 
@@ -71,7 +70,7 @@ class SchemaTest {
     }
 
     @Test fun matchers() {
-        var schemaTag = KD.read("""
+        val schemaTag = KD.read("""
                 kd:meta version=1.0.0-beta-1
                 
                 @Root
@@ -199,10 +198,10 @@ class SchemaTest {
     }
 
     @Test fun listWithDefault() {
-        var schemaTag = KD.read("""
+        val schemaTag = KD.read("""
                 tag Box things=[default=["cat", "hat"]] // List of Strings
             """)
-        var schema = Schema.make(schemaTag)
+        val schema = Schema.make(schemaTag)
 
         var doc = KD.read("Box")
         schema.apply(doc)
@@ -250,10 +249,10 @@ class SchemaTest {
     }
 
     @Test fun mapWithDefault() {
-        var schemaTag = KD.read("""
+        val schemaTag = KD.read("""
                 tag Game players=[default=["Mika"=23, "Joe"=15]] // List of Strings
             """)
-        var schema = Schema.make(schemaTag)
+        val schema = Schema.make(schemaTag)
 
         var doc = KD.read("Game")
         schema.apply(doc)

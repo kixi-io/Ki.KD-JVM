@@ -51,7 +51,7 @@
             <version>{ki.core.version}</version>
             <!-- change to Maven Central when available -->
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/Ki.Core-1.0.0-beta-1.jar</systemPath>
+            <systemPath>${pom.basedir}/lib/Ki.Core-1.0.0-beta-1.jar</systemPath>
         </dependency>
 
         <!-- ===== Test dependencies ===== -->

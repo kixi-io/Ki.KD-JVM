@@ -1,14 +1,11 @@
 package io.kixi.kd.schema
 
-import io.kixi.TypeDef
-import io.kixi.kd.Tag
-import io.kixi.kd.Annotation
-import io.kixi.kd.KD
 import io.kixi.kd.NSID
+import io.kixi.kd.Tag
 
 class TagDef(
         nsid:NSID = NSID.ANONYMOUS,
-        valueDefs:List<ValueDef> = TagEntityDef.EMPTY_VALUES,
+        valueDefs:List<ValueDef> = EMPTY_VALUES,
         varValueDef:ValueDef? = null,
         attDefs:Map<NSID, ValueDef> = EMPTY_ATTS,
         varAttDef:ValueDef? = null,
@@ -46,7 +43,7 @@ class TagDef(
         if(childGroupDefs.isEmpty() && !tag.children.isEmpty())
             throw KDSException("$nsid does not allow child tags", tag)
 
-        var counters = mutableMapOf<NSID, TagGroupCounter>()
+        val counters = mutableMapOf<NSID, TagGroupCounter>()
         for(child in tag.children) {
             val childGroupDef = childGroupDefs.find{ it.nsid == child.nsid }
             if(childGroupDef==null) {
@@ -82,7 +79,7 @@ class TagDef(
     }
 
     override fun toString(): String {
-        var childDefsSB = StringBuilder("")
+        val childDefsSB = StringBuilder("")
         if(!childGroupDefs.isEmpty()) {
             childDefsSB.appendLine(" {")
             for(child in childGroupDefs) {

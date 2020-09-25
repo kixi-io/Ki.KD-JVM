@@ -15,7 +15,7 @@ class KDSException(message:String, var entity: TagEntity? = null, cause:Throwabl
 
     companion object {
         fun getTagDesc(tagEntity: TagEntity): String {
-            var tagName = tagEntity.nsid.toString()
+            val tagName = tagEntity.nsid.toString()
             return if (tagName == "") "(anonymous)" else tagName
         }
     }

@@ -1,11 +1,10 @@
 package io.kixi.kd.schema
 
-import io.kixi.ListDef
 import io.kixi.TypeDef
 import io.kixi.kd.NSID
 import io.kixi.kd.TagEntity
-import java.lang.IllegalArgumentException
 
+@Suppress("KDocUnresolvedReference")
 abstract class TagEntityDef(
         val nsid: NSID = NSID.ANONYMOUS,
         val valueDefs:List<ValueDef> = EMPTY_VALUES,
@@ -30,7 +29,7 @@ abstract class TagEntityDef(
         for(valueDef in valueDefs) {
             if(valueDef.defaultValue == null) {
                 if(beginDefaultValues!=-1) {
-                    var id = if (nsid.isAnonymous) "(anonymous)" else nsid.toString()
+                    val id = if (nsid.isAnonymous) "(anonymous)" else nsid.toString()
                     throw IllegalArgumentException("Tag Entity Definition $id cannot have a non-default value def " +
                             "($valueDef) after a default value def.")
                 }
@@ -41,7 +40,7 @@ abstract class TagEntityDef(
         }
 
         if(beginDefaultValues!=-1 && varValueDef!=null) {
-            var id = if (nsid.isAnonymous) "(anonymous)" else nsid.toString()
+            val id = if (nsid.isAnonymous) "(anonymous)" else nsid.toString()
             throw IllegalArgumentException("Tag Entity Definition $id cannot declare a varValue ($varValueDef) in a " +
                     "definition with default values")
         }
@@ -65,7 +64,7 @@ abstract class TagEntityDef(
     }
 
     private fun applyValues(tagEntity: TagEntity) {
-        var values = tagEntity.values
+        val values = tagEntity.values
 
         // We have no regular value definitions
         if(valueDefs.isEmpty()) {
@@ -89,7 +88,7 @@ abstract class TagEntityDef(
 
         // We have variable length values and no default values
         if(hasVarValues) {
-            var valIndex = 0
+            val valIndex = 0
             for(valDef in valueDefs) {
                 val value = values[valIndex]
                 if(!valDef.matches(value))
@@ -111,12 +110,10 @@ abstract class TagEntityDef(
                 throw KDSException("Too many values. Value definitios are: $valueDefs", tagEntity)
             }
 
-            var valIndex = 0
+            // val limit = if (beginDefaultValues==-1) values.size-1 else
+            //    beginDefaultValues
 
-            val limit = if (beginDefaultValues==-1) values.size-1 else
-                beginDefaultValues
-
-            for(i in 0..valueDefs.size-1) {
+            for(i in valueDefs.indices) {
                 val valueDef = valueDefs[i]
 
                 if(i>values.size-1) {
@@ -139,13 +136,12 @@ abstract class TagEntityDef(
     private fun applyAtts(tagEntity: TagEntity) {
         // TODO - check attributes
         if(!attDefs.isEmpty()) {
-            var i = 0
 
             // Check for missing attributes and attribute value type.
             // Populate default values if the attribute isn't explicitly set
             attDefs.forEach {
 
-                var hasKey = tagEntity.attributes.containsKey(it.key)
+                val hasKey = tagEntity.attributes.containsKey(it.key)
                 if(!hasKey) {
                     if(it.value.hasDefaultValue)
                         tagEntity.attributes.put(it.key, it.value.defaultValue)

@@ -19,7 +19,7 @@ class LiteralTest {
         val bytes = root.findChild("b64Greeting")!!.value as ByteArray
         assertEquals("Hello", String(bytes))
 
-        val quantityRange = root.findChild("quantityRange2")!!.
+        @Suppress("UNCHECKED_CAST") val quantityRange = root.findChild("quantityRange2")!!.
             value as Range<Quantity<Mass>>
         assertEquals(Range<Quantity<Mass>>(Quantity(Dec(5), Unit.g), Quantity(Dec(20), Unit.kg)),
                 quantityRange)

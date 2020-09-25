@@ -47,7 +47,7 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
                 var def: TagDef
                 when(child.nsid.name) {
                     "tag" -> {
-                        def= makeTagDef(child, defs);
+                        def= makeTagDef(child, defs)
                         defs.put(def.nsid, def)
 
                     }
@@ -56,7 +56,7 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
                             "Got: ${child.nsid}", child)
                 }
 
-                if(!child.annotations.isEmpty() && child.annotations[0].nsid.name == "Root") {
+                if(child.annotations.isNotEmpty() && child.annotations[0].nsid.name == "Root") {
                     if(rootDef!=null) {
                         throw KDSException("Only one root can be assigned. Found root " +
                                 "\"${child.nsid}\" but already had root \"${rootDef.nsid}\"", child)
@@ -76,7 +76,7 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
                 }
             }
 
-            return Schema(rootDef)
+            return Schema(rootDef, schemaVersion)
         }
 
         private fun makeTagDef(tag: Tag, defs: MutableMap<NSID, TagDef>): TagDef {
@@ -119,13 +119,15 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
         }
 
         private fun makeChildGroupDefs(tag: Tag): List<TagGroupDef> {
-            var groupDefs = mutableListOf<TagGroupDef>()
+            val groupDefs = mutableListOf<TagGroupDef>()
 
             for(child in tag.children) {
                 val nsid = child.nsid
                 if(nsid== NSID.ANONYMOUS) {
                     throw KDSException("Tag child groups cannot be anonymous", child)
                 }
+
+                @Suppress("UNCHECKED_CAST")
                 val range = if(child.values.isEmpty()) RANGE_1
                     else child.value as Range<Int>
                 groupDefs.add(TagGroupDef(nsid, range))
@@ -149,11 +151,9 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
 
             for(pair in child.attributes.entries) {
                 val nsid = pair.key
-                if (nsid == null)
-                    throw KDSException("Attribute key in tag definition cannot be nil.", child)
 
-                val valyeDef = makeValueDef(pair.value!!, "attribute value", child)
-                entryDefs.put(nsid, valyeDef)
+                val valueDef = makeValueDef(pair.value!!, "attribute value", child)
+                entryDefs.put(nsid, valueDef)
             }
             return entryDefs
         }
@@ -172,7 +172,7 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
             if(defObj == null || defObj == "nil" || defObj == "null")
                 throw KDSException("$location type or default value in tag definition cannot be nil.", tag)
 
-            var typeDef: TypeDef? = null
+            val typeDef: TypeDef? = null
 
             if(defObj is Map<*, *>) {
                 // matcher
@@ -253,7 +253,7 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
                 }
             }
 
-            var typeDef = TypeDef.forName(text)
+            val typeDef = TypeDef.forName(text)
             if (typeDef == null) {
 
                 // Check for unit axis name
@@ -351,10 +351,10 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
                     if(map.containsKey("default")) {
                         val default = map.get("default")!!
                         ValueDef(TypeDef.inferCollectionType(options as List<Any?>), defaultValue=default,
-                                matcher=OptionsMatcher(options as List<Any?>))
+                                matcher=OptionsMatcher(options))
                     } else {
                         ValueDef(TypeDef.inferCollectionType(options as List<Any?>),
-                                matcher=OptionsMatcher(options as List<Any?>))
+                                matcher=OptionsMatcher(options))
                     }
                 } else {
                     throw KDSException("$location options matcher much be a List", tag)
@@ -369,7 +369,6 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
                                 defaultValue=default,
                                 matcher=RangeMatcher(range))
                     } else {
-                        val rangeDef = RangeDef(false, makeValueDef(range.left, location, tag).typeDef)
                         ValueDef(makeValueDef(range.left, location, tag).typeDef,
                                 matcher=RangeMatcher(range))
                     }
@@ -388,7 +387,8 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
                     throw KDSException("$location regex matcher much be a regular expression String", tag)
                 }
             }
-            map.containsKey("default") -> inferDefaultValueDef(map.get("default")!!, location, tag)
+            map.containsKey("default") -> inferDefaultValueDef(map.get("default")!!,
+                    location + " default value", tag)
 
             else -> throw KDSException("$location matcher must be options, range, regex or default", tag)
         }
@@ -416,7 +416,7 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
             else -> {
                 val typeDef = Type.typeOf(default)
                 if(typeDef==null) {
-                    throw KDSException("$default in $location is not a recognized type description", tag)
+                    throw KDSException("$default in $location is not a valid literal", tag)
                 } else {
                     ValueDef(TypeDef(typeDef, false), default)
                 }

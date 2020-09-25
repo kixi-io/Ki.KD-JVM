@@ -1,9 +1,6 @@
 package io.kixi.kd
 
 import io.kixi.Ki
-import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 /**
  * This is the base class for entities that have an NSID, value list and attribute map.
@@ -12,6 +9,7 @@ import kotlin.collections.HashMap
  *
  * TagEntityBase is the superclass of Tag and Annotation.
  */
+@Suppress("unused")
 abstract class TagEntity {
 
     var nsid: NSID
@@ -25,7 +23,7 @@ abstract class TagEntity {
         this.nsid = nsid
     }
 
-    constructor(name:String, namespace:String = ""): this(NSID(name, namespace)) {}
+    constructor(name:String, namespace:String = ""): this(NSID(name, namespace))
 
     override fun toString(): String {
         if(values.isEmpty() && attributes.isEmpty())
@@ -78,11 +76,13 @@ abstract class TagEntity {
     fun setAttribute(name: String, namespace: String = "", value: Any?) =
             attributes.put(NSID(name, namespace), value)
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> getAttribute(name: String, namespace: String = "") : T =
             attributes[NSID(name, namespace)] as T
 
     fun setAttribute(nsid:NSID, value: Any?) = attributes.put(nsid, value)
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> getAttribute(nsid:NSID) : T = attributes[nsid] as T
 
     fun <T> getAttributesInNamespace(namespace:String): Map<String, T> {
@@ -91,6 +91,7 @@ abstract class TagEntity {
             if(e.key.namespace == namespace)
                 map.put(e.key.name, e.value)
         }
+        @Suppress("UNCHECKED_CAST")
         return map as Map<String, T>
     }
 

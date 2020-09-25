@@ -8,7 +8,6 @@ import io.kixi.*
  */
 open class ValueDef(val typeDef: TypeDef, val defaultValue: Any? = null, val matcher:Matcher? = null) {
 
-    // TODO
     open fun matches(value: Any?) = typeDef.matches(value) && (matcher==null || matcher.matches(value))
     override fun toString(): String {
         if(defaultValue == null) {

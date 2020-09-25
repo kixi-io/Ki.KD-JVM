@@ -96,6 +96,7 @@ import kotlin.collections.ArrayList
  * For more information on the KD language see the
  * [KD Wiki Page](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)).
  */
+@Suppress("unused")
 class Tag : TagEntity {
 
     // TODO: We need better lazy initialization.
@@ -146,12 +147,12 @@ class Tag : TagEntity {
                 if (skipValueSpace) skipValueSpace = false else builder.append(" ")
 
                 val next = i.next()
-                var literalText = Ki.format(next).trim()
+                val literalText = Ki.format(next).trim()
 
                 // Deal with multiline blob literals
                 if(next is ByteArray && literalText.contains('\n')) {
-                    var buf = StringBuilder()
-                    var lines = literalText.lines()
+                    val buf = StringBuilder()
+                    val lines = literalText.lines()
 
                     var first = true
                     for (line in lines) {
@@ -259,7 +260,7 @@ class Tag : TagEntity {
      * `
      */
     inline fun findChild(predicate: (Tag) -> Boolean): Tag? {
-        var searchMe = getDescendants()
+        val searchMe = getDescendants()
 
         for(child in searchMe) {
             if(predicate(child))
@@ -278,7 +279,7 @@ class Tag : TagEntity {
      * `
      */
     inline fun findChildren(predicate: (Tag) -> Boolean): List<Tag> {
-        var searchMe = getDescendants()
+        val searchMe = getDescendants()
 
         val results = ArrayList<Tag>()
         for(child in searchMe) {
@@ -318,8 +319,9 @@ class Tag : TagEntity {
      * `
      */
     fun <T> getChildrenValues() : List<List<T>> {
-        var rows = ArrayList<List<T>>()
+        val rows = ArrayList<List<T>>()
         for(child in children) {
+            @Suppress("UNCHECKED_CAST")
             rows.add(child.values as List<T>)
         }
         return rows

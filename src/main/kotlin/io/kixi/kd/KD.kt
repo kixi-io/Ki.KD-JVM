@@ -1,5 +1,7 @@
 package io.kixi.kd
 
+import io.kixi.text.ParseException
+
 import java.io.*
 import java.net.URL
 
@@ -25,7 +27,7 @@ class KD {
             } else {
                 val tag = Tag("root")
                 tag.children.addAll(tags)
-                return tag;
+                return tag
             }
         }
 

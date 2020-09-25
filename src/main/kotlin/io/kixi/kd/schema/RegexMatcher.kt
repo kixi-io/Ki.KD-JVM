@@ -1,6 +1,6 @@
 package io.kixi.kd.schema
 
 class RegexMatcher(val regex: Regex) : Matcher {
-    override fun matches(text:Any?) = if(text==null) false else regex.matches(text.toString())
-    override fun toString() = "regex($regex)"
+    override fun matches(obj:Any?) = if(obj==null) false else regex.matches(obj.toString())
+    override fun toString() = "regex(${regex})"
 }
