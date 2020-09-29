@@ -8,25 +8,14 @@ kd:meta version=1.0.0-beta
  * attributes: `quantity` and `shipping`. Shipping has a default value `true` so it is
  * optional when writing KD for this schema.
  */
-tag Purchase String quantity=Int // shipping=true # default att values not yet implemented
+tag Purchase String quantity=Int shipping=true
 
 tag Purchases { Purchase 0.._ } # Zero or more purchase tags
 
 /**
- * This `Customer` tag has an Int id value and five attributes. Attributes can specify a
- * type or a default value. Attributes with a default value are optional. This long-form
- * tag uses values and attributes groups so it can specify more information about the
- * constraints. Although Bool types are false by default, specifying false makes `premium`
- * optional.
+ * This `Customer` tag has an Int id value, two attributes.
  */
-tag Customer  {
-    values { Int 0.._ } # An ID, which must be positive
-    attributes {
-        familyName String
-        givenName String
-        birthday Date
-        premium false
-    }
+tag Customer Int name=String premium=false {
 
     // Child tags
     Purchases 0..1 # A Customer tag has an optional Purchases tag child
