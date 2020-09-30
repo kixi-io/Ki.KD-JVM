@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.gradle.utils.loadPropertyFromResources
+import java.net.URL
+import org.jetbrains.dokka.gradle.DokkaTask
 
 group = "io.kixi"
 version = "1.0.0-beta-2"
@@ -9,14 +10,14 @@ plugins {
     java
     kotlin("jvm") version "1.4.10"
     antlr
+    id("org.jetbrains.dokka") version "1.4.10"
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+repositories {
+    mavenCentral()
+    jcenter()
+    // maven("https://dl.bintray.com/kotlin/kotlin-eap")
 }
-
-repositories { mavenCentral() }
 
 dependencies {
     implementation(kotlin("stdlib"))
@@ -27,12 +28,17 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "11"
 }
 
 /**
- * An jar containing all dependencies and optimized for Kotlin-only projects.
+ * An jar containing all dependencies, optimized for Kotlin-only projects.
  */
 tasks.register("jar-ktAll", Jar::class) {
 
@@ -71,7 +77,6 @@ tasks.register("jar-javaAll", Jar::class) {
         } else {
             if (it.isDirectory) it else zipTree(it)
         }
-        // if (it.isDirectory) it else zipTree(it)
     }
     var newDeps = mutableListOf<Any?>()
     newDeps.addAll(deps)
