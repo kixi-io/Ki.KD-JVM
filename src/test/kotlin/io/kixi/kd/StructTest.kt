@@ -9,6 +9,19 @@ import org.junit.jupiter.api.Test
 
 class StructTest {
 
+    @Test fun lists() {
+        assertEquals(KD("[1]"), listOf<Int>(1))
+        assertEquals(KD("[1, 2, 3]"), listOf<Int>(1,2,3))
+        assertEquals(KD("[]"), listOf<Any>())
+    }
+
+    @Test fun maps() {
+        assertEquals(KD("""[name="fred"]"""), mapOf<String, String>("name" to "fred"))
+        assertEquals(KD("""[name="fred", age=52]"""), mapOf<String,Any>("name" to
+                "fred", "age" to 52))
+        assertEquals(KD("[=]"), mapOf<Any,Any>())
+    }
+
     @Test fun grid() {
         val intGrid = KD.read("""
             1 2 3
