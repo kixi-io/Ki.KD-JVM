@@ -20,7 +20,7 @@ value:
     | TRUE | FALSE
     | NULL
     // Data Structures
-    | list | map
+    | list | map | call
     // Date, DateTime and Duration
     | dateTime
     | duration
@@ -71,7 +71,7 @@ quantityRange: ('_' rangeOp quantity) | (quantity rangeOp '_') | (quantity range
 range: intRange | longRange | floatRange | doubleRange | decimalRange | durationRange | dateTimeRange | versionRange
        | charRange | stringRange | quantityRange;
 
-blob: BLOB_START BLOB_DATA+ BLOB_END;
+blob: BLOB_START BLOB_DATA* BLOB_END;
 
 // Tag Parts --- ---
 
@@ -91,6 +91,14 @@ list: ('[' NL* value (COMMA? NL* value)* NL* ']') | ('[' ']');
 pair: NL* value '=' NL* value NL*;
 
 map: ('[' NL* pair (COMMA? NL* pair)* NL* ']') | ('[' '=' ']');
+
+// Call --- ---
+
+callValueList: NL* value (COMMA? NL* value)* NL*;
+callPair: NL* ID '=' NL* value NL*;
+callAttributeList: NL* callPair (COMMA? NL* callPair)* NL*;
+
+call: ID LPAREN callValueList? (COMMA? callAttributeList)? RPAREN;
 
 // ANNOTATIONS
 annotation: '@' nsName (LPAREN valueList? attributeList? RPAREN)?;

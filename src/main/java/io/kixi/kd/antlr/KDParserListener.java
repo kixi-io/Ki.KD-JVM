@@ -308,6 +308,46 @@ public interface KDParserListener extends ParseTreeListener {
 	 */
 	void exitMap(KDParser.MapContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link KDParser#callValueList}.
+	 * @param ctx the parse tree
+	 */
+	void enterCallValueList(KDParser.CallValueListContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KDParser#callValueList}.
+	 * @param ctx the parse tree
+	 */
+	void exitCallValueList(KDParser.CallValueListContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KDParser#callPair}.
+	 * @param ctx the parse tree
+	 */
+	void enterCallPair(KDParser.CallPairContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KDParser#callPair}.
+	 * @param ctx the parse tree
+	 */
+	void exitCallPair(KDParser.CallPairContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KDParser#callAttributeList}.
+	 * @param ctx the parse tree
+	 */
+	void enterCallAttributeList(KDParser.CallAttributeListContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KDParser#callAttributeList}.
+	 * @param ctx the parse tree
+	 */
+	void exitCallAttributeList(KDParser.CallAttributeListContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link KDParser#call}.
+	 * @param ctx the parse tree
+	 */
+	void enterCall(KDParser.CallContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link KDParser#call}.
+	 * @param ctx the parse tree
+	 */
+	void exitCall(KDParser.CallContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link KDParser#annotation}.
 	 * @param ctx the parse tree
 	 */

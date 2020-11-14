@@ -191,6 +191,30 @@ public interface KDParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitMap(KDParser.MapContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link KDParser#callValueList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCallValueList(KDParser.CallValueListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#callPair}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCallPair(KDParser.CallPairContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#callAttributeList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCallAttributeList(KDParser.CallAttributeListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link KDParser#call}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCall(KDParser.CallContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link KDParser#annotation}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

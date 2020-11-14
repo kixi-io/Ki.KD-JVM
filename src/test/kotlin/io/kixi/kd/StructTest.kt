@@ -1,6 +1,8 @@
 package io.kixi.kd
 
+import io.kixi.Call
 import io.kixi.Ki
+import io.kixi.NSID
 import io.kixi.log
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -20,6 +22,23 @@ class StructTest {
         assertEquals(KD("""[name="fred", age=52]"""), mapOf<String,Any>("name" to
                 "fred", "age" to 52))
         assertEquals(KD("[=]"), mapOf<Any,Any>())
+    }
+
+    @Test fun calls() {
+        assertEquals(KD("rgb()"), Call("rgb"))
+
+        var call = Call("rgb")
+        call.values.add(1);
+        call.values.add(2);
+        call.values.add(3);
+        assertEquals(KD("rgb(1,2,3)"), call)
+        assertEquals(KD("rgb(1 2 3)"), call)
+
+        call[NSID("alpha")] = 4
+
+        assertEquals(KD("rgb(1, 2, 3, alpha=4)"), call)
+        assertEquals(KD("rgb(1 2 3 alpha=4)"), call)
+        // assertEquals(KD("[]"), listOf<Any>())
     }
 
     @Test fun grid() {

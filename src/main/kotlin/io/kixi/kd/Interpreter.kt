@@ -1,11 +1,8 @@
 package io.kixi.kd
 
-import io.kixi.Ki
-import io.kixi.Range
-import io.kixi.Version
+import io.kixi.*
 import io.kixi.kd.antlr.KDLexer
 import io.kixi.kd.antlr.KDParser
-import io.kixi.log
 import io.kixi.text.ParseException
 import io.kixi.text.resolveEscapes
 import io.kixi.uom.Quantity
@@ -21,7 +18,6 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
-
 
 /**
  * A [Ki Declarative (KD)](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD))
@@ -349,11 +345,40 @@ class Interpreter {
         val mapContext = ctx.map()
         if(mapContext!=null) return makeMap(mapContext)
 
+        //// Call --- ---
+
+        val callContext = ctx.call()
+        if(callContext!=null) return makeCall(callContext)
+
+        //// Can't find a KTS literal type
+
         log("Couldn't find a value type")
 
         val t = ctx.getStart()
 
         throw KDParseException("Unknown literal type ${ctx.text}.", t.line, t.charPositionInLine)
+    }
+
+    private fun makeCall(callContext: KDParser.CallContext): Any? {
+        val callName = callContext.ID().text
+        val valuesCtx = callContext.callValueList();
+        val attsCtx = callContext.callAttributeList();
+
+        val call = Call(callName)
+
+        if(valuesCtx!=null) {
+            for (value in valuesCtx.value()) {
+                call.values.add(makeValue(value))
+            }
+        }
+
+        if(attsCtx!=null) {
+            for (pair in attsCtx.callPair()) {
+                call[NSID(pair.ID().text)] = makeValue(pair.value())
+            }
+        }
+
+        return call;
     }
 
     private fun makeString(parentCtx: KDParser.StringLiteralContext): String {
