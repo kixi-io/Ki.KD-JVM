@@ -3,7 +3,7 @@ package io.kixi.kd.schema
 import io.kixi.Range
 import io.kixi.TypeDef
 import io.kixi.kd.KD
-import io.kixi.kd.NSID
+import io.kixi.NSID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test

@@ -1,6 +1,6 @@
 package io.kixi.kd.schema
 
-import io.kixi.kd.NSID
+import io.kixi.NSID
 import io.kixi.kd.Tag
 
 class TagDef(
@@ -11,7 +11,7 @@ class TagDef(
         varAttDef:ValueDef? = null,
         val childGroupDefs:List<TagGroupDef> = EMPTY_CHILD_GROUPS,
         val tagDefs:Map<NSID, TagDef> = EMPTY_TAG_DEFS
-    ) : TagEntityDef(nsid, valueDefs, varValueDef, attDefs, varAttDef) {
+    ) : CallDef(nsid, valueDefs, varValueDef, attDefs, varAttDef) {
 
     companion object {
         // val EMPTY_ANNOS = listOf<AnnoDef>()

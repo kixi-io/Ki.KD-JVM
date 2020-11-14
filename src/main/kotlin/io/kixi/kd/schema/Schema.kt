@@ -3,7 +3,7 @@ package io.kixi.kd.schema
 import io.kixi.*
 import io.kixi.kd.Annotation
 import io.kixi.kd.KDParseException
-import io.kixi.kd.NSID
+import io.kixi.NSID
 import io.kixi.kd.Tag
 import io.kixi.uom.*
 import kotlin.reflect.KClass
@@ -87,7 +87,7 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
 
             val valueDefs:List<ValueDef> =
                     if(tag.values.size > 1) makeValueDefs(tag, tag.values.subList(1, tag.values.size))
-                    else TagEntityDef.EMPTY_VALUES
+                    else CallDef.EMPTY_VALUES
 
             var varValDef: ValueDef? = null
             if(tag.attributes.containsKey(VAR_VAL)) {
@@ -109,7 +109,7 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
             }
 
             val attDefs:Map<NSID, ValueDef> =
-                    if(tag.attributes.isEmpty()) TagEntityDef.EMPTY_ATTS
+                    if(tag.attributes.isEmpty()) CallDef.EMPTY_ATTS
                     else makeAttDefs(tag)
 
             val childGroupDefs = if (tag.children.isEmpty()) TagDef.EMPTY_CHILD_GROUPS

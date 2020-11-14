@@ -3,6 +3,9 @@ package io.kixi.kd
 import io.kixi.Ki
 import kotlin.collections.ArrayList
 
+import io.kixi.Call
+import io.kixi.NSID
+
 /**
  * KD documents are composed of KD tags. Tags can contain the following components:
  *
@@ -97,7 +100,7 @@ import kotlin.collections.ArrayList
  * [KD Wiki Page](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)).
  */
 @Suppress("unused")
-class Tag : TagEntity {
+class Tag : Call {
 
     // TODO: We need better lazy initialization.
     // These will be initialized anytime find operations are used, or toString() is called.

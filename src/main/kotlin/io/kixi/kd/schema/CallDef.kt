@@ -1,11 +1,11 @@
 package io.kixi.kd.schema
 
 import io.kixi.TypeDef
-import io.kixi.kd.NSID
-import io.kixi.kd.TagEntity
+import io.kixi.NSID
+import io.kixi.Call
 
 @Suppress("KDocUnresolvedReference")
-abstract class TagEntityDef(
+abstract class CallDef(
         val nsid: NSID = NSID.ANONYMOUS,
         val valueDefs:List<ValueDef> = EMPTY_VALUES,
         val varValueDef: ValueDef? = null,
@@ -55,7 +55,7 @@ abstract class TagEntityDef(
      * @throws KDSException If the entity (tag or annotation) does not match the structure
      *   defined by this tag entity definition.
      */
-    protected fun applyTagEntity(tagEntity: TagEntity) {
+    protected fun applyTagEntity(tagEntity: Call) {
         if(nsid != tagEntity.nsid)
             throw KDSException("NSID (namespace:)name ${tagEntity.nsid} != $nsid",
                     tagEntity)
@@ -63,7 +63,7 @@ abstract class TagEntityDef(
         applyAtts(tagEntity)
     }
 
-    private fun applyValues(tagEntity: TagEntity) {
+    private fun applyValues(tagEntity: Call) {
         val values = tagEntity.values
 
         // We have no regular value definitions
@@ -133,7 +133,7 @@ abstract class TagEntityDef(
         }
     }
 
-    private fun applyAtts(tagEntity: TagEntity) {
+    private fun applyAtts(tagEntity: Call) {
         // TODO - check attributes
         if(!attDefs.isEmpty()) {
 

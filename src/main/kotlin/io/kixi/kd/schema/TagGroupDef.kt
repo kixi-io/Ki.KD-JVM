@@ -1,7 +1,7 @@
 package io.kixi.kd.schema
 
 import io.kixi.Range
-import io.kixi.kd.NSID
+import io.kixi.NSID
 
 // data class TagGroupDef(val def:TagDef, val pattern: Range<Int>)
 data class TagGroupDef(val nsid: NSID, val pattern: Range<Int> = RANGE_1) {

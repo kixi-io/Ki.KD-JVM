@@ -1,11 +1,13 @@
 package io.kixi.kd
 
 import io.kixi.Ki
+import io.kixi.Call
+import io.kixi.NSID
 
 /**
  * An annotation for a tag.
  */
-class Annotation : TagEntity {
+class Annotation : Call {
 
     constructor(_nsid: NSID): super(_nsid) {}
 
