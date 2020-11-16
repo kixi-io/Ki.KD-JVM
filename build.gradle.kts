@@ -3,7 +3,7 @@ import java.net.URL
 import org.jetbrains.dokka.gradle.DokkaTask
 
 group = "io.kixi"
-version = "1.0.0-beta-2"
+version = "1.0.0-beta-3"
 description = "ki-kd"
 
 plugins {
