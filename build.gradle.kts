@@ -23,7 +23,7 @@ dependencies {
     implementation(files("lib/Ki.Core-1.0.0-beta-3.jar"))
     antlr("org.antlr:antlr4-runtime:4.8-1")
     // implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    testImplementation(platform("org.junit:junit-bom:5.7.+"))
+    testImplementation(platform("org.junit:junit-bom:5.8.+"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
