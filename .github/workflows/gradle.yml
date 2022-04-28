@@ -1,0 +1,22 @@
+name: Java CI
+
+on: [push]
+
+jobs:
+  build:
+    name: Build with Java ${{ matrix.jdk }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        jdk: ['11', '17', '18']
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK ${{ matrix.jdk }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.jdk }}
+
+      - name: Gradle Check
+        run: ./gradlew build check
