@@ -2,3 +2,26 @@
 /out/
 target/
 .DS_Store
+
+# Compiled class file
+*.class
+
+## VSCode specific
+.vscode/
+.code-workspace
+
+## Intellij specific
+.idea/
+.idea_modules/
+*.iml
+*.ipr
+*.iws
+
+## Gradle local
+bin/
+build/
+.gradle
+.gradletasknamecache
+gradle-app.setting
+!gradle-wrapper.jar
+

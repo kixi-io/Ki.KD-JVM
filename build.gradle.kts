@@ -7,15 +7,14 @@ version = "1.0.0-beta-3"
 description = "ki-kd"
 
 plugins {
-    java
-    kotlin("jvm") version "1.4.10"
+    `java-library`
+    kotlin("jvm") version "1.6.+"
     antlr
     id("org.jetbrains.dokka") version "1.4.10"
 }
 
 repositories {
     mavenCentral()
-    jcenter()
     // maven("https://dl.bintray.com/kotlin/kotlin-eap")
 }
 
@@ -24,8 +23,10 @@ dependencies {
     implementation(files("lib/Ki.Core-1.0.0-beta-3.jar"))
     antlr("org.antlr:antlr4-runtime:4.8-1")
     // implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    testImplementation(platform("org.junit:junit-bom:5.7.0"))
+    testImplementation(platform("org.junit:junit-bom:5.7.+"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
 java {
@@ -33,8 +34,13 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "11"
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        apiVersion = "1.6"
+        languageVersion = "1.6"
+        jvmTarget = "${JavaVersion.VERSION_11}"
+        allWarningsAsErrors = true
+    }
 }
 
 /**
