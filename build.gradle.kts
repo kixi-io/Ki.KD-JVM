@@ -21,7 +21,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(files("lib/Ki.Core-1.0.0-beta-3.jar"))
-    antlr("org.antlr:antlr4-runtime:4.8-1")
+    antlr("org.antlr:antlr4-runtime:4.11.1")
     // implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     testImplementation(platform("org.junit:junit-bom:5.8.+"))
     testImplementation("org.junit.jupiter:junit-jupiter")
