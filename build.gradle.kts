@@ -8,7 +8,7 @@ description = "ki-kd"
 
 plugins {
     `java-library`
-    kotlin("jvm") version "1.6.+"
+    kotlin("jvm") version "1.7.+"
     antlr
     id("org.jetbrains.dokka") version "1.6.21"
 }
