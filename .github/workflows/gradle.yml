@@ -9,14 +9,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jdk: ['11', '17', '18']
+        jdk: ['11', '17', '21']
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up JDK ${{ matrix.jdk }}
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: ${{ matrix.jdk }}
+          cache: gradle
 
-      - name: Gradle Check
+      - name: Gradle Build & Check
         run: ./gradlew build check
+
+      - name: Build jar-ktAll
+        run: ./gradlew jar-ktAll
+
+      - name: Build jar-javaAll
+        run: ./gradlew jar-javaAll
+
+      - name: Build Dokka documentation
+        run: ./gradlew dokkaJavadoc

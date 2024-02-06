@@ -1,5 +1,7 @@
 # Ki.KD-JVM
 
+[![Java CI](https://github.com/kixi-io/Ki.KD-JVM/actions/workflows/gradle.yml/badge.svg)](https://github.com/kixi-io/Ki.KD-JVM/actions/workflows/gradle.yml)
+
 This is a [JVM](https://en.wikipedia.org/wiki/Java_virtual_machine) implementation of the
 [KD (Ki Declarative) language](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)). It
 is written in [Kotlin](https://kotlinlang.org/) with annotations that allow it to be used

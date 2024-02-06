@@ -1,29 +1,30 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.net.URL
-import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 group = "io.kixi"
-version = "1.0.0-beta-3"
+version = "1.0.0-beta-4"
 description = "ki-kd"
+
+val jpmsModuleName = "kixi.ki.kd"
 
 plugins {
     `java-library`
-    kotlin("jvm") version "1.6.+"
+    kotlin("jvm") version "1.9.+"
     antlr
-    id("org.jetbrains.dokka") version "1.6.21"
+    id("org.jetbrains.dokka") version "1.9.+"
 }
 
 repositories {
     mavenCentral()
-    // maven("https://dl.bintray.com/kotlin/kotlin-eap")
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
+    implementation(kotlin("stdlib-jdk8"))
     implementation(files("lib/Ki.Core-1.0.0-beta-3.jar"))
     antlr("org.antlr:antlr4-runtime:4.8-1")
     // implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    testImplementation(platform("org.junit:junit-bom:5.8.+"))
+    testImplementation(platform("org.junit:junit-bom:5.10.+"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
@@ -34,24 +35,43 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-tasks.withType<KotlinCompile>().configureEach {
+tasks.withType<org.gradle.jvm.tasks.Jar>().configureEach {
+    dependsOn(":test", ":compileJava", ":compileKotlin")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    this.archiveBaseName.set("ki-kd")
+    manifest {
+        attributes(mapOf(
+            "Implementation-Title" to project.name,
+            "Implementation-Version" to project.version,
+            "Automatic-Module-Name" to jpmsModuleName
+        ))
+    }
+}
+
+tasks.withType<KotlinJvmCompile>().configureEach {
+    compilerOptions {
+        languageVersion.set(KotlinVersion.KOTLIN_1_9)
+        jvmTarget.set(JvmTarget.JVM_11)
+        allWarningsAsErrors.set(true)
+    }
     kotlinOptions {
-        apiVersion = "1.6"
-        languageVersion = "1.6"
-        jvmTarget = "${JavaVersion.VERSION_11}"
-        allWarningsAsErrors = true
+        apiVersion = KotlinVersion.KOTLIN_1_9.version
+        languageVersion = KotlinVersion.KOTLIN_1_9.version
     }
 }
 
 /**
- * An jar containing all dependencies, optimized for Kotlin-only projects.
+ * A jar containing all dependencies, optimized for Kotlin-only projects.
  */
 tasks.register("jar-ktAll", Jar::class) {
+    dependsOn(":test", ":compileJava", ":compileKotlin")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     // TODO - Shut off JVM annotations that produce extra code for Java access
     group = "build"
     // manifest { attributes["Main-Class"] = "com.example.MainKt"
-    archiveBaseName.set("Ki.KD-ktAll")
+    archiveBaseName.set("ki-kd-ktAll")
 
     var deps = configurations.compileClasspath.get().map {
         if(it.name.contains("kotlin") || it.name.contains("annotations")) {
@@ -70,12 +90,15 @@ tasks.register("jar-ktAll", Jar::class) {
 }
 
 /**
- * An jar containing all dependencies and optimized for Kotlin-only projects.
+ * A jar containing all dependencies and optimized for Kotlin-only projects.
  */
 tasks.register("jar-javaAll", Jar::class) {
+    dependsOn(":test", ":compileJava", ":compileKotlin")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     group = "build"
     // manifest { attributes["Main-Class"] = "com.example.MainKt"
-    archiveBaseName.set("Ki.KD-javaAll")
+    archiveBaseName.set("ki-kd-javaAll")
 
     var deps = configurations.compileClasspath.get().map {
         if(it.name.contains("kotlin-stdlib-common")) {
