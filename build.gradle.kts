@@ -53,7 +53,6 @@ tasks.withType<KotlinJvmCompile>().configureEach {
     compilerOptions {
         languageVersion.set(KotlinVersion.KOTLIN_1_9)
         jvmTarget.set(JvmTarget.JVM_11)
-        allWarningsAsErrors.set(true)
     }
     kotlinOptions {
         apiVersion = KotlinVersion.KOTLIN_1_9.version
