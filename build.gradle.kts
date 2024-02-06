@@ -118,6 +118,10 @@ tasks.register("jar-javaAll", Jar::class) {
     exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
 }
 
+tasks.compileTestKotlin {
+    dependsOn(":generateTestGrammarSource")
+}
+
 tasks.test {
     useJUnitPlatform()
 
