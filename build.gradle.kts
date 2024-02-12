@@ -22,7 +22,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(files("lib/ki-core-1.0.0-20240211.jar"))
-    antlr("org.antlr:antlr4-runtime:4.8-1")
+    antlr("org.antlr:antlr4-runtime:4.9.+")
     // implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     testImplementation(platform("org.junit:junit-bom:5.10.+"))
     testImplementation("org.junit.jupiter:junit-jupiter")
