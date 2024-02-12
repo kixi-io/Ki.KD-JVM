@@ -1,11 +1,29 @@
 package io.kixi.kd.schema
 
-import io.kixi.*
+import io.kixi.core.NSID
+import io.kixi.core.ListDef
+import io.kixi.core.MapDef
+import io.kixi.core.QuantityDef
+import io.kixi.core.Range
+import io.kixi.core.RangeDef
+import io.kixi.core.Type
+import io.kixi.core.TypeDef
+import io.kixi.core.Version
+import io.kixi.core.uom.Area
+import io.kixi.core.uom.Current
+import io.kixi.core.uom.Density
+import io.kixi.core.uom.Luminosity
+import io.kixi.core.uom.Mass
+import io.kixi.core.uom.Speed
+import io.kixi.core.uom.SubstanceAmount
+import io.kixi.core.uom.Temperature
+import io.kixi.core.uom.Volume
+import io.kixi.core.uom.Quantity
+import io.kixi.core.uom.Length
+
 import io.kixi.kd.Annotation
 import io.kixi.kd.KDParseException
-import io.kixi.NSID
 import io.kixi.kd.Tag
-import io.kixi.uom.*
 import kotlin.reflect.KClass
 
 /**
@@ -179,7 +197,7 @@ class Schema(val rootDef:TagDef, var version:Version? = null) {
                 return makeMatcherValueDef(defObj, location, tag)
             } else if(defObj is List<*>) {
                 // typed list or map structure
-                
+
                 if(defObj.isEmpty())
                     throw KDSException("Generic list or map constraint must have a type", tag)
 

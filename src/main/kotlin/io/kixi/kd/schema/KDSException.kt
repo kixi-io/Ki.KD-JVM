@@ -1,6 +1,6 @@
 package io.kixi.kd.schema
 
-import io.kixi.Call
+import io.kixi.core.Call
 
 /**
  * A `KDSException` indicates that a tag structure does not match its corresponding KD

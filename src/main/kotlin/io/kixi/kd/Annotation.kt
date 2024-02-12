@@ -1,8 +1,8 @@
 package io.kixi.kd
 
-import io.kixi.Ki
-import io.kixi.Call
-import io.kixi.NSID
+import io.kixi.core.Ki
+import io.kixi.core.Call
+import io.kixi.core.NSID
 
 /**
  * An annotation for a tag.

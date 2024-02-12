@@ -3,7 +3,7 @@ package io.kixi.kd
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-import io.kixi.NSID
+import io.kixi.core.NSID
 
 class AnnotationTest {
 

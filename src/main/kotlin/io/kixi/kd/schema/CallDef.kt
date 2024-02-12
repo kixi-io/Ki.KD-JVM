@@ -1,8 +1,8 @@
 package io.kixi.kd.schema
 
-import io.kixi.TypeDef
-import io.kixi.NSID
-import io.kixi.Call
+import io.kixi.core.TypeDef
+import io.kixi.core.NSID
+import io.kixi.core.Call
 
 @Suppress("KDocUnresolvedReference")
 abstract class CallDef(

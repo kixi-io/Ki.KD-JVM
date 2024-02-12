@@ -1,9 +1,9 @@
 package io.kixi.kd
 
-import io.kixi.Call
-import io.kixi.Ki
-import io.kixi.NSID
-import io.kixi.log
+import io.kixi.core.Call
+import io.kixi.core.Ki
+import io.kixi.core.NSID
+import io.kixi.core.log
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue

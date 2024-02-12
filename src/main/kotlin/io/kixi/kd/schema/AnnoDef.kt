@@ -1,7 +1,7 @@
 package io.kixi.kd.schema
 
 import io.kixi.kd.Annotation
-import io.kixi.NSID
+import io.kixi.core.NSID
 
 @Suppress("unused")
 class AnnoDef(

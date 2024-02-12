@@ -1,10 +1,10 @@
 package io.kixi.kd
 
-import io.kixi.Ki
+import io.kixi.core.Ki
 import kotlin.collections.ArrayList
 
-import io.kixi.Call
-import io.kixi.NSID
+import io.kixi.core.Call
+import io.kixi.core.NSID
 
 /**
  * KD documents are composed of KD tags. Tags can contain the following components:

@@ -1,6 +1,6 @@
 package io.kixi.kd.schema
 
-import io.kixi.NSID
+import io.kixi.core.NSID
 import io.kixi.kd.Tag
 
 class TagDef(

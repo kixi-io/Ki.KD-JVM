@@ -1,10 +1,10 @@
 package io.kixi.kd
 
-import io.kixi.Ki
-import io.kixi.Range
-import io.kixi.uom.Unit
-import io.kixi.uom.Mass
-import io.kixi.uom.Quantity
+import io.kixi.core.Ki
+import io.kixi.core.Range
+import io.kixi.core.uom.Unit
+import io.kixi.core.uom.Mass
+import io.kixi.core.uom.Quantity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue

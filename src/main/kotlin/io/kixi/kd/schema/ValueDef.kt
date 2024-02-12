@@ -1,6 +1,6 @@
 package io.kixi.kd.schema
 
-import io.kixi.*
+import io.kixi.core.TypeDef
 
 /**
  * A value pattern for a single value, which can be any KTS type, including a generic

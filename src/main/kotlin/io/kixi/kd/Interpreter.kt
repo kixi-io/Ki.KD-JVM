@@ -1,12 +1,17 @@
 package io.kixi.kd
 
-import io.kixi.*
+import io.kixi.core.Call
+import io.kixi.core.Ki
+import io.kixi.core.log
+import io.kixi.core.NSID
+import io.kixi.core.Range
+import io.kixi.core.Version
 import io.kixi.kd.antlr.KDLexer
 import io.kixi.kd.antlr.KDParser
-import io.kixi.text.ParseException
-import io.kixi.text.resolveEscapes
-import io.kixi.uom.Quantity
-import io.kixi.uom.Unit
+import io.kixi.core.text.ParseException
+import io.kixi.core.text.resolveEscapes
+import io.kixi.core.uom.Unit
+import io.kixi.core.uom.Quantity
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.misc.ParseCancellationException
 import java.io.Reader

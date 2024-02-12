@@ -1,6 +1,6 @@
 package io.kixi.kd.schema
 
-import io.kixi.Range
+import io.kixi.core.Range
 
 // class RangeMatcher<T: Comparable<T>>(val range:Range<T>) : Matcher {
 class RangeMatcher<T: Comparable<T>>(val range:Range<T>) : Matcher {

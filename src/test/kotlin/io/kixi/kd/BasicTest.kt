@@ -1,6 +1,6 @@
 package io.kixi.kd
 
-import io.kixi.Ki
+import io.kixi.core.Ki
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
