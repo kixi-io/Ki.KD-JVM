@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "io.kixi"
-version = "1.0-SNAPSHOT"
+version = "2.0.0"
 
 repositories {
     mavenCentral()
@@ -11,7 +11,7 @@ repositories {
 
 dependencies {
     // Ki.Core-JVM via composite build
-    implementation("io.kixi:Ki.Core-JVM:1.0-SNAPSHOT")
+    implementation("io.kixi:Ki.Core-JVM:2.0.0")
 
     testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
     testImplementation("io.kotest:kotest-assertions-core:5.9.1")
