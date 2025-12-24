@@ -25,24 +25,25 @@ import java.time.*
  * 7. Dec - BigDecimal with 'bd' or 'BD' suffix
  * 8. Bool - true/false (also on/off for SDL compatibility)
  * 9. URL - URLs enclosed in angle brackets or naked
+ * 10. Email - email addresses (e.g., user@domain.com)
  *
  * ### Phase 2 (DateTime & Complex)
- * 10. Date - LocalDate in y/M/d format
- * 11. LocalDateTime - date with time in y/M/d@H:mm:ss format
- * 12. ZonedDateTime - date/time with numeric zone offset (e.g., +5, -8:30)
- * 13. KiTZDateTime - date/time with KiTZ timezone (e.g., -JP/JST, -US/PST, -Z)
- * 14. Duration - time duration in compound or unit format
- * 15. Version - semantic version (major.minor.micro-qualifier)
- * 16. Blob - Base64 encoded binary data (.blob(...))
- * 17. GeoPoint - geographic coordinates (.geo(lat, lon, alt?))
+ * 11. Date - LocalDate in y/M/d format
+ * 12. LocalDateTime - date with time in y/M/d@H:mm:ss format
+ * 13. ZonedDateTime - date/time with numeric zone offset (e.g., +5, -8:30)
+ * 14. KiTZDateTime - date/time with KiTZ timezone (e.g., -JP/JST, -US/PST, -Z)
+ * 15. Duration - time duration in compound or unit format
+ * 16. Version - semantic version (major.minor.micro-qualifier)
+ * 17. Blob - Base64 encoded binary data (.blob(...))
+ * 18. GeoPoint - geographic coordinates (.geo(lat, lon, alt?))
  *
  * ### Phase 3 (Collections & Quantities)
- * 18. Quantity - number with unit of measure (e.g., 5cm, 23.5kg)
- * 19. Range - inclusive/exclusive ranges (e.g., 1..10, 1<..<10)
- * 20. List - ordered collection (e.g., [1, 2, 3])
- * 21. Map - key-value pairs (e.g., [a=1, b=2])
- * 22. Call - function call (e.g., rgb(255, 128, 0))
- * 23. nil - absence of value (nil or null)
+ * 19. Quantity - number with unit of measure (e.g., 5cm, 23.5kg)
+ * 20. Range - inclusive/exclusive ranges (e.g., 1..10, 1<..<10)
+ * 21. List - ordered collection (e.g., [1, 2, 3])
+ * 22. Map - key-value pairs (e.g., [a=1, b=2])
+ * 23. Call - function call (e.g., rgb(255, 128, 0))
+ * 24. nil - absence of value (nil or null)
  *
  * ## Tag Structure
  * ```
@@ -83,7 +84,9 @@ class KDParser {
             val tag = parseTag(ctx)
             if (tag != null) {
                 tags.add(tag)
-            } else if (ctx.pos == posBefore && !ctx.isEOF()) {
+            }
+            // Always check for progress, regardless of whether tag was parsed
+            if (ctx.pos == posBefore && !ctx.isEOF()) {
                 throw ctx.error("Unexpected character '${ctx.peek()}'")
             }
         }
@@ -221,6 +224,47 @@ class KDParser {
         val tag: Tag
         if (nsid != null) {
             val name = nsid.name
+
+            // Check if this is actually an email (identifier followed by @ or email chars then @)
+            // If so, treat as anonymous tag with email value
+            // But NOT if @ is followed by " (that's a raw string)
+            if (!nsid.hasNamespace) {
+                val nextCh = ctx.peek()
+                val nextCh2 = ctx.peek(1)
+                // Check for @ but exclude @" which is raw string syntax
+                val couldBeEmail = (nextCh == '@' && nextCh2 != '"') ||
+                        nextCh == '+' || nextCh == '.' || nextCh == '-' || nextCh == '%'
+                if (couldBeEmail) {
+                    // Look ahead to see if there's an @ sign (indicating email)
+                    val lookAheadState = ctx.saveState()
+                    while (!ctx.isEOF()) {
+                        val ch = ctx.peek() ?: break
+                        if (ch == '@') {
+                            // Make sure @ is not followed by " (raw string)
+                            if (ctx.peek(1) == '"') {
+                                break
+                            }
+                            // This is an email pattern, parse as anonymous tag
+                            ctx.restoreState(savedState)
+                            tag = Tag(NSID.ANONYMOUS)
+                            tag.annotations.addAll(annotations)
+                            parseValuesAndAttributes(ctx, tag)
+                            skipSpacesAndTabs(ctx)
+                            if (ctx.peek() == '{') {
+                                ctx.advance()
+                                parseChildren(ctx, tag)
+                            }
+                            return tag
+                        } else if (ch.isLetterOrDigit() || ch == '+' || ch == '.' || ch == '-' || ch == '%' || ch == '_') {
+                            ctx.advance()
+                        } else {
+                            break
+                        }
+                    }
+                    ctx.restoreState(lookAheadState)
+                }
+            }
+
             if (!nsid.hasNamespace && isKeyword(name)) {
                 skipSpacesAndTabs(ctx)
                 val nextCh = ctx.peek()
@@ -1719,6 +1763,15 @@ class KDParser {
             return parseNakedURL(ctx, token)
         }
 
+        // Check if this could be an Email (local part may contain . + - % before @)
+        val nextCh = ctx.peek()
+        if (nextCh == '@' || nextCh == '+' || nextCh == '.' || nextCh == '-' || nextCh == '%') {
+            val emailResult = tryParseEmail(ctx, token, start)
+            if (emailResult != null) {
+                return emailResult
+            }
+        }
+
         // Check for namespace:name pattern (for namespaced calls)
         if (ctx.peek() == ':' && ctx.peek(1) != '=') {
             ctx.advance() // skip ':'
@@ -1750,6 +1803,74 @@ class KDParser {
             "Infinity" -> Double.POSITIVE_INFINITY
             "NaN" -> Double.NaN
             else -> token
+        }
+    }
+
+    /**
+     * Tries to parse an Email literal.
+     * Email local parts can contain: letters, digits, and . + - % _
+     * The '@' symbol separates local part from domain.
+     *
+     * @param ctx The parse context
+     * @param initialLocalPart The already-parsed initial part of local (before special chars)
+     * @param originalStart The original start position for backtracking
+     * @return The parsed Email or null if not a valid email
+     */
+    private fun tryParseEmail(ctx: ParseContext, initialLocalPart: String, originalStart: Int): Email? {
+        val savedState = ctx.saveState()
+
+        // Build the full local part by continuing to consume email-valid characters
+        val localPartBuilder = StringBuilder(initialLocalPart)
+
+        // Continue consuming local part characters: letters, digits, . + - % _
+        while (!ctx.isEOF()) {
+            val ch = ctx.peek() ?: break
+            if (ch.isLetterOrDigit() || ch == '.' || ch == '+' || ch == '-' || ch == '%' || ch == '_') {
+                localPartBuilder.append(ch)
+                ctx.advance()
+            } else {
+                break
+            }
+        }
+
+        // Must have '@' next
+        if (ctx.peek() != '@') {
+            ctx.restoreState(savedState)
+            return null
+        }
+
+        // Consume the '@'
+        ctx.advance()
+
+        // Parse the domain part
+        val domainStart = ctx.pos
+        while (!ctx.isEOF()) {
+            val ch = ctx.peek() ?: break
+            // Domain chars: letters, digits, hyphen, dot
+            if (ch.isLetterOrDigit() || ch == '-' || ch == '.') {
+                ctx.advance()
+            } else {
+                break
+            }
+        }
+
+        val domain = ctx.substring(domainStart, ctx.pos)
+
+        // Validate: domain must have content and contain a dot (for TLD)
+        if (domain.isEmpty() || !domain.contains('.') || domain.endsWith('.')) {
+            ctx.restoreState(savedState)
+            return null
+        }
+
+        val localPart = localPartBuilder.toString()
+        val emailAddress = "$localPart@$domain"
+
+        return try {
+            Email.of(emailAddress)
+        } catch (e: Exception) {
+            // Not a valid email, backtrack
+            ctx.restoreState(savedState)
+            null
         }
     }
 
