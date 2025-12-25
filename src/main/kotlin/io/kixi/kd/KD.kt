@@ -24,7 +24,7 @@ class KD {
         @JvmStatic fun read(file: File) : Tag = read(FileReader(file))
         @JvmStatic fun read(url: URL) : Tag = read(url.readText())
         @JvmStatic fun readResource(resource:String) : Tag = read(this::class.java.
-        getResource("/" + resource))
+            getResource("/" + resource))
 
         /**
          * Create an object from a KD literal. This can be used like so:

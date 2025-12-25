@@ -319,7 +319,8 @@ class KDParser {
         while (!ctx.isEOF()) {
             skipWhitespaceAndComments(ctx)
 
-            if (ctx.peek() == '@') {
+            // Check for '@' but NOT '@"' which is a raw string
+            if (ctx.peek() == '@' && ctx.peek(1) != '"') {
                 val annotation = parseAnnotation(ctx)
                 if (annotation != null) {
                     annotations.add(annotation)
@@ -903,6 +904,12 @@ class KDParser {
         ctx.advance() // @
         ctx.advance() // "
 
+        // Check for raw block string @"""..."""
+        if (ctx.peek() == '"' && ctx.peek(1) == '"') {
+            ctx.advance(2) // skip remaining ""
+            return parseRawBlockString(ctx)
+        }
+
         val sb = StringBuilder()
 
         while (!ctx.isEOF()) {
@@ -918,6 +925,33 @@ class KDParser {
         }
 
         throw ctx.error("Unterminated raw string")
+    }
+
+    /**
+     * Parses a raw block string (the content after @""").
+     * No escape processing - content is taken as-is until closing """.
+     */
+    private fun parseRawBlockString(ctx: ParseContext): String {
+        val sb = StringBuilder()
+
+        // Skip leading newline if present (like block strings)
+        if (ctx.peek() == '\n') {
+            ctx.advance()
+        } else if (ctx.peek() == '\r' && ctx.peek(1) == '\n') {
+            ctx.advance(2)
+        }
+
+        while (!ctx.isEOF()) {
+            if (ctx.peek() == '"' && ctx.peek(1) == '"' && ctx.peek(2) == '"') {
+                ctx.advance(3)
+                return processBlockStringContent(sb.toString())
+            }
+
+            sb.append(ctx.peek())
+            ctx.advance()
+        }
+
+        throw ctx.error("Unterminated raw block string")
     }
 
     private fun parseBlockString(ctx: ParseContext): String {
