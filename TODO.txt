@@ -1,4 +1,10 @@
-Currency
-Email
-User defined type extensions
-Regex literal with unified RE standard
+// TODO
+1. Currency
+2. User defined type extensions
+3. Regex literal with unified RE standard
+
+// Bugs
+1. Fix string letterals. Support all forms in the documentation.
+2. Fix @"test" - It is conflicting with email. We just need to require emails
+   can't have spaces and the problem will be fixed.
+
