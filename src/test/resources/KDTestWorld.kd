@@ -1,0 +1,778 @@
+###############################################################################
+#  Ki Data (KD) - Fantasy Game World Definition
+#  ファンタジーゲームワールド定義 ⚔️🏰🐉
+###############################################################################
+
+@GameWorld(name="Eternia" version=1.0.0)
+@Author(name="Game Master" email=gm@eternia.game)
+world {
+
+    # =========================================================================
+    # 🌍 WORLD SETTINGS
+    # =========================================================================
+
+    @WorldConfig
+    settings {
+        name "Eternia: 永遠の王国"
+        description """
+        A vast fantasy world where magic and technology coexist.
+        Ancient dragons sleep in forgotten mountains while
+        floating cities harness the power of crystals.
+
+        永遠の王国エターニアへようこそ！
+        ¡Bienvenido al Reino Eterno!
+        """
+
+        dimensions width=10000km height=10000km
+        gravity 9.8
+        day_cycle 24h
+        year_length 365days
+
+        magic_enabled true
+        technology_level "steampunk"
+        difficulty "heroic"
+
+        starting_location .geo(50.0, 50.0, 100.0)
+        respawn_delay 30s
+
+        supported_languages ["en" "ja" "es" "de" "fr"]
+    }
+
+    # =========================================================================
+    # 🗺️ REGIONS
+    # =========================================================================
+
+    @Regions
+    regions {
+
+        @Region(type="kingdom" climate="temperate")
+        region "Aurelia" id=1 {
+            description "The Golden Kingdom, heart of human civilization"
+            capital "Goldenhall"
+            population 500000
+            area 2500km²
+
+            bounds_sw .geo(45.0, 45.0)
+            bounds_ne .geo(55.0, 55.0)
+
+            @Resources
+            resources [gold=abundant, iron=common, wood=plentiful, gems=rare]
+
+            @Factions
+            factions {
+                faction "Royal Guard" alignment="lawful_good" reputation=100
+                faction "Merchant Guild" alignment="neutral" reputation=75
+                faction "Thieves Guild" alignment="chaotic_neutral" reputation=-25
+            }
+
+            @Cities
+            cities {
+                @Capital
+                city "Goldenhall" population=100000 {
+                    coords .geo(50.0, 50.0, 150.0)
+
+                    @Districts
+                    districts {
+                        "Royal Quarter" wealth="high" crime="low"
+                        "Market District" wealth="medium" crime="medium"
+                        "Port District" wealth="medium" crime="medium"
+                        "Slums" wealth="low" crime="high"
+                    }
+
+                    @Landmarks
+                    landmarks {
+                        landmark "黄金の王座" type="palace" coords=.geo(50.0, 50.0, 155.0)
+                        landmark "Cathedral of Light" type="temple" coords=.geo(50.1, 50.0, 152.0)
+                        landmark "Arcane Academy" type="school" coords=.geo(49.9, 50.1, 148.0)
+                    }
+                }
+
+                city "Riverside" population=25000 coords=.geo(48.0, 52.0, 120.0)
+                city "Hilltop" population=15000 coords=.geo(52.0, 48.0, 200.0)
+            }
+        }
+
+        @Region(type="forest" climate="mystical")
+        region "Sylvanwood" id=2 {
+            description "古代の森、エルフの故郷 - Ancient forest, home of the elves"
+            capital "Moonleaf"
+            population 50000
+            area 5000km²
+
+            bounds_sw .geo(55.0, 45.0)
+            bounds_ne .geo(65.0, 60.0)
+
+            @MagicLevel
+            magic ambient_mana=high ley_lines=dense
+
+            @Inhabitants
+            inhabitants {
+                "High Elves" population=30000 disposition="friendly"
+                "Wood Elves" population=15000 disposition="neutral"
+                "Forest Spirits" population=5000 disposition="mysterious"
+            }
+
+            @Flora
+            flora {
+                "Moonpetal Flower" rarity="rare" effect=heal(50)
+                "Starlight Moss" rarity="uncommon" effect=restore_mana(30)
+                "Ancient Treant Seeds" rarity="legendary" effect=summon(treant)
+            }
+
+            @Fauna
+            fauna {
+                "Forest Deer" level=1..5 hostile=false
+                "Giant Spider" level=10..15 hostile=true
+                "Unicorn" level=50 hostile=false legendary=true
+            }
+        }
+
+        @Region(type="mountain" climate="arctic")
+        region "Frostpeak" id=3 {
+            description "The frozen mountains where dragons dwell"
+            capital "Icehaven"
+            population 20000
+            area 3000km²
+
+            bounds_sw .geo(30.0, 60.0)
+            bounds_ne .geo(45.0, 75.0)
+
+            temperature_range -40°C..10°C
+            elevation_range 2000m..6000m
+
+            @Dragons
+            dragons {
+                @Boss
+                dragon "Frostmaw the Ancient" {
+                    level 100
+                    health 1000000
+                    element "ice"
+                    lair .geo(35.0, 70.0, 5500.0)
+
+                    @Abilities
+                    abilities {
+                        "Frost Breath" damage=500..750 cooldown=10s
+                        "Blizzard" damage=200..300 aoe=50m duration=30s
+                        "Ice Shield" absorb=10000 duration=1min
+                    }
+
+                    @Loot
+                    loot {
+                        "Dragon Scale Armor" drop_rate=0.1 stats=[defense=100, frost_resist="50%"]
+                        "Frostmaw's Fang" drop_rate=0.05 stats=[damage=50..75, frost_damage=25]
+                        "Ancient Dragon Heart" drop_rate=0.01 unique=true
+                    }
+                }
+
+                dragon "Lesser Frost Drake" level=40..50 spawns=10 respawn=6h
+                dragon "Ice Wyrm" level=25..35 spawns=25 respawn=2h
+            }
+        }
+
+        @Region(type="desert" climate="arid")
+        region "Scorchlands" id=4 {
+            description "Los desiertos ardientes del sur - The burning deserts of the south"
+            capital "Oasis City"
+            population 75000
+            area 8000km²
+
+            bounds_sw .geo(20.0, 20.0)
+            bounds_ne .geo(40.0, 45.0)
+
+            temperature_range 15°C..55°C
+            water_scarcity "extreme"
+
+            @Hazards
+            hazards {
+                "Sandstorm" frequency=2days damage=10 visibility="-90%"
+                "Heatstroke" temp_threshold=45°C damage=5 interval=10s
+                "Quicksand" locations=[.geo(25.0, 30.0), .geo(35.0, 35.0), .geo(30.0, 40.0)]
+            }
+
+            @Ruins
+            ruins {
+                @Dungeon(difficulty="hard")
+                ruin "Pharaoh's Tomb" {
+                    coords .geo(28.0, 32.0, -50.0)
+                    floors 5
+                    boss "Undead Pharaoh" level=60
+
+                    @Traps
+                    traps {
+                        "Spike Trap" damage=100 detect_dc=15
+                        "Poison Dart" damage=50 poison=true detect_dc=18
+                        "Crushing Wall" damage=500 detect_dc=20
+                    }
+
+                    @Treasure
+                    treasure {
+                        gold 10000..50000
+                        gems [ruby, sapphire, emerald]
+                        artifacts ["Staff of the Sun" "Scarab Amulet" "Mummy Wrappings"]
+                    }
+                }
+
+                ruin "Lost Library" coords=.geo(35.0, 28.0) floors=3 boss=nil treasure=[spellbooks, scrolls]
+            }
+        }
+    }
+
+    # =========================================================================
+    # 👤 CHARACTER CLASSES
+    # =========================================================================
+
+    @Classes
+    classes {
+
+        @Class(role="tank" difficulty="easy")
+        class "Warrior" {
+            description "戦士 - Master of arms and armor"
+
+            @BaseStats
+            base_stats {
+                health 150
+                mana 30
+                strength 15
+                agility 10
+                intelligence 8
+                stamina 14
+            }
+
+            @GrowthRates
+            growth health=15 mana=2 strength=3 agility=2 intelligence=1 stamina=3
+
+            @Abilities
+            abilities {
+                @Level(1)
+                ability "Strike" {
+                    type "physical"
+                    damage formula("strength * 1.5")
+                    cost stamina=10
+                    cooldown 0s
+                }
+
+                @Level(5)
+                ability "Shield Bash" {
+                    type "physical"
+                    damage formula("strength * 1.2")
+                    effect stun(2s)
+                    cost stamina=20
+                    cooldown 8s
+                }
+
+                @Level(10)
+                ability "Battle Cry" {
+                    type "buff"
+                    effect [attack_up("20%", 30s), defense_up("10%", 30s)]
+                    cost stamina=30
+                    cooldown 60s
+                    range 10m
+                    affects "party"
+                }
+
+                @Level(20)
+                @Ultimate
+                ability "Berserker Rage" {
+                    type "transformation"
+                    duration 30s
+                    effects [
+                        damage_multiplier=2.0
+                        attack_speed=1.5
+                        defense="-30%"
+                        hp_regen="1%"
+                    ]
+                    cost stamina=100
+                    cooldown 5min
+                }
+            }
+
+            @Equipment
+            allowed_equipment {
+                weapons ["sword" "axe" "mace" "spear" "shield"]
+                armor ["heavy_armor" "medium_armor"]
+                accessories ["ring" "amulet" "belt"]
+            }
+        }
+
+        @Class(role="healer" difficulty="medium")
+        class "Priest" {
+            description "神官 - Servant of the divine, master of healing"
+
+            @BaseStats
+            base_stats {
+                health 80
+                mana 120
+                strength 6
+                agility 8
+                intelligence 16
+                wisdom 14
+            }
+
+            @GrowthRates
+            growth health=8 mana=15 strength=1 agility=2 intelligence=4 wisdom=3
+
+            @Abilities
+            abilities {
+                @Level(1)
+                ability "Heal" {
+                    type "restoration"
+                    heal formula("intelligence * 2.0")
+                    cost mana=20
+                    cooldown 2s
+                    range 20m
+                    target "ally"
+                }
+
+                @Level(5)
+                ability "Purify" {
+                    type "cleanse"
+                    removes ["poison" "disease" "curse"]
+                    cost mana=30
+                    cooldown 10s
+                }
+
+                @Level(15)
+                ability "Divine Shield" {
+                    type "protection"
+                    absorb formula("intelligence * 5")
+                    duration 10s
+                    cost mana=50
+                    cooldown 30s
+                }
+
+                @Level(30)
+                @Ultimate
+                ability "Resurrection" {
+                    type "revival"
+                    revive_health "50%"
+                    cost mana=200
+                    cooldown 10min
+                    range 5m
+                }
+            }
+        }
+
+        @Class(role="dps" difficulty="hard")
+        class "Mage" {
+            description "魔法使い - Wielder of arcane forces"
+            japanese_name "魔法使い"
+            spanish_name "Mago"
+
+            @BaseStats
+            base_stats {
+                health 60
+                mana 150
+                strength 5
+                agility 10
+                intelligence 18
+                arcana 15
+            }
+
+            @Specializations
+            specializations {
+                spec "Pyromancer" element="fire" bonus_damage="15%"
+                spec "Cryomancer" element="ice" bonus_cc="20%"
+                spec "Arcanist" element="arcane" bonus_mana="25%"
+            }
+
+            @Abilities
+            abilities {
+                @Level(1)
+                ability "Fireball" {
+                    type "damage"
+                    element "fire"
+                    damage formula("intelligence * 2.5")
+                    cost mana=25
+                    cooldown 3s
+                    range 30m
+                    aoe 5m
+                }
+
+                @Level(10)
+                ability "Blizzard" {
+                    type "damage_over_time"
+                    element "ice"
+                    damage formula("intelligence * 0.5")
+                    ticks 10
+                    interval 1s
+                    slow "50%"
+                    cost mana=60
+                    cooldown 15s
+                    range 25m
+                    aoe 15m
+                }
+
+                @Level(25)
+                ability "Teleport" {
+                    type "movement"
+                    range 30m
+                    cost mana=40
+                    cooldown 20s
+                }
+
+                @Level(40)
+                @Ultimate
+                ability "Meteor Storm" {
+                    type "ultimate_damage"
+                    element "fire"
+                    meteors 10
+                    damage_per_meteor formula("intelligence * 3")
+                    duration 10s
+                    cost mana=300
+                    cooldown 5min
+                    range 40m
+                    aoe 30m
+                }
+            }
+        }
+    }
+
+    # =========================================================================
+    # 🎒 ITEMS
+    # =========================================================================
+
+    @Items
+    items {
+
+        @Weapons
+        weapons {
+            @Legendary
+            weapon "Excalibur" {
+                type "sword"
+                damage 100..150
+                attack_speed 1.2
+
+                @Requirements
+                requires level=50 strength=30 alignment="good"
+
+                @Enchantments
+                enchantments {
+                    "Holy Light" bonus_damage_undead="50%"
+                    "Blessing" party_heal_on_kill=heal(10)
+                }
+
+                @Lore
+                lore """
+                The legendary blade of kings, pulled from the stone
+                by the one true hero. It glows with holy light.
+
+                伝説の王の剣、真の英雄だけが石から引き抜ける。
+                """
+
+                bound true
+                tradeable false
+                sell_price 0
+            }
+
+            @Epic
+            weapon "龍殺しの槍" {
+                type "spear"
+                damage 75..120
+                attack_speed 0.9
+
+                requires level=40 strength=25 agility=20
+
+                enchantments {
+                    "Dragon Slayer" bonus_damage_dragons="100%"
+                    "Piercing" armor_penetration="30%"
+                }
+            }
+
+            @Rare
+            weapon "Frostbite" type="dagger" damage=30..45 attack_speed=2.0 {
+                requires level=25 agility=20
+                enchantments {
+                    "Frost Touch" slow="20%" frost_damage=15
+                }
+            }
+        }
+
+        @Armor
+        armors {
+            @Legendary
+            armor "天使の羽衣" {
+                type "robe"
+                defense 50
+                magic_defense 100
+
+                requires level=60 intelligence=40
+
+                @Bonuses
+                bonuses {
+                    mana 200
+                    mana_regen 10
+                    cast_speed "15%"
+                    spell_power "25%"
+                }
+
+                @SetBonus(set="Celestial" pieces=4)
+                set_bonus "Divine Protection" damage_reduction="20%"
+            }
+        }
+
+        @Consumables
+        consumables {
+            potion "Health Potion" tier="minor" heal=50 cooldown=30s price=10
+            potion "Health Potion" tier="medium" heal=150 cooldown=30s price=50
+            potion "Health Potion" tier="major" heal=500 cooldown=30s price=200
+
+            potion "Mana Potion" tier="minor" restore_mana=30 cooldown=30s price=15
+            potion "Mana Potion" tier="medium" restore_mana=100 cooldown=30s price=75
+            potion "Mana Potion" tier="major" restore_mana=300 cooldown=30s price=300
+
+            food "パン" restore_health=20 duration=10s price=2
+            food "ステーキ" restore_health=100 buff=strength(5, 1h) price=25
+            food "エルフの蜜酒" restore_all=true buff=[all_stats(10, 2h)] price=500
+
+            scroll "Teleport Scroll" destination=.geo(50.0, 50.0, 150.0) price=100
+            scroll "Identify Scroll" identifies=true price=50
+        }
+    }
+
+    # =========================================================================
+    # 📜 QUESTS
+    # =========================================================================
+
+    @Quests
+    quests {
+
+        @MainQuest
+        quest "The Awakening" id=1 {
+            chapter 1
+            description """
+            You wake up in a small village with no memory of your past.
+            Strange dreams haunt you - visions of a great darkness approaching.
+
+            小さな村で目覚めたあなた。過去の記憶がない。
+            奇妙な夢があなたを悩ませる - 迫りくる闘の幻視。
+            """
+
+            @Objectives
+            objectives {
+                1 "Talk to the Village Elder" location=.geo(50.5, 50.5)
+                2 "Retrieve the Ancient Tome from the forest" item="Ancient Tome"
+                3 "Defeat the Shadow Wraith" kill="Shadow Wraith" count=1
+                4 "Return to the Elder" location=.geo(50.5, 50.5)
+            }
+
+            @Rewards
+            rewards {
+                experience 1000
+                gold 500
+                items ["Traveler's Cloak" "Basic Weapon Voucher"]
+                unlocks quest=2
+            }
+
+            level_range 1..5
+            repeatable false
+            time_limit nil
+        }
+
+        @SideQuest
+        quest "Lost Treasure of the Dwarves" id=101 {
+            giver "Grumpy Miner"
+            location .geo(42.0, 55.0, 500.0)
+
+            description "Help find the lost treasure of the ancient dwarven kingdom"
+
+            @Objectives
+            objectives {
+                1 "Find the treasure map" hint="Check the old library"
+                2 "Decipher the map" requires_skill=linguistics(15)
+                3 "Navigate to the treasure location" coords=.geo(38.5, 62.3, -100.0)
+                4 "Defeat the guardian" kill="Stone Golem" count=1
+                5 "Claim the treasure" interact="Ancient Chest"
+            }
+
+            @Rewards
+            rewards {
+                experience 5000
+                gold 2000..5000
+                reputation faction="Dwarven Alliance" amount=500
+                choice [
+                    "Dwarven Battleaxe"
+                    "Dwarven Shield"
+                    "Bag of Gems"
+                ]
+            }
+
+            level_range 20..30
+            repeatable false
+        }
+
+        @DailyQuest
+        quest "Monster Hunt" id=1001 {
+            description "Cull the monster population in the area"
+
+            @Targets(choose=1)
+            targets {
+                "Goblin" count=20 region="Aurelia"
+                "Wolf" count=15 region="Sylvanwood"
+                "Skeleton" count=25 region="Scorchlands"
+            }
+
+            @Rewards
+            rewards {
+                experience 500
+                gold 100
+                tokens daily_token=3
+            }
+
+            repeatable true
+            reset_time 0:00:00
+            cooldown 24h
+        }
+    }
+
+    # =========================================================================
+    # 🎮 GAME EVENTS
+    # =========================================================================
+
+    @Events
+    events {
+
+        @SeasonalEvent
+        event "Winter Festival" {
+            start 2024/12/20@00:00:00-Z
+            end 2025/1/5@23:59:59-Z
+
+            description """
+            Celebrate the winter season with special activities!
+            冬のお祭りを楽しもう！❄️🎄
+            ¡Celebra la temporada de invierno! 🎅
+            """
+
+            @Activities
+            activities {
+                "Snowball Fight" location=.geo(50.0, 50.0) reward=festive_token(5)
+                "Gift Exchange" npc="Santa" reward=random_gift()
+                "Ice Sculpture Contest" skill=crafting(20) reward=special_title("Ice Artist")
+            }
+
+            @SpecialBoss
+            boss "Frost King" {
+                level 80
+                location .geo(35.0, 70.0, 5000.0)
+                spawn_times [12:00:00, 18:00:00, 0:00:00]
+
+                @ExclusiveLoot
+                loot {
+                    "Frost King's Crown" drop_rate=0.05
+                    "Snowflake Mount" drop_rate=0.01
+                    "Winter Festival Token" drop_rate=1.0 quantity=10..20
+                }
+            }
+
+            @Shop
+            shop {
+                "Festive Hat" cost=festive_token(50)
+                "Reindeer Mount" cost=festive_token(500)
+                "Snowfall Effect" cost=festive_token(200)
+                "Candy Cane Weapon Skin" cost=festive_token(100)
+            }
+        }
+
+        @WorldBoss
+        event "Dragon Rampage" {
+            trigger random
+            frequency 3days..7days
+            duration 2h
+
+            @Announcement
+            announcement """
+            ⚠️ WORLD BOSS ALERT ⚠️
+            A massive dragon has appeared! All heroes to arms!
+
+            ドラゴン出現！全勇者、武器を取れ！
+            ¡Un dragón masivo ha aparecido! ¡Todos a las armas!
+            """
+
+            boss "Chaos Dragon" level=100 health=10000000 {
+                locations [
+                    .geo(30.0, 30.0, 1000.0)
+                    .geo(60.0, 60.0, 1000.0)
+                    .geo(45.0, 70.0, 1000.0)
+                ]
+
+                phases [
+                    phase(1, health="100%..75%", abilities=["Fire Breath", "Tail Swipe"])
+                    phase(2, health="75%..50%", abilities=["Meteor Storm", "Enrage"])
+                    phase(3, health="50%..25%", abilities=["Ultimate Fire", "Summon Drakes"])
+                    phase(4, health="25%..0%", abilities=["All", "Berserk"])
+                ]
+            }
+
+            @Participation
+            participation {
+                damage_threshold 10000
+                healing_threshold 50000
+                contribution_rewards true
+            }
+
+            @Rewards
+            rewards {
+                top_1 ["Legendary Weapon Box", gold(100000), title("Dragon Slayer")]
+                top_10 ["Epic Weapon Box", gold(50000)]
+                top_100 ["Rare Weapon Box", gold(10000)]
+                participants ["Dragon Scale", gold(1000)]
+            }
+        }
+    }
+
+    # =========================================================================
+    # 📊 STATISTICS TRACKING
+    # =========================================================================
+
+    @Statistics
+    statistics {
+        @PlayerStats
+        player_stats {
+            "Total Play Time" unit=h
+            "Monsters Killed" unit=count
+            "Quests Completed" unit=count
+            "Gold Earned" unit=count
+            "Distance Traveled" unit=km
+            "Deaths" unit=count
+            "PvP Kills" unit=count
+            "Dungeons Cleared" unit=count
+            "Items Crafted" unit=count
+            "Fish Caught" unit=count
+        }
+
+        @Leaderboards
+        leaderboards {
+            "Highest Level" sort="desc" stat="level"
+            "Most Monsters Killed" sort="desc" stat="monsters_killed"
+            "Fastest Boss Kill" sort="asc" stat="boss_time" boss="Frostmaw"
+            "Richest Player" sort="desc" stat="gold"
+            "Most Deaths" sort="desc" stat="deaths" display_name="Most Determined 😅"
+        }
+
+        @Achievements
+        achievements {
+            achievement "First Steps" description="Complete the tutorial" reward=title("Newcomer")
+            achievement "百殺し" description="Kill 100 monsters" reward=gold(500)
+            achievement "Dragon Slayer" description="Defeat Frostmaw" reward=mount("Baby Dragon")
+            achievement "Millionaire" description="Accumulate 1,000,000 gold" reward=title("Tycoon 💰")
+            achievement "Explorer" description="Visit all regions" reward=mount("Flying Carpet")
+            achievement "完璧主義者" description="100% completion" reward=cosmetic("Golden Aura")
+        }
+    }
+}
+
+# Final summary of the game world
+@Summary
+summary {
+    regions 4
+    classes 3
+    quests 4
+    events 2
+    items "hundreds"
+
+    fun_guaranteed true
+    adventure_awaits true
+
+    motto "Every hero has a story. What's yours? 🦸‍♂️"
+    japanese_motto "全ての英雄には物語がある。あなたの物語は？"
+    spanish_motto "Todo héroe tiene una historia. ¿Cuál es la tuya?"
+}

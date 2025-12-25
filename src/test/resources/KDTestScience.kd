@@ -1,0 +1,697 @@
+###############################################################################
+#  Ki Data (KD) - Scientific & Technical Data Collection
+#  科学技術データコレクション 🔬🚀⚗️
+###############################################################################
+
+@DataSet(type="scientific" version=1.0.0)
+@Institution(name="Ki Research Institute" location=.geo(35.6762, 139.6503, 40.0))
+@LastUpdated(2024/12/25@10:00:00-JP/JST)
+science {
+
+    # =========================================================================
+    # ⚛️ PHYSICAL CONSTANTS
+    # =========================================================================
+
+    @Category("Physics")
+    constants {
+        # Fundamental constants
+        speed_of_light 299792458m symbol="c" uncertainty=nil exact=true
+        planck_constant 6.62607015e-34 symbol="h" unit="J⋅s" exact=true
+        gravitational_constant 6.67430e-11 symbol="G" unit="m³/(kg⋅s²)" uncertainty=0.00015e-11
+        elementary_charge 1.602176634e-19 symbol="e" unit="C" exact=true
+        boltzmann_constant 1.380649e-23 symbol="k" unit="J/K" exact=true
+        avogadro_number 6.02214076e23 symbol="Nₐ" unit="mol⁻¹" exact=true
+
+        # Derived constants
+        vacuum_permittivity 8.8541878128e-12 symbol="ε₀" unit="F/m"
+        vacuum_permeability 1.25663706212e-6 symbol="μ₀" unit="H/m"
+        fine_structure_constant 0.0072973525693 symbol="α" dimensionless=true
+
+        # Astronomical constants
+        astronomical_unit 149597870700m symbol="AU" exact=true
+        light_year 9460730472580800m symbol="ly"
+        parsec 30856775814913673m symbol="pc"
+        solar_mass 1.989e30 symbol="M☉" unit="kg"
+        earth_mass 5.972e24 symbol="M⊕" unit="kg"
+        earth_radius 6371km symbol="R⊕"
+    }
+
+    # =========================================================================
+    # 🧪 CHEMICAL ELEMENTS
+    # =========================================================================
+
+    @Category("Chemistry")
+    elements {
+        # Selected elements with full data
+
+        @Element(atomic_number=1)
+        element "Hydrogen" symbol="H" {
+            japanese_name "水素"
+            spanish_name "Hidrógeno"
+
+            atomic_mass 1.008
+            density 0.08988 unit="g/L"
+            melting_point -259.16°C
+            boiling_point -252.87°C
+            electronegativity 2.20
+
+            isotopes {
+                isotope "Protium" mass_number=1 abundance="99.98%"
+                isotope "Deuterium" mass_number=2 abundance="0.02%"
+                isotope "Tritium" mass_number=3 abundance=trace radioactive=true half_life=12.32
+            }
+
+            electron_config "1s¹"
+            group 1
+            period 1
+            category "nonmetal"
+
+            discovered 1766
+            discoverer "Henry Cavendish"
+        }
+
+        @Element(atomic_number=6)
+        element "Carbon" symbol="C" {
+            japanese_name "炭素"
+            spanish_name "Carbono"
+
+            atomic_mass 12.011
+            density 2.267 unit="g/cm³"
+            melting_point 3550°C sublimes=true
+            boiling_point 4027°C
+            electronegativity 2.55
+
+            allotropes ["Diamond" "Graphite" "Fullerene" "Graphene" "Carbon Nanotube"]
+
+            isotopes {
+                isotope "Carbon-12" mass_number=12 abundance="98.93%"
+                isotope "Carbon-13" mass_number=13 abundance="1.07%"
+                isotope "Carbon-14" mass_number=14 radioactive=true half_life=5730 use="radiocarbon dating"
+            }
+
+            electron_config "[He] 2s² 2p²"
+            group 14
+            period 2
+            category "nonmetal"
+
+            organic_chemistry true
+            forms_of_life "基本元素"
+        }
+
+        @Element(atomic_number=79)
+        element "Gold" symbol="Au" {
+            japanese_name "金"
+            spanish_name "Oro"
+            latin_name "Aurum"
+
+            atomic_mass 196.967
+            density 19.3 unit="g/cm³"
+            melting_point 1064.18°C
+            boiling_point 2856°C
+            electronegativity 2.54
+
+            electron_config "[Xe] 4f¹⁴ 5d¹⁰ 6s¹"
+            group 11
+            period 6
+            category "transition_metal"
+
+            properties {
+                color rgb(255, 215, 0)
+                luster "metallic"
+                hardness 2.5 scale="Mohs"
+                conductivity "excellent"
+                corrosion_resistant true
+            }
+
+            uses ["jewelry" "electronics" "currency" "dentistry" "aerospace"]
+
+            price_per_gram 65.0 currency="USD" date=2024/12/25
+        }
+    }
+
+    # =========================================================================
+    # 🌌 SOLAR SYSTEM DATA
+    # =========================================================================
+
+    @Category("Astronomy")
+    solar_system {
+
+        @Star
+        star "Sun" {
+            japanese_name "太陽"
+            spanish_name "Sol"
+
+            classification "G2V"
+            mass 1.989e30 unit="kg"
+            radius 696340km
+            surface_temperature 5778K
+            core_temperature 15000000K
+            luminosity 3.828e26 unit="W"
+            age 4.6e9 unit="years"
+
+            composition {
+                hydrogen "73.46%"
+                helium "24.85%"
+                oxygen "0.77%"
+                carbon "0.29%"
+                iron "0.16%"
+                other "0.47%"
+            }
+
+            rotation_period 25.05days equatorial=true
+
+            @SolarCycle
+            cycle {
+                period 11 unit="years"
+                current_cycle 25
+                cycle_start 2019/12/1
+                maximum_expected 2025/7/1
+            }
+        }
+
+        @Planets
+        planets {
+            # Inner planets
+            @TerrestrialPlanet
+            planet "Mercury" order=1 {
+                japanese_name "水星"
+                mass 3.301e23 unit="kg"
+                radius 2439.7km
+                orbital_period 87.97days
+                orbital_distance 57.91e(6)km semi_major=true
+                moons 0
+                rings false
+                surface_temperature -180°C..430°C
+                atmosphere "trace"
+            }
+
+            @TerrestrialPlanet
+            planet "Venus" order=2 {
+                japanese_name "金星"
+                spanish_name "Venus"
+                mass 4.867e24 unit="kg"
+                radius 6051.8km
+                orbital_period 224.7days
+                orbital_distance 108.2e(6)km
+                moons 0
+                rings false
+                surface_temperature 465°C
+                atmosphere "dense_CO2"
+                retrograde_rotation true
+            }
+
+            @TerrestrialPlanet
+            @Home
+            planet "Earth" order=3 {
+                japanese_name "地球"
+                spanish_name "Tierra"
+                mass 5.972e24 unit="kg"
+                radius 6371km
+                orbital_period 365.25days
+                orbital_distance 149.6e(6)km
+                axial_tilt 23.44
+
+                moons 1
+                moon "Moon" {
+                    japanese_name "月"
+                    mass 7.342e22 unit="kg"
+                    radius 1737.4km
+                    orbital_period 27.3days
+                    distance 384400km
+                }
+
+                atmosphere {
+                    nitrogen "78.08%"
+                    oxygen "20.95%"
+                    argon "0.93%"
+                    co2 "0.04%"
+                }
+
+                surface_water "71%"
+                life true emoji="🌍"
+            }
+
+            @TerrestrialPlanet
+            planet "Mars" order=4 {
+                japanese_name "火星"
+                spanish_name "Marte"
+                mass 6.39e23 unit="kg"
+                radius 3389.5km
+                orbital_period 687days
+                orbital_distance 227.9e(6)km
+                moons 2
+
+                satellites {
+                    moon "Phobos" radius=11.267km
+                    moon "Deimos" radius=6.2km
+                }
+
+                surface_temperature -87°C..-5°C
+                atmosphere "thin_CO2"
+
+                rovers ["Curiosity" "Perseverance" "祝融号"]
+                future_colonization true
+            }
+
+            # Outer planets
+            @GasGiant
+            planet "Jupiter" order=5 {
+                japanese_name "木星"
+                mass 1.898e27 unit="kg"
+                radius 69911km
+                orbital_period 4333days
+                orbital_distance 778.5e(6)km
+                moons 95
+                rings true faint=true
+
+                great_red_spot {
+                    diameter 16350km
+                    wind_speed 432 unit="km/h"
+                    age 350 unit="years" minimum=true
+                }
+
+                major_moons ["Io" "Europa" "Ganymede" "Callisto"]
+
+                @InterestingMoon
+                moon "Europa" {
+                    radius 1560.8km
+                    surface "ice"
+                    subsurface_ocean true depth=100km
+                    potential_life true
+                }
+            }
+
+            @GasGiant
+            planet "Saturn" order=6 {
+                japanese_name "土星"
+                mass 5.683e26 unit="kg"
+                radius 58232km
+                orbital_period 10759days
+                orbital_distance 1.434e(9)km
+                moons 146
+
+                @FamousRings
+                rings {
+                    extent 282000km
+                    composition ["ice" "rock" "dust"]
+                    main_rings ["D" "C" "B" "A" "F" "G" "E"]
+
+                    ring "B" {
+                        inner_radius 92000km
+                        outer_radius 117580km
+                        mass 2.8e19 unit="kg"
+                        brightest true
+                    }
+                }
+
+                density 0.687 unit="g/cm³" less_than_water=true
+
+                @InterestingMoon
+                moon "Titan" {
+                    radius 2574.73km
+                    atmosphere true composition="nitrogen"
+                    lakes true liquid="methane"
+                    potential_life true
+                }
+            }
+
+            @IceGiant
+            planet "Uranus" order=7 {
+                japanese_name "天王星"
+                mass 8.681e25 unit="kg"
+                radius 25362km
+                orbital_period 30687days
+                moons 28
+                rings true
+                axial_tilt 97.77 sideways=true
+            }
+
+            @IceGiant
+            planet "Neptune" order=8 {
+                japanese_name "海王星"
+                mass 1.024e26 unit="kg"
+                radius 24622km
+                orbital_period 60190days
+                orbital_distance 4.495e(9)km
+                moons 16
+                rings true faint=true
+                wind_speed 2100 unit="km/h" fastest_in_solar_system=true
+
+                moon "Triton" {
+                    radius 1353.4km
+                    retrograde true captured=true
+                    geysers true
+                }
+            }
+        }
+
+        @DwarfPlanets
+        dwarf_planets {
+            dwarf "Pluto" discovered=1930 moons=5 heart_shaped_region="Tombaugh Regio" 💔=true
+            dwarf "Eris" discovered=2005 moons=1 mass=1.66e22 unit="kg"
+            dwarf "Ceres" discovered=1801 location="asteroid_belt" mass=9.39e20 unit="kg"
+        }
+    }
+
+    # =========================================================================
+    # 🔬 EXPERIMENTS & MEASUREMENTS
+    # =========================================================================
+
+    @Category("Experiments")
+    experiments {
+
+        @Experiment(type="physics")
+        experiment "Double Slit" {
+            description "Demonstrates wave-particle duality"
+            japanese_description "二重スリット実験 - 波動粒子二重性を実証"
+
+            @Setup
+            setup {
+                light_source "coherent_laser" wavelength=632.8nm color="red"
+                slit_separation 0.1mm
+                slit_width 0.02mm
+                screen_distance 1m
+            }
+
+            @Results
+            results {
+                fringe_spacing 6.328mm calculated=true
+                pattern "interference_fringes"
+                conclusion "Light exhibits wave behavior"
+            }
+
+            @Variations
+            variations {
+                "Single photon detection" result="still_interference"
+                "Detector at slits" result="no_interference"
+                "Delayed choice" result="quantum_weirdness"
+            }
+
+            first_performed 1801
+            performed_by "Thomas Young"
+        }
+
+        @Experiment(type="chemistry")
+        experiment "Synthesis of Aspirin" {
+            description "Acetylation of salicylic acid"
+            japanese_description "アスピリンの合成"
+
+            @Reactants
+            reactants {
+                reactant "Salicylic acid" formula="C₇H₆O₃" mass=2.0g molar_mass=138.12
+                reactant "Acetic anhydride" formula="(CH₃CO)₂O" volume=3.0mℓ density=1.08
+                catalyst "Phosphoric acid" drops=5
+            }
+
+            @Procedure
+            procedure {
+                step 1 "Combine reactants in flask" duration=2min
+                step 2 "Heat in water bath" temperature=85°C duration=15min
+                step 3 "Add cold water" volume=20mℓ
+                step 4 "Cool in ice bath" duration=10min
+                step 5 "Filter crystals" method="vacuum_filtration"
+                step 6 "Wash with cold water" volume=10mℓ
+                step 7 "Dry and weigh" duration=30min
+            }
+
+            @ExpectedYield
+            expected {
+                product "Aspirin" formula="C₉H₈O₄" molar_mass=180.16
+                theoretical_yield 2.61g
+                typical_yield 1.8g..2.2g
+                percent_yield "70%...85%"
+                melting_point 135°C..136°C
+            }
+
+            @SafetyNotes
+            safety {
+                hazards ["irritant" "corrosive"]
+                ppe ["goggles" "gloves" "lab_coat"]
+                disposal "chemical_waste"
+            }
+        }
+
+        @DataSet(type="measurements")
+        measurements "Pendulum Period vs Length" {
+            description "Verify T = 2π√(L/g)"
+
+            @RawData
+            data {
+                # Length (cm), Period (s), Trials
+                trial length=10cm period=0.635s trials=10 stdev=0.012s
+                trial length=20cm period=0.898s trials=10 stdev=0.015s
+                trial length=30cm period=1.099s trials=10 stdev=0.018s
+                trial length=40cm period=1.270s trials=10 stdev=0.020s
+                trial length=50cm period=1.420s trials=10 stdev=0.022s
+                trial length=60cm period=1.555s trials=10 stdev=0.025s
+                trial length=70cm period=1.679s trials=10 stdev=0.027s
+                trial length=80cm period=1.795s trials=10 stdev=0.029s
+                trial length=90cm period=1.903s trials=10 stdev=0.031s
+                trial length=100cm period=2.006s trials=10 stdev=0.033s
+            }
+
+            @Analysis
+            analysis {
+                method "linear_regression" on="T² vs L"
+                slope 4.027 unit="s²/m"
+                intercept 0.003 unit="s²"
+                r_squared 0.9998
+
+                calculated_g 9.79 unit="m/s²"
+                accepted_g 9.81 unit="m/s²"
+                percent_error "0.2%"
+            }
+
+            performed_date 2024/12/20
+            performed_by students@physics.edu
+            location "Physics Lab 101"
+        }
+    }
+
+    # =========================================================================
+    # 📈 UNIT CONVERSIONS
+    # =========================================================================
+
+    @Category("UnitConversions")
+    conversions {
+
+        @Length
+        length {
+            # Base: meter (expressed as conversion factors)
+            convert from=1km to=1000m
+            convert from=1m to=100cm
+            convert from=1cm to=10mm
+            convert from=1mm to=1000µm
+            convert from=1µm to=1000nm
+
+            # Imperial
+            convert from=1mi to=1609.344m
+            convert from=1yd to=0.9144m
+            convert from=1ft to=0.3048m
+            convert from=1in to=2.54cm
+
+            # Astronomical
+            convert from=1AU to=149597870700m
+            convert from=1ly to=9460730472580800m
+            convert from=1pc to=3.0857e16m
+        }
+
+        @Mass
+        mass {
+            # Base: kilogram
+            convert from=1t to=1000kg
+            convert from=1kg to=1000g
+            convert from=1g to=1000mg
+            convert from=1mg to=1000µg
+
+            # Imperial
+            convert from=1lb to=0.453592kg
+            convert from=1oz to=28.3495g
+
+            # Atomic
+            convert from=1amu to=1.66054e-27kg
+        }
+
+        @Temperature
+        temperature {
+            # Conversions (formulas as strings)
+            celsius_to_kelvin "K = °C + 273.15"
+            celsius_to_fahrenheit "°F = °C × 9/5 + 32"
+            kelvin_to_celsius "°C = K - 273.15"
+            fahrenheit_to_celsius "°C = (°F - 32) × 5/9"
+
+            # Reference points
+            reference "absolute_zero" kelvin=0K celsius=-273.15°C fahrenheit=-459.67
+            reference "water_freezing" kelvin=273.15K celsius=0°C fahrenheit=32
+            reference "water_boiling" kelvin=373.15K celsius=100°C fahrenheit=212
+            reference "body_temperature" kelvin=310.15K celsius=37°C fahrenheit=98.6
+        }
+
+        @Energy
+        energy {
+            joule 1 unit="kg⋅m²/s²"
+            convert from=1kJ to=1000J
+            convert from=1cal to=4.184J
+            convert from=1kcal to=4184J
+            convert from=1eV to=1.602e-19J
+            convert from=1kWh to=3.6e6J
+        }
+    }
+
+    # =========================================================================
+    # 🧬 BIOLOGICAL DATA
+    # =========================================================================
+
+    @Category("Biology")
+    biology {
+
+        @DNA
+        dna {
+            structure "double_helix"
+            discovered 1953
+            discoverers ["Watson" "Crick" "Franklin" "Wilkins"]
+
+            bases {
+                adenine symbol="A" pairs_with="T" japanese="アデニン"
+                thymine symbol="T" pairs_with="A" japanese="チミン"
+                guanine symbol="G" pairs_with="C" japanese="グアニン"
+                cytosine symbol="C" pairs_with="G" japanese="シトシン"
+            }
+
+            @HumanGenome
+            human_genome {
+                base_pairs 3.2e9
+                genes 20000..25000
+                chromosomes 46
+                mitochondrial_dna 16569 unit="bp"
+            }
+
+            sample_sequence "ATGCGATCGATCGATCGATCGATCGATCGATCGATCGATCGTAG"
+        }
+
+        @Taxonomy
+        taxonomy {
+            @Example
+            species "Homo sapiens" {
+                domain "Eukarya"
+                kingdom "Animalia"
+                phylum "Chordata"
+                class "Mammalia"
+                order "Primates"
+                family "Hominidae"
+                genus "Homo"
+                species "sapiens"
+
+                common_name "Human"
+                japanese_name "ヒト"
+                spanish_name "Ser humano"
+
+                population 8e9
+                distribution "global"
+                conservation_status "Least Concern"
+            }
+        }
+    }
+
+    # =========================================================================
+    # 🖥️ COMPUTING & DATA
+    # =========================================================================
+
+    @Category("Computing")
+    computing {
+
+        @DataUnits
+        data_units {
+            bit 1 unit="binary_digit"
+            byte 8 unit="bits"
+
+            # Binary prefixes (base 2)
+            convert from="1KB" to="1024B"
+            convert from="1MB" to="1024KB"
+            convert from="1GB" to="1024MB"
+            convert from="1TB" to="1024GB"
+            convert from="1PB" to="1024TB"
+            convert from="1EB" to="1024PB"
+
+            # SI prefixes (base 10)
+            convert from="1kB_si" to="1000B"
+            convert from="1MB_si" to="1000kB"
+            convert from="1GB_si" to="1000MB"
+        }
+
+        @BenchmarkResults
+        benchmarks {
+            @CPU
+            cpu "Test System" {
+                model "Intel Core i9-14900K"
+                cores 24
+                threads 32
+                base_clock 3.2e9 unit="Hz"
+                boost_clock 6.0e9 unit="Hz"
+
+                results {
+                    single_thread_score 3200
+                    multi_thread_score 45000
+                    cinebench_r23 42000
+                    power_consumption 125 unit="W" tdp=true
+                }
+            }
+
+            @GPU
+            gpu "Graphics Test" {
+                model "NVIDIA RTX 4090"
+                cuda_cores 16384
+                memory 24GB type="GDDR6X"
+                bandwidth 1018 unit="GB/s"
+
+                results {
+                    3dmark_timespy 36000
+                    fps_4k_gaming 120..180
+                    ai_training_speed 2.5 unit="TFLOPS" fp16=true
+                    power_consumption 450 unit="W"
+                }
+            }
+
+            @Storage
+            storage "SSD Benchmark" {
+                model "Samsung 990 Pro"
+                capacity 2TB
+                interface "PCIe 4.0 NVMe"
+
+                results {
+                    sequential_read 7450 unit="MB/s"
+                    sequential_write 6900 unit="MB/s"
+                    random_read_iops 1400000
+                    random_write_iops 1550000
+                    latency 0.05ms average=true
+                }
+            }
+        }
+
+        @Algorithms
+        algorithms {
+            @Sorting
+            sorting_complexity {
+                "Bubble Sort" best="O(n)" average="O(n²)" worst="O(n²)" space="O(1)"
+                "Quick Sort" best="O(n log n)" average="O(n log n)" worst="O(n²)" space="O(log n)"
+                "Merge Sort" best="O(n log n)" average="O(n log n)" worst="O(n log n)" space="O(n)"
+                "Heap Sort" best="O(n log n)" average="O(n log n)" worst="O(n log n)" space="O(1)"
+                "Tim Sort" best="O(n)" average="O(n log n)" worst="O(n log n)" space="O(n)"
+            }
+        }
+    }
+}
+
+# Final summary
+@Summary
+summary {
+    categories ["Physics" "Chemistry" "Astronomy" "Experiments" "UnitConversions" "Biology" "Computing"]
+    total_data_points "thousands"
+    units_demonstrated ["m" "km" "g" "kg" "°C" "K" "s" "Hz" "J" "W" "mol" "L"]
+
+    purpose "Demonstrate KD's capability for scientific data representation"
+    japanese_purpose "科学データ表現のためのKDの機能を実証する"
+    spanish_purpose "Demostrar la capacidad de KD para representación de datos científicos"
+
+    science_is_awesome true emoji="🔬🚀🧬⚗️🌌"
+}

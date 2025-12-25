@@ -1,0 +1,1111 @@
+###############################################################################
+#  Ki Data (KD) Comprehensive Test File
+#  このファイルはKDの全機能をテストします 🎯
+#  Este archivo prueba todas las características de KD
+###############################################################################
+
+# =============================================================================
+# 🌟 METADATA - File information with annotations
+# =============================================================================
+
+@version(2.0.0)
+@author(name="Daniel Leuck" email=dan@leuck.org)
+@created(2024/12/25)
+@license("MIT")
+metadata title="KD Comprehensive Test" description="""
+    This file demonstrates all KD literal types, tag structures,
+    and formatting options. It's designed to stress-test parsers
+    and showcase the expressive power of Ki Data.
+
+    日本語とスペイン語の例も含まれています。
+    """ emoji="🚀"
+
+# =============================================================================
+# 📝 STRING LITERALS - All four types
+# =============================================================================
+
+strings {
+    # Simple strings with escapes
+    simple_basic "Hello, World! 👋"
+    simple_unicode "日本語テスト: こんにちは世界"
+    simple_spanish "¡Hola Mundo! ¿Cómo estás?"
+    simple_escapes "Line1\nLine2\tTabbed\r\nWindows"
+    simple_quotes "She said \"Hello\" and smiled 😊"
+    simple_backslash "C:\\Users\\名前\\Documents"
+    simple_unicode_escape "Greek alpha: \u03B1, beta: \u03B2"
+
+    # Raw strings - no escape processing
+    raw_path @"C:\Users\ダニエル\Documents\file.txt"
+    raw_regex @"\d{3}-\d{4}-\d{4}"
+    raw_json @"{\"name\": \"太郎\", \"age\": 25}"
+    raw_with_quotes @"She said "Hello" without escaping"
+
+    # Block strings - multiline
+    poem """
+    古池や
+    蛙飛び込む
+    水の音
+    - 松尾芭蕉 🐸
+    """
+
+    code_sample """
+    fun main() {
+        println("Hello, 世界! 🌍")
+        val números = listOf(1, 2, 3)
+        números.forEach { println(it) }
+    }
+    """
+
+    spanish_poem """
+    Caminante, no hay camino,
+    se hace camino al andar.
+    - Antonio Machado 🚶
+    """
+
+    # Raw block strings - multiline without escape processing
+    raw_block @"""
+    {
+        "emoji": "🎉",
+        "path": "C:\Users\test",
+        "regex": "\d+\.\d+"
+    }
+    """
+
+    # Backtick strings
+    inline_code `console.log("Hello 世界")`
+    sql_query `SELECT * FROM usuarios WHERE nombre = '太郎'`
+
+    # Triple backtick for multiline code
+    script ```
+    #!/bin/bash
+    echo "Starting deployment... 🚀"
+    for i in {1..5}; do
+        echo "Step $i"
+    done
+    echo "¡Completado! ✅"
+    ```
+}
+
+# =============================================================================
+# 🔤 CHARACTER LITERALS
+# =============================================================================
+
+characters {
+    letter 'A'
+    digit '7'
+    japanese '桜'
+    spanish 'ñ'
+    emoji '☺'  # U+263A - White Smiling Face (BMP, fits in single char)
+    newline '\n'
+    tab '\t'
+    quote '\''
+    backslash '\\'
+    unicode_escape '\u4E16'  # 世
+    space ' '
+
+    # Multiple char values
+    alphabet 'α' 'β' 'γ' 'δ' 'ε' lang="Greek"
+    hiragana 'あ' 'い' 'う' 'え' 'お' lang="日本語"
+}
+
+# =============================================================================
+# 🔢 NUMERIC LITERALS
+# =============================================================================
+
+numbers {
+    # Integers
+    integers {
+        zero 0
+        positive 42
+        negative -273
+        max_int 2147483647
+        min_int -2147483648
+        with_underscores 1_000_000
+        hex 0xFF
+        hex_upper 0XABCD
+        hex_with_underscores 0xFF_FF_FF
+        binary 0b1010
+        binary_byte 0b1111_0000
+    }
+
+    # Longs
+    longs {
+        basic 123L
+        large 9_999_999_999_999L
+        negative -1_000_000_000_000L
+        hex_long 0xFFFFFFFFFL
+        max_long 9223372036854775807L
+    }
+
+    # Floats
+    floats {
+        basic 3.14f
+        uppercase 2.718F
+        negative -273.15f
+        scientific 6.022e23f
+        scientific_neg 1.6e-19f
+        integer_float 100f
+    }
+
+    # Doubles
+    doubles {
+        implicit 3.14159265358979
+        explicit_d 2.71828d
+        explicit_D 1.41421D
+        scientific 6.674e-11
+        scientific_upper 2.998E8
+        negative -9.8
+        with_underscores 299_792.458
+        infinity Infinity
+        not_a_number NaN
+    }
+
+    # BigDecimals
+    decimals {
+        basic 123.456bd
+        uppercase 789.012BD
+        high_precision 3.14159265358979323846264338327950288bd
+        negative -99999.99999bd
+        financial 1_000_000.00bd
+        tiny 0.000000000001bd
+    }
+}
+
+# =============================================================================
+# ✅ BOOLEAN LITERALS
+# =============================================================================
+
+booleans {
+    # Standard
+    standard_true true
+    standard_false false
+
+    # SDL compatibility
+    sdl_on on
+    sdl_off off
+
+    # As attributes
+    flags enabled=true visible=false active=on hidden=off
+
+    # Multiple values
+    bit_pattern true false true true false true false false
+
+    # In various contexts
+    config debug=true optimize=false trace=on verbose=off
+}
+
+# =============================================================================
+# 🔗 URL LITERALS
+# =============================================================================
+
+urls {
+    # Bracketed URLs
+    https_url <https://www.example.com>
+    http_url <http://localhost:8080/api/v1>
+    with_query <https://search.example.com/search?q=日本語&lang=ja>
+    with_fragment <https://docs.example.com/guide#section-概要>
+    file_url <file:///home/ユーザー/documents/レポート.pdf>
+    ftp_url <ftp://ftp.example.com/pub/ファイル.zip>
+    with_port <http://192.168.1.100:3000/dashboard>
+    with_auth <https://user:pass@secure.example.com/data>
+
+    # Naked URLs (without brackets)
+    naked_https https://github.com/kixi-io/Ki.Docs
+    naked_http http://example.com/path/to/resource
+
+    # As attributes
+    resource name="KD仕様書" link=<https://github.com/kixi-io/Ki.Docs/wiki>
+}
+
+# =============================================================================
+# 📧 EMAIL LITERALS
+# =============================================================================
+
+emails {
+    basic dan@leuck.org
+    with_subdomain user@mail.example.com
+    with_plus dan+newsletter@leuck.org
+    japanese tanaka.taro@example.co.jp
+    spanish maria.garcia@empresa.es
+
+    # Multiple emails
+    team alice@example.com bob@example.com charlie@example.com
+
+    # As attributes
+    contact name="山田太郎" email=yamada.taro@example.co.jp phone="+81-3-1234-5678"
+
+    # In nested structure
+    directory {
+        user "Daniel" email=dan@leuck.org role="admin"
+        user "田中花子" email=tanaka.hanako@example.jp role="developer"
+        user "María García" email=maria@empresa.es role="designer"
+    }
+}
+
+# =============================================================================
+# 📅 DATE AND TIME LITERALS
+# =============================================================================
+
+datetime {
+    # LocalDate
+    dates {
+        today 2024/12/25
+        historical 1937/9/21
+        future 2030/1/1
+        single_digits 2024/3/9
+
+        # As attributes
+        book "The Hobbit" published=1937/9/21 author="J.R.R. Tolkien"
+    }
+
+    # LocalDateTime
+    local_times {
+        basic 2024/12/25@10:30:00
+        with_fractional 2024/12/25@10:30:00.123
+        with_nanos 2024/12/25@10:30:00.123456789
+        midnight 2024/1/1@0:00:00
+        end_of_day 2024/12/31@23:59:59
+        single_digits 2024/3/9@9:05:03
+
+        # As attributes
+        event "忘年会" time=2024/12/25@19:00:00 venue="東京"
+    }
+
+    # ZonedDateTime (numeric offsets)
+    zoned_times {
+        utc_plus 2024/12/25@10:30:00+9
+        utc_minus 2024/12/25@10:30:00-8
+        with_minutes 2024/12/25@10:30:00+5:30
+        negative_minutes 2024/12/25@10:30:00-3:30
+        with_fractional 2024/12/25@10:30:00.123+2
+    }
+
+    # KiTZDateTime (named timezones)
+    kitz_times {
+        tokyo 2024/12/25@10:30:00-JP/JST
+        new_york 2024/12/25@10:30:00-US/EST
+        los_angeles 2024/12/25@10:30:00-US/PST
+        berlin 2024/12/25@10:30:00-DE/CET
+        london 2024/12/25@10:30:00-GB/GMT
+        sydney 2024/12/25@10:30:00-AU/AEST
+        utc 2024/12/25@10:30:00-Z
+        utc_explicit 2024/12/25@10:30:00-UTC
+        gmt 2024/12/25@10:30:00-GMT
+
+        # Meeting across timezones
+        meeting "国際会議" \
+            tokyo_time=2024/12/26@09:00:00-JP/JST \
+            ny_time=2024/12/25@19:00:00-US/EST
+    }
+}
+
+# =============================================================================
+# ⏱️ DURATION LITERALS
+# =============================================================================
+
+durations {
+    # Single unit format
+    single_unit {
+        days_plural 5days
+        day_singular 1day
+        hours 24h
+        minutes 90min
+        seconds 30s
+        milliseconds 500ms
+        nanoseconds 1000000ns
+
+        # Fractional
+        fractional_seconds 2.5s
+        fractional_hours 1.5h
+    }
+
+    # Compound format (hh:mm:ss)
+    compound {
+        basic 12:30:00
+        with_fractional 1:30:45.5
+        with_days 3day:12:30:00
+        one_day 1day:00:00:00
+        negative -1:30:00
+    }
+
+    # In various contexts
+    timeouts connect=30s read=60s write=45s
+    schedule work=8h lunch=1h break=15min
+
+    # As values
+    intervals 1h 30min 15s 500ms
+}
+
+# =============================================================================
+# 🏷️ VERSION LITERALS
+# =============================================================================
+
+versions {
+    # Basic versions
+    major_only 5.0.0
+    with_minor 5.2.0
+    with_micro 5.2.7
+
+    # With qualifiers
+    alpha 1.0.0-alpha
+    beta 2.0.0-beta
+    rc 3.0.0-rc
+
+    # With qualifier numbers
+    alpha_num 1.0.0-alpha-3
+    beta_num 2.0.0-beta-5
+    rc_num 3.0.0-rc-1
+    no_dash 2.0.0-rc1
+
+    # Software versions
+    dependencies {
+        kotlin version=2.0.0
+        gradle version=8.5.0
+        junit version=5.10.0-beta-1
+    }
+
+    # Version ranges
+    supported 1.0.0..2.0.0
+    minimum 1.0.0.._
+}
+
+# =============================================================================
+# 📦 BLOB LITERALS
+# =============================================================================
+
+blobs {
+    # Simple blob (Hello World!)
+    greeting .blob(SGVsbG8gV29ybGQh)
+
+    # Empty blob
+    empty .blob()
+
+    # Longer blob with whitespace
+    longer .blob(
+        SGVsbG8gV29ybGQhIFRoaXMgaXMgYSBsb25nZXIgYmxvYiB0
+        aGF0IHNwYW5zIG11bHRpcGxlIGxpbmVzLg==
+    )
+
+    # As attribute
+    file name="data.bin" content=.blob(SGVsbG8=)
+}
+
+# =============================================================================
+# 🌍 GEOPOINT LITERALS
+# =============================================================================
+
+geopoints {
+    # Basic coordinates
+    tokyo .geo(35.6762, 139.6503)
+    san_francisco .geo(37.7749, -122.4194)
+    sydney .geo(-33.8688, 151.2093)
+
+    # With altitude
+    mount_fuji .geo(35.3606, 138.7274, 3776.0)
+    everest .geo(27.9881, 86.9250, 8848.86)
+    dead_sea .geo(31.5, 35.5, -430.5)
+
+    # Origin
+    origin .geo(0, 0)
+
+    # Famous places
+    locations {
+        place "東京スカイツリー" coords=.geo(35.7101, 139.8107, 634.0)
+        place "Sagrada Familia" coords=.geo(41.4036, 2.1744)
+        place "Machu Picchu" coords=.geo(-13.1631, -72.5450, 2430.0)
+        place "Colosseum" coords=.geo(41.8902, 12.4922)
+    }
+}
+
+# =============================================================================
+# 📏 QUANTITY LITERALS
+# =============================================================================
+
+quantities {
+    # Length
+    lengths {
+        millimeters 150mm
+        centimeters 50cm
+        meters 1.75m
+        kilometers 42km
+        with_underscores 1_000_000m
+    }
+
+    # Mass
+    mass {
+        milligrams 250mg
+        grams 500g
+        kilograms 75kg
+    }
+
+    # Area
+    area {
+        square_meters 100m2
+        square_meters_super 100m²
+        square_centimeters 50cm2
+    }
+
+    # Volume
+    volume {
+        cubic_meters 10m3
+        cubic_meters_super 10m³
+        liters_special 5ℓ
+        liters_ascii 5LT
+        milliliters 250mℓ
+    }
+
+    # Temperature
+    temperature {
+        kelvin 300K
+        celsius 25°C
+        celsius_ascii 25dC
+        negative_celsius -40°C
+    }
+
+    # With type specifiers
+    typed {
+        int_type 100m:i
+        long_type 100m:L
+        double_type 3.14m:d
+        float_type 3.14m:f
+    }
+
+    # Scientific notation
+    scientific {
+        parens_positive 5.5e(8)km
+        parens_negative 5.5e(-7)m
+        letter_negative 5.5en7m
+        letter_positive 5.5ep8km
+        implicit 5.5e8km
+    }
+
+    # Negative quantities
+    negative {
+        offset -15cm
+        cold -40°C
+    }
+
+    # In context
+    person height=175cm weight=70kg
+    room width=5m length=8m ceiling_height=3m
+
+    # Package dimensions
+    package "配送用" width=30cm height=20cm depth=15cm weight=2.5kg
+}
+
+# =============================================================================
+# 🎯 RANGE LITERALS
+# =============================================================================
+
+ranges {
+    # Inclusive ranges
+    inclusive {
+        integers 1..10
+        negative -10..10
+        decimals 1.5..5.5
+        longs 1L..100L
+        reversed 10..1
+    }
+
+    # Exclusive ranges
+    exclusive {
+        both_sides 1<..<10
+        left_only 1<..10
+        right_only 1..<10
+    }
+
+    # Open ranges
+    open {
+        right_open 0.._
+        left_open _..100
+        exclusive_right_open 5<.._
+        exclusive_left_open _..<100
+    }
+
+    # Char ranges
+    char_ranges {
+        lowercase 'a'..'z'
+        uppercase 'A'..'Z'
+        digits '0'..'9'
+        exclusive 'a'<..<'z'
+    }
+
+    # Version ranges
+    version_ranges {
+        supported 1.0.0..2.0.0
+        with_qualifier 1.0.0-alpha..2.0.0-beta
+        minimum 1.0.0.._
+    }
+
+    # Duration ranges
+    duration_ranges {
+        timeout 1h..10h
+        window 5min<..<30min
+    }
+
+    # Quantity ranges
+    quantity_ranges {
+        tolerance 5mm..10mm
+        temperature -20°C..40°C
+    }
+
+    # In context
+    validation age=18..120 score=0.0..100.0
+}
+
+# =============================================================================
+# 📋 LIST LITERALS
+# =============================================================================
+
+lists {
+    # Empty list
+    empty []
+
+    # With commas
+    with_commas [1, 2, 3, 4, 5]
+
+    # Without commas
+    without_commas [1 2 3 4 5]
+
+    # Mixed separators
+    mixed [1, 2 3, 4 5]
+
+    # Different types
+    strings ["Hello" "世界" "¡Hola!"]
+    chars ['あ' 'い' 'う' 'え' 'お']
+    mixed_types [1 "hello" true 3.14 nil]
+
+    # Nested lists
+    matrix [[1 2 3] [4 5 6] [7 8 9]]
+    deep [[[1 2] [3 4]] [[5 6] [7 8]]]
+
+    # Lists of complex types
+    dates [2024/1/1, 2024/6/15, 2024/12/31]
+    durations [1h, 30min, 5s]
+    quantities [5cm, 10m, 1km]
+    ranges [1..10, 20..30, 50..100]
+    versions [1.0.0, 2.0.0-alpha, 3.1.4]
+    urls [<https://a.com>, <https://b.com>]
+    emails [alice@example.com, bob@example.com]
+    geopoints [.geo(35.6762, 139.6503), .geo(37.7749, -122.4194)]
+
+    # List with nil
+    sparse [1 nil 3 nil 5]
+}
+
+# =============================================================================
+# 🗺️ MAP LITERALS
+# =============================================================================
+
+maps {
+    # String keys (naked)
+    string_keys [name="太郎" age=25 city="東京"]
+
+    # With commas
+    with_commas [a=1, b=2, c=3]
+
+    # Char keys
+    char_keys ['a'=1 'b'=2 'c'=3]
+
+    # Integer keys
+    int_keys [1="one" 2="two" 3="three"]
+
+    # Mixed value types
+    mixed_values [debug=true timeout=30 name="test" data=nil]
+
+    # Nested maps
+    nested [
+        db=[host="localhost" port=5432]
+        cache=[size=1000 ttl=3600L]
+    ]
+
+    # With complex values
+    with_quantities [width=100cm height=50cm]
+    with_ranges [valid_age=18..120 valid_score=0.0..100.0]
+
+    # Translations
+    greetings [
+        en="Hello"
+        ja="こんにちは"
+        es="¡Hola!"
+        de="Hallo"
+        fr="Bonjour"
+    ]
+}
+
+# =============================================================================
+# 📞 CALL LITERALS
+# =============================================================================
+
+calls {
+    # No arguments
+    empty_call myFunc()
+
+    # Positional arguments
+    positional rgb(255, 128, 0)
+    without_commas rgb(255 128 0)
+
+    # Named arguments
+    named style(family="Arial" size=12)
+
+    # Mixed arguments
+    mixed rgba(255, 128, 0, alpha=0.5)
+
+    # Complex arguments
+    with_list process([1 2 3])
+    with_range filter(1..100)
+    with_quantity rect(width=100cm height=50cm)
+
+    # Nested calls
+    nested outer(inner(1, 2), 3)
+
+    # Namespaced calls
+    namespaced math:sin(3.14159)
+
+    # Multiple calls
+    colors rgb(255, 0, 0) rgb(0, 255, 0) rgb(0, 0, 255)
+
+    # In attributes
+    styled element="div" style=css(color="red" background="blue")
+
+    # Fun examples
+    drawing {
+        shape circle(radius=50cm, center=.geo(0, 0), color=rgb(255, 0, 0))
+        shape rectangle(width=100cm, height=50cm, color=rgb(0, 255, 0))
+        shape triangle(points=[.geo(0, 0), .geo(1, 0), .geo(0.5, 1)], color=rgb(0, 0, 255))
+    }
+}
+
+# =============================================================================
+# 🚫 NIL LITERALS
+# =============================================================================
+
+nils {
+    nil_keyword nil
+    null_keyword null
+
+    # As attributes
+    optional value=nil
+    nullable data=null
+
+    # In lists
+    sparse_list [1 nil 3 nil 5]
+
+    # In maps
+    partial_map [a=1 b=nil c=3]
+
+    # Standalone creates anonymous tag
+    nil
+}
+
+# =============================================================================
+# 🏷️ ANNOTATIONS
+# =============================================================================
+
+annotations {
+    # Simple annotation
+    @Test
+    simple_test "This has a simple annotation"
+
+    # Annotation with single value
+    @Priority(1)
+    high_priority "Urgent task"
+
+    # Annotation with multiple values
+    @Tags("important" "urgent" "review")
+    tagged_item "Item with multiple tags"
+
+    # Annotation with attributes
+    @Config(debug=true timeout=30s)
+    configured "Item with config annotation"
+
+    # Annotation with values and attributes
+    @Route("GET" "/api/users" auth=true cache=5min)
+    api_endpoint "User list endpoint"
+
+    # Multiple annotations
+    @Deprecated
+    @SinceVersion(2.0.0)
+    @RemovedIn(3.0.0)
+    legacy_feature "This will be removed"
+
+    # Namespaced annotations
+    @io:Serializable
+    @json:JsonProperty("user_name")
+    serialized_field "userName"
+
+    # Annotation on same line
+    @Inline inline_example "Same line annotation"
+
+    # Complex annotated structure
+    @Entity(table="users")
+    @Cacheable(ttl=1h)
+    users {
+        @Id
+        @Generated
+        id 0L
+
+        @Column(name="user_name" length=100)
+        @NotNull
+        username ""
+
+        @Column(name="email_address")
+        @Email
+        email nil
+
+        @Embedded
+        @Valid
+        address {
+            street ""
+            city ""
+            country ""
+        }
+    }
+}
+
+# =============================================================================
+# 🏗️ COMPLEX STRUCTURES
+# =============================================================================
+
+# Configuration file example
+@Environment("production")
+config {
+    @Required
+    database {
+        host "db.example.com"
+        port 5432
+        name "myapp_prod"
+        ssl true
+        pool_size 20
+        timeout 30s
+
+        credentials {
+            user "app_user"
+            password nil  # Loaded from environment
+        }
+    }
+
+    @Optional
+    cache {
+        enabled true
+        type "redis"
+        host "cache.example.com"
+        port 6379
+        ttl 1h
+        max_size 10000
+    }
+
+    logging {
+        level "info"
+        file <file:///var/log/myapp/app.log>
+        rotation {
+            size 100mb
+            keep 10
+        }
+    }
+
+    features [
+        dark_mode=true
+        notifications=on
+        beta_features=off
+        max_uploads=100
+    ]
+}
+
+# Game character example
+@PlayerCharacter
+character "勇者タロウ" {
+    @Stats
+    stats {
+        health 100
+        mana 50
+        strength 15
+        agility 12
+        intelligence 10
+        luck 8
+    }
+
+    @Equipment
+    equipment {
+        @Weapon
+        weapon "伝説の剣" damage=25..35 type="slashing" enchantment=rgb(255, 215, 0)
+
+        @Armor
+        armor "ミスリルの鎧" defense=20 weight=5kg durability=0.85
+
+        @Accessory
+        accessory "幸運のお守り" luck_bonus=5 rarity="legendary"
+    }
+
+    @Inventory
+    inventory {
+        item "回復薬" quantity=10 effect=heal(50)
+        item "マナポーション" quantity=5 effect=restore_mana(25)
+        item "テレポートの巻物" quantity=2 destination=.geo(35.6762, 139.6503)
+    }
+
+    @Quests
+    quests {
+        @Active
+        quest "ドラゴン討伐" progress=0.75 reward=10000 deadline=2024/12/31
+
+        @Completed
+        quest "村を救え" completed=2024/12/20@15:30:00-JP/JST reward=500
+    }
+
+    @Position
+    location .geo(35.6895, 139.6917, 10.0)  # Tokyo
+
+    @PlayTime
+    total_time 120h
+    session_start 2024/12/25@10:00:00-JP/JST
+}
+
+# Recipe book example
+@Cookbook(author="Chef María" version=2.1.0)
+recipes {
+    @Recipe(difficulty="easy" time=30min)
+    recipe "Paella Valenciana" servings=4 {
+        @Ingredients
+        ingredients {
+            "arroz" 400g
+            "pollo" 500g
+            "judías verdes" 200g
+            "tomate" 2
+            "pimentón" 5g
+            "azafrán" 1g
+            "aceite de oliva" 50mℓ
+            "sal" nil  # Al gusto
+            "agua" 1LT
+        }
+
+        @Steps
+        steps {
+            1 "Calentar el aceite en la paellera" time=2min
+            2 "Dorar el pollo troceado" time=10min
+            3 "Añadir las judías y el tomate rallado" time=5min
+            4 "Incorporar el pimentón y el azafrán" time=1min
+            5 "Añadir el agua y dejar hervir" time=5min
+            6 "Agregar el arroz y cocinar" time=18min
+            7 "Dejar reposar" time=5min
+        }
+
+        @Nutrition(per_serving=true)
+        nutrition calories=450 protein=25g carbs=60g fat=12g
+    }
+
+    @Recipe(difficulty="medium" time=2h)
+    recipe "ラーメン" servings=2 origin="日本" {
+        @Ingredients
+        ingredients {
+            "中華麺" 200g
+            "豚骨" 500g
+            "チャーシュー" 100g
+            "味付け卵" 2
+            "ネギ" 50g
+            "にんにく" 10g
+            "醤油" 30mℓ
+            "味噌" 20g
+        }
+
+        @Steps
+        steps {
+            1 "豚骨を8時間煮込む" time=8h
+            2 "スープを濾す" time=30min
+            3 "麺を茹でる" time=3min
+            4 "盛り付け" time=5min
+        }
+    }
+}
+
+# =============================================================================
+# 💬 COMMENTS DEMONSTRATION
+# =============================================================================
+
+comments {
+    # Hash comment
+    hash_commented "Value after hash comment"
+
+    // Double-slash comment
+    slash_commented "Value after slash comment"
+
+    /* Block comment */
+    block_commented "Value after block comment"
+
+    /* Multi-line
+       block comment
+       with several lines */
+    multiline_commented "Value after multiline block comment"
+
+    /* Nested /* block */ comments */
+    nested_commented "Value after nested block comment"
+
+    inline_value 1 /* comment between values */ 2 /* another */ 3
+}
+
+# =============================================================================
+# 📐 MATRIX PATTERNS
+# =============================================================================
+
+matrices {
+    # Integer matrix
+    int_matrix {
+        1 2 3
+        4 5 6
+        7 8 9
+    }
+
+    # Identity matrix
+    identity {
+        1 0 0
+        0 1 0
+        0 0 1
+    }
+
+    # Mixed matrix
+    mixed_matrix {
+        "a" "b" "c"
+        1 2 3
+        true false true
+    }
+
+    # Sudoku puzzle (partially filled)
+    sudoku {
+        5 3 nil nil 7 nil nil nil nil
+        6 nil nil 1 9 5 nil nil nil
+        nil 9 8 nil nil nil nil 6 nil
+        8 nil nil nil 6 nil nil nil 3
+        4 nil nil 8 nil 3 nil nil 1
+        7 nil nil nil 2 nil nil nil 6
+        nil 6 nil nil nil nil 2 8 nil
+        nil nil nil 4 1 9 nil nil 5
+        nil nil nil nil 8 nil nil 7 9
+    }
+}
+
+# =============================================================================
+# ⏩ LINE CONTINUATION
+# =============================================================================
+
+line_continuation {
+    # Long tag with continuation
+    long_tag "value1" "value2" "value3" \
+        "value4" "value5" "value6" \
+        attr1="a" attr2="b" attr3="c"
+
+    # Complex attributes with continuation
+    config name="MyApp" \
+        version=2.0.0 \
+        debug=true \
+        timeout=30s \
+        url=<https://api.example.com> \
+        email=admin@example.com
+}
+
+# =============================================================================
+# 🎨 ANONYMOUS TAGS
+# =============================================================================
+
+anonymous_tags {
+    greetings {
+        "Hello" language="English"
+        "こんにちは" language="Japanese"
+        "¡Hola!" language="Spanish"
+        "Bonjour" language="French"
+        "Guten Tag" language="German"
+    }
+
+    files {
+        "/path/to/file1.txt"
+        "/path/to/file2.txt"
+        "/another/path/file3.txt"
+    }
+
+    # Boolean anonymous tags
+    true
+    false
+    on
+    off
+
+    # Numeric anonymous tags
+    42
+    3.14159
+    100L
+
+    # Complex anonymous tags
+    rgb(255, 128, 0)
+    .geo(35.6762, 139.6503)
+    5cm
+    1..10
+}
+
+# =============================================================================
+# 🎭 SPECIAL CASES AND EDGE CASES
+# =============================================================================
+
+edge_cases {
+    # Empty values
+    empty_string ""
+    empty_list []
+
+    # Special numbers
+    special_numbers {
+        positive_infinity Infinity
+        nan NaN
+        max_int 2147483647
+        min_int -2147483648
+        max_long 9223372036854775807L
+    }
+
+    # Unicode edge cases
+    unicode {
+        emoji_sequence "👨‍👩‍👧‍👦"
+        rtl_text "مرحبا"
+        mixed_scripts "Hello世界مرحبا"
+        zero_width "a\u200Bb"  # Zero-width space
+        combining "é"  # e + combining acute
+    }
+
+    # Deeply nested
+    deep {
+        level1 {
+            level2 {
+                level3 {
+                    level4 {
+                        level5 {
+                            value "Deep! 🕳️"
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    # Many values
+    many_values 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+
+    # Many attributes
+    many_attrs a=1 b=2 c=3 d=4 e=5 f=6 g=7 h=8 i=9 j=10
+
+    # Attribute continuation on new line
+    multiline_attrs {
+        item "test"
+            attr1=1
+            attr2=2
+            attr3=3
+    }
+}
+
+# =============================================================================
+# 🏆 THE END
+# =============================================================================
+
+@Conclusion
+summary {
+    total_literal_types 24
+    languages_demonstrated ["English" "日本語" "Español" "Deutsch" "Français"]
+    emoji_used "🎯📝🔤🔢✅🔗📧📅⏱️🏷️📦🌍📏🎯📋🗺️📞🚫🏗️💬📐⏩🎨🎭🏆"
+    created 2024/12/25@10:00:00-US/PST
+    author dan@leuck.org
+    message "Ki Data is expressive, readable, and fun! 楽しいですね！ 🎉"
+}
