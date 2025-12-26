@@ -2219,8 +2219,86 @@ class KDParser {
             throw ParseException("Empty grid is not allowed. Grid requires at least one cell.", index = 0)
         }
 
-        @Suppress("UNCHECKED_CAST")
-        return Grid.fromRows(rows as List<List<Any?>>)
+        // Determine element type from explicit type parameter or infer from values
+        val elementType: Class<*>? = if (typeParam != null) {
+            typeParamToClass(typeParam)
+        } else {
+            inferElementType(rows.flatten())
+        }
+
+        // Build the grid directly with the correct elementType
+        val width = rows[0].size
+        val height = rows.size
+        val data = Array<Any?>(width * height) { null }
+
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                data[y * width + x] = rows[y][x]
+            }
+        }
+
+        return Grid<Any?>(width, height, data, elementType)
+    }
+
+    /**
+     * Infers the element type from a list of values.
+     *
+     * Rules:
+     * - If all non-null values have the same type → use that type
+     * - If all non-null values are Numbers (Int, Long, Float, Double, BigDecimal) → use Number
+     * - Otherwise → use Any
+     *
+     * @param values The list of values to infer type from
+     * @return The inferred Class, or null if all values are null
+     */
+    private fun inferElementType(values: List<Any?>): Class<*>? {
+        val nonNullValues = values.filterNotNull()
+        if (nonNullValues.isEmpty()) return null
+
+        val types = nonNullValues.map { it::class.java }.toSet()
+
+        // All same type
+        if (types.size == 1) {
+            return types.first()
+        }
+
+        // Check if all types are numeric
+        val numericTypes = setOf(
+            Int::class.java, Int::class.javaObjectType,
+            Long::class.java, Long::class.javaObjectType,
+            Float::class.java, Float::class.javaObjectType,
+            Double::class.java, Double::class.javaObjectType,
+            java.math.BigDecimal::class.java
+        )
+
+        if (types.all { it in numericTypes }) {
+            return Number::class.java
+        }
+
+        // Mixed unrelated types
+        return Any::class.java
+    }
+
+    /**
+     * Maps a type parameter string to its corresponding Class.
+     *
+     * @param typeParam The type parameter string (e.g., "Int", "String", "Dec")
+     * @return The corresponding Class, or null if not recognized
+     */
+    private fun typeParamToClass(typeParam: String): Class<*>? {
+        return when (typeParam) {
+            "Int" -> Int::class.javaObjectType
+            "Long" -> Long::class.javaObjectType
+            "Float" -> Float::class.javaObjectType
+            "Double" -> Double::class.javaObjectType
+            "Dec", "BigDecimal" -> java.math.BigDecimal::class.java
+            "String" -> String::class.java
+            "Bool", "Boolean" -> Boolean::class.javaObjectType
+            "Char" -> Char::class.javaObjectType
+            "Number" -> Number::class.java
+            "Any" -> Any::class.java
+            else -> null
+        }
     }
 
     /**

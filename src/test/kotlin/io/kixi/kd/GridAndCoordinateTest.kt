@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.string.shouldContain
 import io.kotest.assertions.throwables.shouldThrow
 import java.math.BigDecimal as Dec
 
@@ -268,6 +269,18 @@ class GridAndCoordinateTest : StringSpec({
         grid[0, 0].shouldBeInstanceOf<Int>()
     }
 
+    "parse typed integer grid preserves elementType" {
+        val tag = KD.read("""
+            numbers .grid<Int>(
+                10  20  30
+                40  50  60
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Int::class.javaObjectType
+    }
+
     "parse typed string grid" {
         val tag = KD.read("""
             words .grid<String>(
@@ -281,6 +294,17 @@ class GridAndCoordinateTest : StringSpec({
         grid[1, 1] shouldBe "bar"
     }
 
+    "parse typed string grid preserves elementType" {
+        val tag = KD.read("""
+            words .grid<String>(
+                "hello"  "world"
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe String::class.java
+    }
+
     "parse typed decimal grid" {
         val tag = KD.read("""
             prices .grid<Dec>(
@@ -291,6 +315,149 @@ class GridAndCoordinateTest : StringSpec({
 
         val grid = tag.value as Grid<*>
         grid[0, 0].shouldBeInstanceOf<Dec>()
+    }
+
+    "parse typed decimal grid preserves elementType" {
+        val tag = KD.read("""
+            prices .grid<Dec>(
+                1.99bd  2.99bd
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Dec::class.java
+    }
+
+    "parse typed grid with space after type parameter" {
+        // Test the specific case: .grid<Int> ( with space before paren
+        val tag = KD.read("""
+            matrix .grid<Int> (
+                2   4   6
+                8   10  12
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Int::class.javaObjectType
+        grid.width shouldBe 3
+        grid.height shouldBe 2
+        grid[0, 0] shouldBe 2
+        grid[2, 1] shouldBe 12
+    }
+
+    "parse typed Bool grid preserves elementType" {
+        val tag = KD.read("""flags .grid<Bool>(true false true)""")
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Boolean::class.javaObjectType
+    }
+
+    "parse typed Long grid preserves elementType" {
+        val tag = KD.read("""ids .grid<Long>(1L 2L 3L)""")
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Long::class.javaObjectType
+    }
+
+    "untyped grid infers elementType from values" {
+        val tag = KD.read("""
+            numbers .grid(
+                1  2  3
+                4  5  6
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        // Should infer Int from the integer values (boxed Integer type)
+        grid.elementType shouldBe Int::class.javaObjectType
+    }
+
+    "untyped grid with mixed number types infers Number" {
+        val tag = KD.read("""
+            .grid(
+                111.23, 222, 3.1f
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Number::class.java
+    }
+
+    "untyped grid with Int and Double infers Number" {
+        val tag = KD.read("""
+            .grid(
+                1  2.5  3
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Number::class.java
+    }
+
+    "untyped grid with Int and Long infers Number" {
+        val tag = KD.read("""
+            .grid(
+                1  2L  3
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Number::class.java
+    }
+
+    "untyped grid with unrelated types infers Any" {
+        val tag = KD.read("""
+            .grid(
+                1  "hi"  dan@ikayzo.com
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Any::class.java
+    }
+
+    "untyped grid with String and Int infers Any" {
+        val tag = KD.read("""
+            .grid(
+                "hello"  42  "world"
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Any::class.java
+    }
+
+    "untyped grid with all same type uses that type" {
+        val tag = KD.read("""
+            .grid(
+                "a"  "b"  "c"
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe String::class.java
+    }
+
+    "grid toString outputs inferred Number type" {
+        val tag = KD.read("""
+            .grid(
+                1  2.5  3L
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        val str = grid.toString()
+        str shouldContain ".grid<Number>("
+    }
+
+    "grid toString outputs inferred Any type" {
+        val tag = KD.read("""
+            .grid(
+                1  "text"  true
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        val str = grid.toString()
+        str shouldContain ".grid<Any>("
     }
 
     // =========================================================================
@@ -571,9 +738,10 @@ class GridAndCoordinateTest : StringSpec({
         )
 
         val str = grid.toString()
-        str.contains(".grid(") shouldBe true
-        str.contains("1") shouldBe true
-        str.contains("6") shouldBe true
+        // Grid.fromRows infers elementType, so type parameter is included
+        str shouldContain ".grid<"
+        str shouldContain "1"
+        str shouldContain "6"
     }
 
     "coordinate toString produces valid Ki literal" {

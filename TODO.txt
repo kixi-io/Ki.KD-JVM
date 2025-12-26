@@ -1,5 +1,6 @@
 // TODO
 1. Currency
+2. Properly distinguish nullable from non-nullable types for Grids
 
 // Bugs
 
