@@ -1,6 +1,7 @@
 // TODO
 1. Currency
 2. Properly distinguish nullable from non-nullable types for Grids
+3. Consider type inferencing for lists and maps.
 
 // Bugs
 
