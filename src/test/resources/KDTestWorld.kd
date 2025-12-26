@@ -758,6 +758,162 @@ world {
             achievement "完璧主義者" description="100% completion" reward=cosmetic("Golden Aura")
         }
     }
+
+    # =========================================================================
+    # 🎮 GAME BOARDS AND MAPS (Grid Examples)
+    # =========================================================================
+
+    @GameMaps
+    game_maps {
+        # Dungeon floor layout
+        # Legend: W=Wall, .=Floor, D=Door, T=Trap, C=Chest, M=Monster, B=Boss, S=Start, E=Exit
+        @DungeonMap(name="Crypt of Shadows" level=1)
+        dungeon_floor .grid<String>(
+            "W"  "W"  "W"  "W"  "W"  "W"  "W"  "W"  "W"  "W"
+            "W"  "S"  "."  "."  "D"  "."  "."  "M"  "."  "W"
+            "W"  "."  "W"  "W"  "W"  "W"  "."  "W"  "."  "W"
+            "W"  "."  "."  "T"  "."  "."  "."  "W"  "C"  "W"
+            "W"  "W"  "W"  "W"  "D"  "W"  "W"  "W"  "."  "W"
+            "W"  "."  "."  "."  "."  "."  "M"  "."  "."  "W"
+            "W"  "."  "W"  "W"  "W"  "W"  "W"  "W"  "D"  "W"
+            "W"  "C"  "."  "M"  "."  "."  "."  "."  "B"  "W"
+            "W"  "."  "."  "."  "T"  "."  "."  "."  "E"  "W"
+            "W"  "W"  "W"  "W"  "W"  "W"  "W"  "W"  "W"  "W"
+        )
+
+        # Chess-like game board
+        @BoardGame(name="Royal Conquest")
+        chess_board .grid<String>(
+            "♜"  "♞"  "♝"  "♛"  "♚"  "♝"  "♞"  "♜"
+            "♟"  "♟"  "♟"  "♟"  "♟"  "♟"  "♟"  "♟"
+            "-"  "-"  "-"  "-"  "-"  "-"  "-"  "-"
+            "-"  "-"  "-"  "-"  "-"  "-"  "-"  "-"
+            "-"  "-"  "-"  "-"  "-"  "-"  "-"  "-"
+            "-"  "-"  "-"  "-"  "-"  "-"  "-"  "-"
+            "♙"  "♙"  "♙"  "♙"  "♙"  "♙"  "♙"  "♙"
+            "♖"  "♘"  "♗"  "♕"  "♔"  "♗"  "♘"  "♖"
+        )
+
+        # Tactical battle grid with terrain
+        @BattleMap(name="Hillside Skirmish")
+        battle_terrain .grid<String>(
+            "grass"   "grass"   "hill"    "hill"    "grass"
+            "grass"   "forest"  "hill"    "water"   "grass"
+            "road"    "road"    "bridge"  "water"   "grass"
+            "grass"   "forest"  "grass"   "grass"   "forest"
+            "grass"   "grass"   "grass"   "forest"  "forest"
+        )
+
+        # Unit positions on battle grid
+        battle_units .grid(
+            nil    nil    nil    nil    nil
+            nil    "archer" nil  nil    nil
+            "knight" nil   nil   nil    "mage"
+            nil    nil    "hero" nil    nil
+            nil    nil    nil    "healer" nil
+        )
+
+        # Height map for terrain
+        height_map .grid<Int>(
+            1  1  3  4  2
+            1  2  3  2  1
+            0  0  1  0  1
+            1  2  1  1  2
+            1  1  1  2  3
+        )
+
+        # Treasure map with coordinates
+        @TreasureMap(island="Skull Island")
+        treasure_locations {
+            buried_gold .coordinate(x=15, y=23)
+            ancient_artifact .coordinate(c="F", r=12)
+            hidden_cave .coordinate(x=8, y=30, z=2)
+            shipwreck .coordinate(c="AA", r=5)
+        }
+
+        # Player spawn points
+        spawn_points [
+            .coordinate(x=0, y=0)
+            .coordinate(x=99, y=0)
+            .coordinate(x=0, y=99)
+            .coordinate(x=99, y=99)
+        ]
+    }
+
+    # =========================================================================
+    # 🎯 COORDINATE-BASED GAME DATA
+    # =========================================================================
+
+    @Waypoints
+    waypoints {
+        # Quest objective locations
+        quest_markers {
+            marker "救助地点" type="rescue" coord=.coordinate(x=45, y=67)
+            marker "Boss Arena" type="boss" coord=.coordinate(c="AZ", r=100)
+            marker "Secret Shop" type="merchant" coord=.coordinate(x=12, y=34, z=1)
+        }
+
+        # Fast travel points
+        teleport_stones {
+            stone "Goldenhall Plaza" coord=.coordinate(x=50, y=50) unlocked=true
+            stone "森の祭壇" coord=.coordinate(x=120, y=80) unlocked=false
+            stone "Dragon's Peak" coord=.coordinate(x=200, y=150) unlocked=false
+        }
+
+        # Player path history (breadcrumb trail)
+        journey_path [
+            .coordinate(x=0, y=0)
+            .coordinate(x=5, y=3)
+            .coordinate(x=12, y=8)
+            .coordinate(x=20, y=15)
+            .coordinate(x=35, y=28)
+            .coordinate(x=50, y=50)
+        ]
+    }
+
+    # =========================================================================
+    # 🏆 PUZZLE GRIDS
+    # =========================================================================
+
+    @Puzzles
+    puzzles {
+        # Sliding puzzle (15-puzzle style)
+        @SlidingPuzzle(name="Ancient Lock")
+        sliding_puzzle .grid(
+            1   2   3   4
+            5   6   7   8
+            9   10  11  12
+            13  14  15  nil
+        )
+
+        # Match-3 game board
+        @Match3(name="Gem Crusher")
+        gem_board .grid<String>(
+            "💎"  "🔴"  "💎"  "🟢"  "🔵"
+            "🔴"  "🟢"  "🔵"  "🔴"  "💎"
+            "🟢"  "🟢"  "🟢"  "💎"  "🔴"
+            "🔵"  "🔴"  "💎"  "🔵"  "🟢"
+            "💎"  "🔵"  "🔴"  "🟢"  "🔵"
+        )
+
+        # Minesweeper-style puzzle
+        @Minefield(difficulty="medium")
+        mine_grid .grid(
+            nil  1    nil  nil  1
+            1    1    nil  nil  1
+            nil  nil  nil  nil  nil
+            1    2    nil  nil  1
+            nil  1    nil  nil  nil
+        )
+
+        # Crossword clue positions
+        crossword_clues {
+            across_1 .coordinate(x=0, y=0) word_length=5
+            across_4 .coordinate(x=3, y=2) word_length=7
+            down_1 .coordinate(x=0, y=0) word_length=4
+            down_2 .coordinate(x=4, y=1) word_length=6
+        }
+    }
 }
 
 # Final summary of the game world

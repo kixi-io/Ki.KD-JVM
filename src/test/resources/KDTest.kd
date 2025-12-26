@@ -984,6 +984,161 @@ matrices {
 }
 
 # =============================================================================
+# 📍 COORDINATE LITERALS
+# =============================================================================
+
+coordinates {
+    # Standard notation (zero-based x, y)
+    origin .coordinate(x=0, y=0)
+    standard_10_20 .coordinate(x=10, y=20)
+    large_coords .coordinate(x=100, y=500)
+
+    # Sheet notation (letter column, one-based row)
+    cell_A1 .coordinate(c="A", r=1)
+    cell_E8 .coordinate(c="E", r=8)
+    cell_Z26 .coordinate(c="Z", r=26)
+
+    # Multi-letter columns
+    cell_AA1 .coordinate(c="AA", r=1)
+    cell_AA100 .coordinate(c="AA", r=100)
+    cell_CW51 .coordinate(c="CW", r=51)
+
+    # With z component (3D)
+    coord_3d .coordinate(x=1, y=2, z=5)
+    coord_3d_sheet .coordinate(c="B", r=3, z=10)
+
+    # As attributes
+    cell value=42 position=.coordinate(x=3, y=5)
+    selection start=.coordinate(c="A", r=1) end=.coordinate(c="E", r=10)
+
+    # In lists
+    path [.coordinate(x=0, y=0), .coordinate(x=1, y=1), .coordinate(x=2, y=2)]
+
+    # Equivalent coordinates (same position, different notation)
+    equivalents {
+        standard .coordinate(x=4, y=7)
+        sheet .coordinate(c="E", r=8)
+    }
+}
+
+# =============================================================================
+# 📊 GRID LITERALS
+# =============================================================================
+
+grids {
+    # Simple integer grid
+    int_grid .grid(
+        1   2   3
+        4   5   6
+        7   8   9
+    )
+
+    # Single row grid
+    single_row .grid(1 2 3 4 5)
+
+    # Single column grid
+    single_column .grid(
+        1
+        2
+        3
+    )
+
+    # Typed grids
+    string_grid .grid<String>(
+        "a"  "b"  "c"
+        "d"  "e"  "f"
+        "g"  "h"  "i"
+    )
+
+    decimal_grid .grid<Dec>(
+        1.1bd   2.2bd   3.3bd
+        4.4bd   5.5bd   6.6bd
+    )
+
+    # Grid with nil values
+    sparse_grid .grid(
+        1    nil   3
+        nil  5     nil
+        7    nil   9
+    )
+
+    # Grid with dash for null
+    dash_nulls .grid(
+        1  -  3
+        -  5  -
+        7  -  9
+    )
+
+    # Mixed type grid
+    mixed_grid .grid(
+        1        "hello"   true
+        3.14     nil       'x'
+    )
+
+    # Grid with quantities
+    quantity_grid .grid(
+        10cm   20cm   30cm
+        40cm   50cm   60cm
+    )
+
+    # Grid with dates
+    date_grid .grid(
+        2024/1/1   2024/1/2   2024/1/3
+        2024/1/8   2024/1/9   2024/1/10
+    )
+
+    # Grid with geopoints
+    geo_grid .grid(
+        .geo(35.6762, 139.6503)   .geo(37.7749, -122.4194)
+        .geo(-33.8688, 151.2093)  .geo(51.5074, -0.1278)
+    )
+
+    # Sudoku puzzle as grid
+    sudoku_puzzle .grid(
+        5  3  nil  nil  7  nil  nil  nil  nil
+        6  nil nil  1    9  5    nil  nil  nil
+        nil 9  8    nil  nil nil  nil  6    nil
+        8  nil nil  nil  6  nil  nil  nil  3
+        4  nil nil  8    nil 3    nil  nil  1
+        7  nil nil  nil  2  nil  nil  nil  6
+        nil 6  nil  nil  nil nil  2    8    nil
+        nil nil nil  4    1  9    nil  nil  5
+        nil nil nil  nil  8  nil  nil  7    9
+    )
+
+    # Tic-tac-toe board
+    tictactoe .grid<String>(
+        "X"  "O"  "X"
+        "-"  "X"  "O"
+        "O"  "-"  "X"
+    )
+
+    # Spreadsheet-like data
+    spreadsheet .grid(
+        "Product"  "Q1"     "Q2"     "Q3"     "Q4"
+        "Widget"   1000     1200     1500     1800
+        "Gadget"   800      900      1100     1300
+        "Gizmo"    500      600      700      850
+    )
+
+    # As attribute
+    game board=.grid(1 2 3; 4 5 6; 7 8 9) player="X"
+
+    # Grid of coordinates
+    coord_grid .grid(
+        .coordinate(x=0, y=0)  .coordinate(x=1, y=0)  .coordinate(x=2, y=0)
+        .coordinate(x=0, y=1)  .coordinate(x=1, y=1)  .coordinate(x=2, y=1)
+    )
+
+    # Identity matrix as grid
+    identity .grid(
+        1  0  0
+        0  1  0
+        0  0  1
+    )
+}
+
+# =============================================================================
 # ⏩ LINE CONTINUATION
 # =============================================================================
 

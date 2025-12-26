@@ -680,6 +680,102 @@ science {
             }
         }
     }
+
+    # =========================================================================
+    # 📊 SCIENTIFIC DATA GRIDS
+    # =========================================================================
+
+    @Category("DataGrids")
+    data_grids {
+
+        # Periodic table excerpt (first 3 rows)
+        @PeriodicTable
+        periodic_excerpt .grid<String>(
+            "H"   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   "He"
+            "Li"  "Be"  nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   "B"   "C"   "N"   "O"   "F"   "Ne"
+            "Na"  "Mg"  nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   "Al"  "Si"  "P"   "S"   "Cl"  "Ar"
+        )
+
+        # Temperature measurement matrix (°C at grid points)
+        @TemperatureField(unit="°C")
+        temperature_field .grid(
+            20.1   21.3   22.5   23.2   22.8
+            21.5   22.8   24.1   24.5   23.9
+            22.3   23.9   25.2   25.8   25.1
+            23.1   24.5   25.8   26.2   25.5
+            22.8   24.1   25.1   25.5   24.8
+        )
+
+        # Spectral data (wavelength absorption)
+        @Spectroscopy(sample="Unknown compound")
+        absorption_data .grid(
+            400   0.12
+            450   0.34
+            500   0.78
+            550   0.95
+            600   0.45
+            650   0.23
+            700   0.08
+        )
+
+        # Correlation matrix
+        @Statistics
+        correlation_matrix .grid(
+            1.00   0.85   0.42   -0.15
+            0.85   1.00   0.55   -0.08
+            0.42   0.55   1.00    0.23
+            -0.15  -0.08  0.23    1.00
+        )
+
+        # Experimental measurement coordinates
+        @SensorPositions
+        sensor_grid {
+            sensor_A .coordinate(x=0, y=0) calibrated=true
+            sensor_B .coordinate(x=10, y=0) calibrated=true
+            sensor_C .coordinate(x=0, y=10) calibrated=false
+            sensor_D .coordinate(x=10, y=10) calibrated=true
+        }
+
+        # Astronomical observation grid (star field)
+        @StarField(region="Orion Nebula")
+        star_brightness .grid(
+            0.2   0.1   0.8   0.1   0.3
+            0.1   0.5   0.9   0.4   0.1
+            0.3   0.7   1.0   0.6   0.2
+            0.1   0.4   0.8   0.3   0.1
+            0.2   0.1   0.3   0.1   0.1
+        )
+
+        # Electrode array positions
+        @NeuroscienceEEG
+        electrode_positions [
+            .coordinate(c="A", r=1)
+            .coordinate(c="B", r=1)
+            .coordinate(c="C", r=1)
+            .coordinate(c="A", r=2)
+            .coordinate(c="B", r=2)
+            .coordinate(c="C", r=2)
+        ]
+
+        # Chemical reaction rate data
+        @Kinetics(reaction="A + B → C")
+        rate_constants .grid(
+            "Temp(K)"  "k1"       "k2"       "k3"
+            300        0.0012     0.0008     0.0015
+            350        0.0089     0.0056     0.0102
+            400        0.0523     0.0312     0.0598
+            450        0.2341     0.1456     0.2678
+        )
+
+        # Microscopy sample positions
+        @Microscopy(magnification=1000)
+        sample_locations {
+            cell_1 .coordinate(x=120, y=340)
+            cell_2 .coordinate(x=145, y=355)
+            cell_3 .coordinate(x=130, y=380)
+            artifact .coordinate(x=200, y=200) ignore=true
+        }
+    }
 }
 
 # Final summary

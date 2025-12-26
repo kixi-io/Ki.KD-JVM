@@ -45,6 +45,10 @@ import java.time.*
  * 23. Call - function call (e.g., rgb(255, 128, 0))
  * 24. nil - absence of value (nil or null)
  *
+ * ### Phase 4 (Grid & Coordinate)
+ * 25. Coordinate - 2D/3D grid positions (.coordinate(x=0, y=0) or .coordinate(c="A", r=1))
+ * 26. Grid - 2D tabular data (.grid(...) with rows of values)
+ *
  * ## Tag Structure
  * ```
  * @annotation(s)
@@ -2008,7 +2012,7 @@ class KDParser {
     }
 
     // ========================================================================
-    // Dot-prefixed Literals (.blob, .geo)
+    // Dot-prefixed Literals (.blob, .geo, .coordinate, .grid)
     // ========================================================================
 
     private fun parseDotLiteral(ctx: ParseContext): Any? {
@@ -2023,6 +2027,22 @@ class KDParser {
 
         skipSpacesAndTabs(ctx)
 
+        // Handle optional type parameter for .grid<Type>
+        var typeParam: String? = null
+        if (name.lowercase() == "grid" && ctx.peek() == '<') {
+            ctx.advance() // skip <
+            val typeStart = ctx.pos
+            while (!ctx.isEOF() && ctx.peek() != '>') {
+                ctx.advance()
+            }
+            if (ctx.peek() != '>') {
+                throw ctx.error("Unterminated type parameter in .grid<...>")
+            }
+            typeParam = ctx.substring(typeStart, ctx.pos)
+            ctx.advance() // skip >
+            skipSpacesAndTabs(ctx)
+        }
+
         if (ctx.peek() != '(') {
             ctx.pos = start
             return null
@@ -2032,12 +2052,17 @@ class KDParser {
         var depth = 1
         val contentStart = ctx.pos
 
+        // For grid and coordinate, we need smarter parenthesis tracking
+        // that accounts for strings
         while (!ctx.isEOF() && depth > 0) {
-            when (ctx.peek()) {
-                '(' -> depth++
-                ')' -> depth--
+            val ch = ctx.peek()
+            when {
+                ch == '"' -> skipStringContent(ctx)
+                ch == '\'' -> skipCharContent(ctx)
+                ch == '(' -> { depth++; ctx.advance() }
+                ch == ')' -> { depth--; if (depth > 0) ctx.advance() }
+                else -> ctx.advance()
             }
-            if (depth > 0) ctx.advance()
         }
 
         if (depth > 0) {
@@ -2047,7 +2072,7 @@ class KDParser {
         val content = ctx.substring(contentStart, ctx.pos)
         ctx.advance() // skip )
 
-        val literal = ".$name($content)"
+        val literal = if (typeParam != null) ".$name<$typeParam>($content)" else ".$name($content)"
 
         return when (name.lowercase()) {
             "blob" -> {
@@ -2064,7 +2089,219 @@ class KDParser {
                     throw ctx.error("Invalid geo literal: ${e.message}")
                 }
             }
+            "coordinate" -> {
+                try {
+                    Coordinate.parseLiteral(literal)
+                } catch (e: Exception) {
+                    throw ctx.error("Invalid coordinate literal: ${e.message}")
+                }
+            }
+            "grid" -> {
+                try {
+                    parseGridContent(content, typeParam)
+                } catch (e: ParseException) {
+                    throw ctx.error("Invalid grid literal: ${e.message}")
+                } catch (e: Exception) {
+                    throw ctx.error("Invalid grid literal: ${e.message}")
+                }
+            }
             else -> throw ctx.error("Unknown dot-literal type: .$name")
         }
+    }
+
+    /**
+     * Skips over string content (for correct parenthesis tracking).
+     */
+    private fun skipStringContent(ctx: ParseContext) {
+        val quote = ctx.peek()
+        if (quote != '"') return
+        ctx.advance()
+
+        // Check for triple quote
+        if (ctx.peek() == '"' && ctx.peek(1) == '"') {
+            ctx.advance(2) // now inside """
+            while (!ctx.isEOF()) {
+                if (ctx.peek() == '"' && ctx.peek(1) == '"' && ctx.peek(2) == '"') {
+                    ctx.advance(3)
+                    return
+                }
+                ctx.advance()
+            }
+        } else {
+            // Single quote string
+            while (!ctx.isEOF()) {
+                val ch = ctx.peek()
+                if (ch == '\\') {
+                    ctx.advance(2)
+                } else if (ch == '"') {
+                    ctx.advance()
+                    return
+                } else {
+                    ctx.advance()
+                }
+            }
+        }
+    }
+
+    /**
+     * Skips over char content (for correct parenthesis tracking).
+     */
+    private fun skipCharContent(ctx: ParseContext) {
+        if (ctx.peek() != '\'') return
+        ctx.advance()
+        if (ctx.peek() == '\\') ctx.advance()
+        if (!ctx.isEOF()) ctx.advance()
+        if (ctx.peek() == '\'') ctx.advance()
+    }
+
+    /**
+     * Parses the content of a .grid(...) literal.
+     *
+     * Grid content consists of rows of values. Rows can be separated by:
+     * - Newlines (the primary format)
+     * - Semicolons (for inline grids like `1 2 3; 4 5 6`)
+     *
+     * Values within a row are separated by whitespace.
+     *
+     * Special handling:
+     * - `-` (standalone dash) is treated as null
+     * - `nil` and `null` are treated as null
+     *
+     * @param content The content inside the parentheses
+     * @param typeParam Optional type parameter (e.g., "Int", "String")
+     * @return The parsed Grid
+     */
+    private fun parseGridContent(content: String, typeParam: String?): Grid<*> {
+        val trimmed = content.trim()
+
+        // Empty grid - not allowed (Grid requires positive dimensions)
+        if (trimmed.isEmpty()) {
+            throw ParseException("Empty grid is not allowed. Grid requires at least one cell.", index = 0)
+        }
+
+        // Split into rows by newlines or semicolons
+        val rowStrings = splitGridRows(trimmed)
+
+        if (rowStrings.isEmpty()) {
+            throw ParseException("Empty grid is not allowed. Grid requires at least one cell.", index = 0)
+        }
+
+        // Parse each row into a list of values
+        val rows = mutableListOf<List<Any?>>()
+        var expectedWidth: Int? = null
+
+        for ((rowIndex, rowStr) in rowStrings.withIndex()) {
+            val rowValues = parseGridRow(rowStr)
+
+            if (rowValues.isEmpty()) continue // Skip empty rows
+
+            if (expectedWidth == null) {
+                expectedWidth = rowValues.size
+            } else if (rowValues.size != expectedWidth) {
+                throw ParseException(
+                    "Grid row $rowIndex has ${rowValues.size} values, expected $expectedWidth",
+                    index = 0
+                )
+            }
+
+            rows.add(rowValues)
+        }
+
+        // Handle case where all rows were empty
+        if (rows.isEmpty()) {
+            throw ParseException("Empty grid is not allowed. Grid requires at least one cell.", index = 0)
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        return Grid.fromRows(rows as List<List<Any?>>)
+    }
+
+    /**
+     * Splits grid content into row strings.
+     * Handles both newline-separated and semicolon-separated formats.
+     */
+    private fun splitGridRows(content: String): List<String> {
+        val rows = mutableListOf<String>()
+        val current = StringBuilder()
+        var inString = false
+        var stringChar = ' '
+        var i = 0
+
+        while (i < content.length) {
+            val ch = content[i]
+
+            // Track string state
+            if (!inString && (ch == '"' || ch == '\'')) {
+                inString = true
+                stringChar = ch
+                current.append(ch)
+                i++
+                continue
+            }
+
+            if (inString) {
+                current.append(ch)
+                if (ch == '\\' && i + 1 < content.length) {
+                    i++
+                    current.append(content[i])
+                } else if (ch == stringChar) {
+                    inString = false
+                }
+                i++
+                continue
+            }
+
+            // Row separators (outside strings)
+            if (ch == '\n' || ch == ';') {
+                val row = current.toString().trim()
+                if (row.isNotEmpty()) {
+                    rows.add(row)
+                }
+                current.clear()
+                i++
+                continue
+            }
+
+            current.append(ch)
+            i++
+        }
+
+        // Don't forget the last row
+        val lastRow = current.toString().trim()
+        if (lastRow.isNotEmpty()) {
+            rows.add(lastRow)
+        }
+
+        return rows
+    }
+
+    /**
+     * Parses a single grid row into a list of values.
+     */
+    private fun parseGridRow(rowStr: String): List<Any?> {
+        val values = mutableListOf<Any?>()
+        val ctx = ParseContext(rowStr)
+
+        while (!ctx.isEOF()) {
+            skipSpacesAndTabs(ctx)
+            if (ctx.isEOF()) break
+
+            // Check for dash as null indicator
+            if (ctx.peek() == '-') {
+                val nextChar = ctx.peek(1)
+                // Standalone dash is null, but -5 is a negative number
+                if (nextChar == null || nextChar.isWhitespace() || nextChar == ';') {
+                    ctx.advance()
+                    values.add(null)
+                    continue
+                }
+            }
+
+            // Parse the next value
+            val value = parseValue(ctx)
+            values.add(value)
+        }
+
+        return values
     }
 }

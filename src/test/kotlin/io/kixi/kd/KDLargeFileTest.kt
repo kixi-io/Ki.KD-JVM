@@ -447,6 +447,113 @@ class KDLargeFileTest : FunSpec({
             rows[2][2] shouldBe 9
         }
 
+        test("should parse coordinates section") {
+            val coordinates = root.getChild("coordinates")
+            coordinates shouldNotBe null
+
+            // Standard notation
+            val origin = coordinates!!.getChild("origin")
+            origin shouldNotBe null
+            origin!!.value.shouldBeInstanceOf<Coordinate>()
+            val originCoord = origin.value as Coordinate
+            originCoord.x shouldBe 0
+            originCoord.y shouldBe 0
+
+            // Sheet notation
+            val cellE8 = coordinates.getChild("cell_E8")
+            cellE8 shouldNotBe null
+            val e8Coord = cellE8!!.value as Coordinate
+            e8Coord.column shouldBe "E"
+            e8Coord.row shouldBe 8
+            e8Coord.x shouldBe 4   // E = index 4
+            e8Coord.y shouldBe 7   // Row 8 = index 7
+
+            // Multi-letter column
+            val cellAA = coordinates.getChild("cell_AA100")
+            cellAA shouldNotBe null
+            val aaCoord = cellAA!!.value as Coordinate
+            aaCoord.column shouldBe "AA"
+            aaCoord.x shouldBe 26  // AA = index 26
+
+            // With z component
+            val coord3d = coordinates.getChild("coord_3d")
+            coord3d shouldNotBe null
+            val c3d = coord3d!!.value as Coordinate
+            c3d.hasZ shouldBe true
+            c3d.z shouldBe 5
+        }
+
+        test("should parse grids section") {
+            val grids = root.getChild("grids")
+            grids shouldNotBe null
+
+            // Simple integer grid
+            val intGrid = grids!!.getChild("int_grid")
+            intGrid shouldNotBe null
+            intGrid!!.value.shouldBeInstanceOf<Grid<*>>()
+            val grid = intGrid.value as Grid<*>
+            grid.width shouldBe 3
+            grid.height shouldBe 3
+            grid[0, 0] shouldBe 1
+            grid[1, 1] shouldBe 5
+            grid[2, 2] shouldBe 9
+
+            // Grid with nil values
+            val sparseGrid = grids.getChild("sparse_grid")
+            sparseGrid shouldNotBe null
+            val sparse = sparseGrid!!.value as Grid<*>
+            sparse[0, 0] shouldBe 1
+            sparse[1, 0] shouldBe null
+            sparse[2, 0] shouldBe 3
+
+            // Typed grid
+            val stringGrid = grids.getChild("string_grid")
+            stringGrid shouldNotBe null
+            val strGrid = stringGrid!!.value as Grid<*>
+            strGrid[0, 0] shouldBe "a"
+            strGrid[1, 1] shouldBe "e"
+
+            // Sudoku puzzle
+            val sudoku = grids.getChild("sudoku_puzzle")
+            sudoku shouldNotBe null
+            val sudokuGrid = sudoku!!.value as Grid<*>
+            sudokuGrid.width shouldBe 9
+            sudokuGrid.height shouldBe 9
+            sudokuGrid[0, 0] shouldBe 5
+            sudokuGrid[1, 0] shouldBe 3
+        }
+
+        test("should access grid with sheet notation") {
+            val grids = root.getChild("grids")
+            val intGrid = grids!!.getChild("int_grid")
+            val grid = intGrid!!.value as Grid<*>
+
+            // Sheet notation: A1 = (0,0), C3 = (2,2)
+            grid["A", 1] shouldBe 1
+            grid["C", 3] shouldBe 9
+            grid["B", 2] shouldBe 5
+
+            // String notation
+            grid["A1"] shouldBe 1
+            grid["C3"] shouldBe 9
+        }
+
+        test("should parse grid with complex types") {
+            val grids = root.getChild("grids")
+
+            // Grid of quantities
+            val quantityGrid = grids!!.getChild("quantity_grid")
+            quantityGrid shouldNotBe null
+            val qGrid = quantityGrid!!.value as Grid<*>
+            qGrid[0, 0].shouldBeInstanceOf<Quantity<*>>()
+
+            // Grid of geopoints
+            val geoGrid = grids.getChild("geo_grid")
+            geoGrid shouldNotBe null
+            val gGrid = geoGrid!!.value as Grid<*>
+            gGrid[0, 0].shouldBeInstanceOf<GeoPoint>()
+        }
+
         test("should parse edge cases") {
             val edgeCases = root.getChild("edge_cases")
             edgeCases shouldNotBe null
@@ -557,6 +664,84 @@ class KDLargeFileTest : FunSpec({
             eventList.shouldNotBeEmpty()
         }
 
+        test("should parse game maps with grids") {
+            val gameMaps = world.getChild("game_maps")
+            gameMaps shouldNotBe null
+
+            // Dungeon floor grid
+            val dungeonFloor = gameMaps!!.getChild("dungeon_floor")
+            dungeonFloor shouldNotBe null
+            dungeonFloor!!.value.shouldBeInstanceOf<Grid<*>>()
+            val dungeon = dungeonFloor.value as Grid<*>
+            dungeon.width shouldBe 10
+            dungeon.height shouldBe 10
+            dungeon[0, 0] shouldBe "W"  // Wall
+            dungeon[1, 1] shouldBe "S"  // Start
+
+            // Chess board
+            val chessBoard = gameMaps.getChild("chess_board")
+            chessBoard shouldNotBe null
+            val chess = chessBoard!!.value as Grid<*>
+            chess.width shouldBe 8
+            chess.height shouldBe 8
+
+            // Battle terrain
+            val battleTerrain = gameMaps.getChild("battle_terrain")
+            battleTerrain shouldNotBe null
+            val terrain = battleTerrain!!.value as Grid<*>
+            terrain[0, 0] shouldBe "grass"
+            terrain[2, 2] shouldBe "bridge"
+
+            // Treasure locations with coordinates
+            val treasureLocations = gameMaps.getChild("treasure_locations")
+            treasureLocations shouldNotBe null
+            val buriedGold = treasureLocations!!.getChild("buried_gold")
+            buriedGold!!.value.shouldBeInstanceOf<Coordinate>()
+            (buriedGold.value as Coordinate).x shouldBe 15
+        }
+
+        test("should parse waypoints with coordinates") {
+            val waypoints = world.getChild("waypoints")
+            waypoints shouldNotBe null
+
+            // Quest markers
+            val questMarkers = waypoints!!.getChild("quest_markers")
+            questMarkers shouldNotBe null
+
+            // Teleport stones
+            val teleportStones = waypoints.getChild("teleport_stones")
+            teleportStones shouldNotBe null
+
+            // Journey path (list of coordinates)
+            val journeyPath = waypoints.getChild("journey_path")
+            journeyPath shouldNotBe null
+            val path = journeyPath!!.value as List<*>
+            path.size shouldBe 6
+            (path[0] as Coordinate).x shouldBe 0
+            (path[5] as Coordinate).x shouldBe 50
+        }
+
+        test("should parse puzzles with grids") {
+            val puzzles = world.getChild("puzzles")
+            puzzles shouldNotBe null
+
+            // Sliding puzzle
+            val slidingPuzzle = puzzles!!.getChild("sliding_puzzle")
+            slidingPuzzle shouldNotBe null
+            val sliding = slidingPuzzle!!.value as Grid<*>
+            sliding.width shouldBe 4
+            sliding.height shouldBe 4
+            sliding[0, 0] shouldBe 1
+            sliding[3, 3] shouldBe null  // Empty tile
+
+            // Gem board (Match-3 style)
+            val gemBoard = puzzles.getChild("gem_board")
+            gemBoard shouldNotBe null
+            val gems = gemBoard!!.value as Grid<*>
+            gems.width shouldBe 5
+            gems.height shouldBe 5
+        }
+
         test("should print parsed structure") {
             println("\n" + "=".repeat(80))
 
@@ -640,6 +825,41 @@ class KDLargeFileTest : FunSpec({
 
             val benchmarks = computing!!.getChild("benchmarks")
             benchmarks shouldNotBe null
+        }
+
+        test("should parse scientific data grids") {
+            val dataGrids = science.getChild("data_grids")
+            dataGrids shouldNotBe null
+
+            // Periodic table excerpt
+            val periodic = dataGrids!!.getChild("periodic_excerpt")
+            periodic shouldNotBe null
+            periodic!!.value.shouldBeInstanceOf<Grid<*>>()
+            val periodicGrid = periodic.value as Grid<*>
+            periodicGrid[0, 0] shouldBe "H"   // Hydrogen
+            periodicGrid[17, 0] shouldBe "He" // Helium
+            periodicGrid[5, 1] shouldBe null  // Empty cell in periodic table
+
+            // Temperature field
+            val tempField = dataGrids.getChild("temperature_field")
+            tempField shouldNotBe null
+            val temps = tempField!!.value as Grid<*>
+            temps.width shouldBe 5
+            temps.height shouldBe 5
+
+            // Correlation matrix
+            val corrMatrix = dataGrids.getChild("correlation_matrix")
+            corrMatrix shouldNotBe null
+            val corr = corrMatrix!!.value as Grid<*>
+            corr[0, 0] shouldBe 1.0  // Diagonal should be 1.0
+
+            // Sensor positions
+            val sensorGrid = dataGrids.getChild("sensor_grid")
+            sensorGrid shouldNotBe null
+            val sensorA = sensorGrid!!.getChild("sensor_A")
+            sensorA shouldNotBe null
+            sensorA!!.value.shouldBeInstanceOf<Coordinate>()
+            (sensorA.value as Coordinate).x shouldBe 0
         }
 
         test("should print parsed structure") {
