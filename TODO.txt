@@ -1,7 +1,5 @@
 // TODO
 1. Currency
-2. User defined type extensions
 
 // Bugs
-
 

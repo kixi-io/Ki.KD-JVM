@@ -2161,7 +2161,14 @@ class KDParser {
      * - Newlines (the primary format)
      * - Semicolons (for inline grids like `1 2 3; 4 5 6`)
      *
-     * Values within a row are separated by whitespace.
+     * Values within a row can be separated by:
+     * - Whitespace (the primary format)
+     * - Commas (optional, for readability like `.grid(1, 2, 3)`)
+     * - Both whitespace and commas can be combined
+     *
+     * Single-line grids with commas are treated as single-row grids:
+     * - `.grid(1, 2, 3)` creates a 3x1 grid
+     * - `.grid<Int>(4, 5, 6)` creates a typed 3x1 grid
      *
      * Special handling:
      * - `-` (standalone dash) is treated as null
@@ -2277,22 +2284,26 @@ class KDParser {
 
     /**
      * Parses a single grid row into a list of values.
+     *
+     * Values can be separated by whitespace and/or commas.
+     * Commas are optional separators for readability.
      */
     private fun parseGridRow(rowStr: String): List<Any?> {
         val values = mutableListOf<Any?>()
         val ctx = ParseContext(rowStr)
 
         while (!ctx.isEOF()) {
-            skipSpacesAndTabs(ctx)
+            skipSpacesTabsAndCommas(ctx)
             if (ctx.isEOF()) break
 
             // Check for dash as null indicator
             if (ctx.peek() == '-') {
                 val nextChar = ctx.peek(1)
                 // Standalone dash is null, but -5 is a negative number
-                if (nextChar == null || nextChar.isWhitespace() || nextChar == ';') {
+                if (nextChar == null || nextChar.isWhitespace() || nextChar == ';' || nextChar == ',') {
                     ctx.advance()
                     values.add(null)
+                    skipSpacesTabsAndCommas(ctx)
                     continue
                 }
             }
@@ -2300,8 +2311,25 @@ class KDParser {
             // Parse the next value
             val value = parseValue(ctx)
             values.add(value)
+
+            // Skip optional comma and whitespace after value
+            skipSpacesTabsAndCommas(ctx)
         }
 
         return values
+    }
+
+    /**
+     * Skips spaces, tabs, and commas (used in grid row parsing).
+     */
+    private fun skipSpacesTabsAndCommas(ctx: ParseContext) {
+        while (!ctx.isEOF()) {
+            val ch = ctx.peek()
+            if (ch == ' ' || ch == '\t' || ch == ',') {
+                ctx.advance()
+            } else {
+                break
+            }
+        }
     }
 }

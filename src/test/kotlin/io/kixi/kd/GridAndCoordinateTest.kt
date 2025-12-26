@@ -140,6 +140,119 @@ class GridAndCoordinateTest : StringSpec({
     }
 
     // =========================================================================
+    // 📊 GRID LITERALS - Comma-Separated Values
+    // =========================================================================
+
+    "parse single-line grid with commas" {
+        val tag = KD.read("""row .grid(1, 2, 3)""")
+        val grid = tag.value as Grid<*>
+        grid.width shouldBe 3
+        grid.height shouldBe 1
+        grid[0, 0] shouldBe 1
+        grid[1, 0] shouldBe 2
+        grid[2, 0] shouldBe 3
+    }
+
+    "parse typed single-line grid with commas" {
+        val tag = KD.read("""row .grid<Int>(4, 5, 6)""")
+        val grid = tag.value as Grid<*>
+        grid.width shouldBe 3
+        grid.height shouldBe 1
+        grid[0, 0] shouldBe 4
+        grid[1, 0] shouldBe 5
+        grid[2, 0] shouldBe 6
+    }
+
+    "parse multi-row grid with commas in rows" {
+        val tag = KD.read("""
+            matrix .grid(
+                1, 2, 3
+                4, 5, 6
+                7, 8, 9
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.width shouldBe 3
+        grid.height shouldBe 3
+        grid[0, 0] shouldBe 1
+        grid[2, 2] shouldBe 9
+    }
+
+    "parse grid with mixed comma and whitespace separation" {
+        val tag = KD.read("""
+            mixed .grid(
+                1  2, 3
+                4, 5  6
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.width shouldBe 3
+        grid.height shouldBe 2
+        grid[0, 0] shouldBe 1
+        grid[1, 0] shouldBe 2
+        grid[2, 0] shouldBe 3
+        grid[0, 1] shouldBe 4
+        grid[1, 1] shouldBe 5
+        grid[2, 1] shouldBe 6
+    }
+
+    "parse single-line string grid with commas" {
+        val tag = KD.read("""words .grid("hello", "world", "test")""")
+        val grid = tag.value as Grid<*>
+        grid.width shouldBe 3
+        grid.height shouldBe 1
+        grid[0, 0] shouldBe "hello"
+        grid[1, 0] shouldBe "world"
+        grid[2, 0] shouldBe "test"
+    }
+
+    "parse single-line grid with null values and commas" {
+        val tag = KD.read("""sparse .grid(1, nil, 3, -, 5)""")
+        val grid = tag.value as Grid<*>
+        grid.width shouldBe 5
+        grid.height shouldBe 1
+        grid[0, 0] shouldBe 1
+        grid[1, 0].shouldBeNull()
+        grid[2, 0] shouldBe 3
+        grid[3, 0].shouldBeNull()
+        grid[4, 0] shouldBe 5
+    }
+
+    "parse grid attribute with commas" {
+        val tag = KD.read("""game board=.grid(1, 2, 3) player="X" """)
+        val grid = tag["board"] as Grid<*>
+        grid.width shouldBe 3
+        grid.height shouldBe 1
+        grid[0, 0] shouldBe 1
+        grid[2, 0] shouldBe 3
+        tag["player"] shouldBe "X"
+    }
+
+    "parse typed grid with commas and negative numbers" {
+        val tag = KD.read("""numbers .grid<Int>(-1, 0, 1, -5, 10)""")
+        val grid = tag.value as Grid<*>
+        grid.width shouldBe 5
+        grid.height shouldBe 1
+        grid[0, 0] shouldBe -1
+        grid[1, 0] shouldBe 0
+        grid[2, 0] shouldBe 1
+        grid[3, 0] shouldBe -5
+        grid[4, 0] shouldBe 10
+    }
+
+    "parse grid with decimals and commas" {
+        val tag = KD.read("""decimals .grid(1.5, 2.5, 3.5)""")
+        val grid = tag.value as Grid<*>
+        grid.width shouldBe 3
+        grid.height shouldBe 1
+        grid[0, 0] shouldBe 1.5
+        grid[1, 0] shouldBe 2.5
+        grid[2, 0] shouldBe 3.5
+    }
+
+    // =========================================================================
     // 📊 GRID LITERALS - Typed
     // =========================================================================
 
