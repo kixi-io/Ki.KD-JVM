@@ -841,4 +841,216 @@ class GridAndCoordinateTest : StringSpec({
         grid["A", 4] shouldBe "Gizmo"
         grid["B", 4] shouldBe 500   // Q1 for Gizmo
     }
+
+    // =========================================================================
+    // 📊 GRID NULLABILITY TESTS
+    // =========================================================================
+
+    "parse grid with explicit non-nullable type" {
+        val tag = KD.read("""
+            matrix .grid<Int>(
+                1  2  3
+                4  5  6
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Int::class.javaObjectType
+        grid.elementNullable shouldBe false
+    }
+
+    "parse grid with explicit nullable type" {
+        val tag = KD.read("""
+            matrix .grid<Int?>(
+                1  2  3
+                4  5  6
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Int::class.javaObjectType
+        grid.elementNullable shouldBe true
+    }
+
+    "parse grid with explicit nullable type and null values" {
+        val tag = KD.read("""
+            matrix .grid<Int?>(
+                1  -  3
+                4  5  6
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Int::class.javaObjectType
+        grid.elementNullable shouldBe true
+        grid[1, 0].shouldBeNull()
+    }
+
+    "infer non-nullable type when no nulls present" {
+        val tag = KD.read("""
+            matrix .grid(
+                1  2  3
+                4  5  6
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Int::class.javaObjectType
+        grid.elementNullable shouldBe false
+    }
+
+    "infer nullable type when nulls present" {
+        val tag = KD.read("""
+            matrix .grid(
+                1  -  3
+                4  5  6
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Int::class.javaObjectType
+        grid.elementNullable shouldBe true
+    }
+
+    "infer nullable String type when nulls present" {
+        val tag = KD.read("""
+            words .grid(
+                "Hello" "Bula"
+                -       "Aloha"
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe String::class.java
+        grid.elementNullable shouldBe true
+    }
+
+    "infer non-nullable String type when no nulls" {
+        val tag = KD.read("""
+            words .grid(
+                "Hello" "Bula"
+                "Hola"  "Aloha"
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe String::class.java
+        grid.elementNullable shouldBe false
+    }
+
+    "infer nullable Any type for mixed types with nulls" {
+        val tag = KD.read("""
+            mixed .grid(
+                "Hello" -
+                5000    "Aloha"
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Any::class.java
+        grid.elementNullable shouldBe true
+    }
+
+    "infer non-nullable Any type for mixed types without nulls" {
+        val tag = KD.read("""
+            mixed .grid(
+                "Hello" "Bula"
+                5000    "Aloha"
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Any::class.java
+        grid.elementNullable shouldBe false
+    }
+
+    "infer non-nullable Number type for mixed numeric types" {
+        val tag = KD.read("""
+            numbers .grid(
+                2    4bd   6.0
+                8.0f 10    10L
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Number::class.java
+        grid.elementNullable shouldBe false
+    }
+
+    "infer nullable Number type for mixed numeric types with nulls" {
+        val tag = KD.read("""
+            numbers .grid(
+                2    -     6.0
+                8.0f 10    10L
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Number::class.java
+        grid.elementNullable shouldBe true
+    }
+
+    "grid toString includes nullable suffix" {
+        val grid = Grid.fromRows(
+            listOf<Int?>(1, null, 3),
+            listOf<Int?>(4, 5, 6)
+        )
+
+        val str = grid.toString()
+        str shouldContain ".grid<Int?>"
+    }
+
+    "grid toString excludes nullable suffix for non-nullable" {
+        val grid = Grid.fromRows(
+            listOf(1, 2, 3),
+            listOf(4, 5, 6)
+        )
+
+        val str = grid.toString()
+        str shouldContain ".grid<Int>"
+        str.contains(".grid<Int?>") shouldBe false
+    }
+
+    "parse nullable String grid" {
+        val tag = KD.read("""
+            words .grid<String?>(
+                "a" "b" "c"
+                -   "e" "f"
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe String::class.java
+        grid.elementNullable shouldBe true
+        grid[0, 1].shouldBeNull()
+        grid[1, 1] shouldBe "e"
+    }
+
+    "parse nullable Number grid" {
+        val tag = KD.read("""
+            nums .grid<Number?>(
+                1    2.5  3L
+                nil  5f   6bd
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Number::class.java
+        grid.elementNullable shouldBe true
+        grid[0, 1].shouldBeNull()
+    }
+
+    "parse nullable Any grid" {
+        val tag = KD.read("""
+            mixed .grid<Any?>(
+                1      "hello"
+                true   nil
+            )
+        """.trimIndent())
+
+        val grid = tag.value as Grid<*>
+        grid.elementType shouldBe Any::class.java
+        grid.elementNullable shouldBe true
+        grid[1, 1].shouldBeNull()
+    }
 })

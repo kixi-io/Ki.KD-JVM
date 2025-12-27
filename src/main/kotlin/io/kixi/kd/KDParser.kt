@@ -2219,11 +2219,24 @@ class KDParser {
             throw ParseException("Empty grid is not allowed. Grid requires at least one cell.", index = 0)
         }
 
-        // Determine element type from explicit type parameter or infer from values
-        val elementType: Class<*>? = if (typeParam != null) {
-            typeParamToClass(typeParam)
+        val allValues = rows.flatten()
+        val hasNullValues = allValues.any { it == null }
+
+        // Determine element type and nullability from explicit type parameter or infer from values
+        val elementType: Class<*>?
+        val elementNullable: Boolean
+
+        if (typeParam != null) {
+            val (type, nullable) = parseTypeParam(typeParam)
+            elementType = type
+            // If type is explicitly nullable (e.g., Int?), allow nulls
+            // If type is non-nullable (e.g., Int), we still allow nulls in the data
+            // but the grid is marked as non-nullable
+            elementNullable = nullable
         } else {
-            inferElementType(rows.flatten())
+            // Infer type and nullability from values
+            elementType = inferElementType(allValues)
+            elementNullable = hasNullValues
         }
 
         // Build the grid directly with the correct elementType
@@ -2237,7 +2250,19 @@ class KDParser {
             }
         }
 
-        return Grid<Any?>(width, height, data, elementType)
+        return Grid<Any?>(width, height, data, elementType, elementNullable)
+    }
+
+    /**
+     * Parses a type parameter string, handling nullable types.
+     *
+     * @param typeParam The type parameter string (e.g., "Int", "Int?", "String?")
+     * @return A Pair of (Class, isNullable)
+     */
+    private fun parseTypeParam(typeParam: String): Pair<Class<*>?, Boolean> {
+        val isNullable = typeParam.endsWith("?")
+        val baseType = if (isNullable) typeParam.dropLast(1) else typeParam
+        return Pair(typeParamToClass(baseType), isNullable)
     }
 
     /**
