@@ -9,6 +9,10 @@ repositories {
     mavenCentral()
 }
 
+kotlin {
+    jvmToolchain(21)
+}
+
 dependencies {
     // Ki.Core-JVM via composite build
     implementation("io.kixi:Ki.Core-JVM:2.1.1")
