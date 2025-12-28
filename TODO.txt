@@ -1,7 +1,7 @@
 // TODO
-1. Currency
-2. KDP - Simple KD property files
+1. IDEA plugin for KD
+2. Currency
 3. Consider type inferencing for lists and maps.
-4. Consider KDT templates with variables.
+4. Consider KD templates with variables.
 
 // Bugs

@@ -7,6 +7,20 @@ import io.kixi.NSID
 import kotlin.collections.ArrayList
 
 /**
+ * Exception thrown when a property is not found in a tag's children.
+ *
+ * @param key The property key that was not found
+ * @param namespace The namespace of the property (empty string if none)
+ */
+class PropertyNotFoundException(
+    val key: String,
+    val namespace: String = ""
+) : RuntimeException(
+    if (namespace.isEmpty()) "Property '$key' not found"
+    else "Property '$namespace:$key' not found"
+)
+
+/**
  * KD documents are composed of KD tags. Tags can contain the following components:
  *
  * 1. a list of annotations (optional) - see details below
@@ -15,6 +29,8 @@ import kotlin.collections.ArrayList
  * 1. 0 or more values (optional)
  * 1. 0 or more attributes (optional)
  * 1. 0 or more children (optional)
+ *
+ * See [KD Docs](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)) for details.
  *
  * KD tag examples:
  * ```
@@ -93,11 +109,19 @@ import kotlin.collections.ArrayList
  * ```
  *
  * KD also supports anonymous tags which have the name "" (the empty string).
- * An anonymous tag starts with a literal and is followed by zero or more
- * additional literals and zero or more attributes.
+ * An anonymous tag can start with either:
+ * - A literal value (e.g., `"hello"`, `42`, `true`)
+ * - An attribute (e.g., `name="Jose"`, `age=35`)
+ *
+ * This allows for config-file style syntax:
+ * ```
+ * host = "localhost"
+ * port = 8080
+ * debug = true
+ * ```
  *
  * For more information on the KD language see the
- * [KD Wiki Page](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)).
+ * [KD Wiki Page](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD))
  */
 @Suppress("unused")
 class Tag : Call {
@@ -252,6 +276,205 @@ class Tag : Call {
         }
 
         return descendents
+    }
+
+    // ========================================================================
+    // Property Access (for config-file style KD)
+    // ========================================================================
+
+    /**
+     * Gets a property value from this tag's attributes or its children's attributes.
+     *
+     * This method first checks this tag's own attributes, then searches through
+     * child tags for one that has an attribute with the given key. This is useful
+     * for treating KD as a properties/config file format.
+     *
+     * **Example**
+     * ```kotlin
+     * val config = KD.read("""
+     *     host = "localhost"
+     *     port = 8080
+     *     debug = true
+     * """)
+     *
+     * val host = config.getProperty("host")     // "localhost"
+     * val port = config.getProperty("port")     // 8080
+     * val debug = config.getProperty("debug")   // true
+     * ```
+     *
+     * @param key The attribute key to search for
+     * @param namespace The namespace of the attribute (default: empty string)
+     * @return The attribute value (may be null if the attribute value is nil)
+     * @throws PropertyNotFoundException if no attribute with the given key is found
+     */
+    fun getProperty(key: String, namespace: String = ""): Any? {
+        val nsid = NSID(key, namespace)
+
+        // First check this tag's own attributes
+        if (attributes.containsKey(nsid)) {
+            return this[key, namespace]
+        }
+
+        // Then search children
+        for (child in children) {
+            if (child.attributes.containsKey(nsid)) {
+                return child[key, namespace]
+            }
+        }
+        throw PropertyNotFoundException(key, namespace)
+    }
+
+    /**
+     * Gets a property value from this tag or its children, or null if not found.
+     *
+     * This is a non-throwing variant of [getProperty]. Returns null if no attribute
+     * with the given key is found. Note that this means you cannot distinguish
+     * between a missing property and a property with a nil value using this method
+     * - use [hasProperty] or [getProperty] if you need that distinction.
+     *
+     * **Example**
+     * ```kotlin
+     * val config = KD.read("""
+     *     host = "localhost"
+     *     port = 8080
+     * """)
+     *
+     * val host = config.getPropertyOrNull("host")       // "localhost"
+     * val timeout = config.getPropertyOrNull("timeout") // null (not found)
+     * ```
+     *
+     * @param key The attribute key to search for
+     * @param namespace The namespace of the attribute (default: empty string)
+     * @return The attribute value, or null if not found
+     */
+    fun getPropertyOrNull(key: String, namespace: String = ""): Any? {
+        val nsid = NSID(key, namespace)
+
+        // First check this tag's own attributes
+        if (attributes.containsKey(nsid)) {
+            return this[key, namespace]
+        }
+
+        // Then search children
+        for (child in children) {
+            if (child.attributes.containsKey(nsid)) {
+                return child[key, namespace]
+            }
+        }
+        return null
+    }
+
+    /**
+     * Checks if this tag or its children contain a property with the given key.
+     *
+     * **Example**
+     * ```kotlin
+     * val config = KD.read("""
+     *     host = "localhost"
+     *     optional = nil
+     * """)
+     *
+     * config.hasProperty("host")     // true
+     * config.hasProperty("optional") // true (even though value is nil)
+     * config.hasProperty("missing")  // false
+     * ```
+     *
+     * @param key The attribute key to search for
+     * @param namespace The namespace of the attribute (default: empty string)
+     * @return true if an attribute with the given key exists
+     */
+    fun hasProperty(key: String, namespace: String = ""): Boolean {
+        val nsid = NSID(key, namespace)
+
+        // Check this tag's own attributes
+        if (attributes.containsKey(nsid)) {
+            return true
+        }
+
+        // Check children
+        return children.any { it.attributes.containsKey(nsid) }
+    }
+
+    /**
+     * Gets all properties from this tag and its children as a Map.
+     *
+     * Collects attributes from this tag and all child tags into a single map.
+     * This tag's attributes take precedence over children's. If multiple children
+     * have the same attribute key, the first one encountered wins.
+     *
+     * **Example**
+     * ```kotlin
+     * val config = KD.read("""
+     *     host = "localhost"
+     *     port = 8080
+     *     debug = true
+     * """)
+     *
+     * val props = config.getProperties()
+     * // {NSID(host)="localhost", NSID(port)=8080, NSID(debug)=true}
+     * ```
+     *
+     * @return A map of all properties
+     */
+    fun getProperties(): Map<NSID, Any?> {
+        val result = LinkedHashMap<NSID, Any?>()
+
+        // Add this tag's attributes first
+        for ((nsid, value) in attributes) {
+            result[nsid] = value
+        }
+
+        // Then add children's attributes
+        for (child in children) {
+            for ((nsid, value) in child.attributes) {
+                if (!result.containsKey(nsid)) {
+                    result[nsid] = value
+                }
+            }
+        }
+        return result
+    }
+
+    /**
+     * Gets all properties from this tag and its children as a simple String-keyed Map.
+     *
+     * This is a convenience method that ignores namespaces. This tag's attributes
+     * take precedence. If multiple children have attributes with the same name
+     * (even in different namespaces), the first one encountered wins.
+     *
+     * **Example**
+     * ```kotlin
+     * val config = KD.read("""
+     *     host = "localhost"
+     *     port = 8080
+     * """)
+     *
+     * val props = config.getPropertiesMap()
+     * props["host"] // "localhost"
+     * props["port"] // 8080
+     * ```
+     *
+     * @return A map of property names to values
+     */
+    fun getPropertiesMap(): Map<String, Any?> {
+        val result = LinkedHashMap<String, Any?>()
+
+        // Add this tag's attributes first
+        for ((nsid, value) in attributes) {
+            if (!result.containsKey(nsid.name)) {
+                result[nsid.name] = value
+            }
+        }
+
+        // Then add children's attributes
+        for (child in children) {
+            for ((nsid, value) in child.attributes) {
+                if (!result.containsKey(nsid.name)) {
+                    result[nsid.name] = value
+                }
+            }
+        }
+        return result
     }
 
     /**

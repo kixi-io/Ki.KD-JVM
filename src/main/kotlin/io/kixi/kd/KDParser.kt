@@ -57,6 +57,20 @@ import java.time.*
  * }
  * ```
  *
+ * ## Anonymous Tags
+ * Anonymous tags have an empty string as their name. They can start with:
+ * - A value literal (e.g., `"hello"`, `42`, `true`)
+ * - An attribute (e.g., `name="Jose"`, `age=35`)
+ *
+ * Example of attribute-only anonymous tags (config file style):
+ * ```
+ * host = "localhost"
+ * port = 8080
+ * debug = true
+ * ```
+ *
+ * See [KD Docs](https://github.com/kixi-io/Ki.Docs/wiki/Ki-Data-(KD)) for details.
+ *
  * @see Tag
  * @see Annotation
  */
@@ -269,6 +283,26 @@ class KDParser {
                 }
             }
 
+            // Check if this is an attribute-only anonymous tag (identifier followed by =)
+            // e.g., "name=jose" or "ns:name=jose" should be anonymous tags with attributes
+            // We check this regardless of whether the NSID has a namespace
+            val attrCheckState = ctx.saveState()
+            skipSpacesAndTabs(ctx)
+            if (ctx.peek() == '=') {
+                // This is an attribute-only anonymous tag
+                ctx.restoreState(savedState)
+                tag = Tag(NSID.ANONYMOUS)
+                tag.annotations.addAll(annotations)
+                parseValuesAndAttributes(ctx, tag, isAttributeOnlyAnonymous = true)
+                skipSpacesAndTabs(ctx)
+                if (ctx.peek() == '{') {
+                    ctx.advance()
+                    parseChildren(ctx, tag)
+                }
+                return tag
+            }
+            ctx.restoreState(attrCheckState)
+
             if (!nsid.hasNamespace && isKeyword(name)) {
                 skipSpacesAndTabs(ctx)
                 val nextCh = ctx.peek()
@@ -380,7 +414,7 @@ class KDParser {
         }
     }
 
-    private fun parseValuesAndAttributes(ctx: ParseContext, tag: Tag) {
+    private fun parseValuesAndAttributes(ctx: ParseContext, tag: Tag, isAttributeOnlyAnonymous: Boolean = false) {
         while (!ctx.isEOF()) {
             skipSpacesAndTabs(ctx)
 
@@ -397,6 +431,12 @@ class KDParser {
 
             // Handle newlines - check if next line has attributes
             if (ch == '\n' || ch == '\r') {
+                // For attribute-only anonymous tags, newline ends the tag
+                // Each line is a separate anonymous tag in config-file style
+                if (isAttributeOnlyAnonymous) {
+                    break
+                }
+
                 val savedState = ctx.saveState()
                 skipWhitespaceAndComments(ctx)
 
