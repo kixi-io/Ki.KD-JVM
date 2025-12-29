@@ -3,6 +3,7 @@ package io.kixi.kd
 import io.kixi.*
 import io.kixi.text.ParseException
 import io.kixi.text.resolveEscapes
+import io.kixi.uom.Currency
 import io.kixi.uom.Length
 import io.kixi.uom.Quantity
 import io.kixi.uom.Unit
@@ -564,7 +565,7 @@ class KDParser {
     }
 
     private fun isIdentifierStart(ch: Char): Boolean =
-        ch.isLetter() || ch == '_' || ch == '$' || ch.isSurrogate()
+        ch.isLetter() || ch == '_' /* || ch == '$' */ || ch.isSurrogate()
 
     private fun isIdentifierPart(ch: Char): Boolean =
         ch.isLetterOrDigit() || ch == '_' || ch == '$' || ch.isSurrogate()
@@ -633,6 +634,7 @@ class KDParser {
             ch.isDigit() -> true
             ch == '.' && ctx.peek(1)?.isLetter() == true -> true
             isIdentifierStart(ch) -> true
+            Currency.isPrefixSymbol(ch) -> true  // Currency prefix symbols ($, €, ¥, £, ₿, Ξ)
             else -> false
         }
     }
@@ -645,6 +647,15 @@ class KDParser {
         // Check for open range marker '_'
         if (ch == '_') {
             return parseOpenRangeOrIdentifier(ctx)
+        }
+
+        // Check for negative/positive currency prefix: -$100, +€50
+        if ((ch == '-' || ch == '+') && ctx.peek(1)?.let { Currency.isPrefixSymbol(it) } == true) {
+            val isNegative = ch == '-'
+            ctx.advance() // consume the sign
+            val quantity = parseCurrencyWithPrefix(ctx)
+            @Suppress("UNCHECKED_CAST")
+            return if (isNegative) -(quantity as Quantity<Currency>) else quantity
         }
 
         val baseValue = when {
@@ -662,6 +673,7 @@ class KDParser {
             ch == '<' -> parseURL(ctx)
             ch == '-' || ch == '+' || ch.isDigit() -> parseNumberOrDateOrDuration(ctx)
             ch == '.' && ctx.peek(1)?.isLetter() == true -> parseDotLiteral(ctx)
+            Currency.isPrefixSymbol(ch) -> parseCurrencyWithPrefix(ctx)  // Currency prefix notation
             isIdentifierStart(ch) -> parseKeywordOrNakedOrCall(ctx)
             else -> null
         }
@@ -1493,6 +1505,112 @@ class KDParser {
         } catch (e: Exception) {
             ctx.restoreState(savedState)
             null
+        }
+    }
+
+    /**
+     * Parses a currency quantity with prefix notation (e.g., $100, €50.25, ¥10000, £75, ₿0.5, Ξ2.5).
+     *
+     * The prefix symbol is consumed, then the number is parsed, and the result is a
+     * Quantity<Currency> using the corresponding currency code.
+     *
+     * Supports:
+     * - Sign after prefix: $-100 (negative $100)
+     * - Decimals: €50.25
+     * - Underscores: $1_000_000
+     * - Type specifiers: $100:L (Long)
+     * - Scientific notation: $1.5e6
+     *
+     * @return Quantity<Currency> for the parsed currency amount
+     * @throws ParseException if the format is invalid
+     */
+    private fun parseCurrencyWithPrefix(ctx: ParseContext): Quantity<*> {
+        val prefixSymbol = ctx.peek() ?: throw ctx.error("Expected currency prefix symbol")
+
+        // Verify it's a valid currency prefix
+        val currency = Currency.fromPrefix(prefixSymbol)
+            ?: throw ctx.error("Unknown currency prefix symbol: $prefixSymbol")
+
+        ctx.advance() // consume the prefix symbol
+
+        val start = ctx.pos
+
+        // Handle optional sign after prefix
+        if (ctx.peek() == '-' || ctx.peek() == '+') {
+            ctx.advance()
+        }
+
+        // Parse digits before decimal
+        if (ctx.peek()?.isDigit() != true) {
+            throw ctx.error("Expected digit after currency symbol '$prefixSymbol'")
+        }
+
+        while (!ctx.isEOF()) {
+            val c = ctx.peek() ?: break
+            when {
+                c.isDigit() -> ctx.advance()
+                c == '_' -> ctx.advance()  // Allow underscores for readability
+                else -> break
+            }
+        }
+
+        // Parse optional decimal part
+        if (ctx.peek() == '.' && ctx.peek(1)?.isDigit() == true) {
+            ctx.advance() // consume '.'
+            while (!ctx.isEOF() && (ctx.peek()?.isDigit() == true || ctx.peek() == '_')) {
+                ctx.advance()
+            }
+        }
+
+        // Parse optional exponent (scientific notation)
+        if (ctx.peek() == 'e' || ctx.peek() == 'E') {
+            val next = ctx.peek(1)
+            if (next == '(' || next == 'n' || next == 'p' || next?.isDigit() == true || next == '-' || next == '+') {
+                ctx.advance() // consume 'e' or 'E'
+
+                when {
+                    ctx.peek() == '(' -> {
+                        ctx.advance() // skip (
+                        if (ctx.peek() == '+' || ctx.peek() == '-') ctx.advance()
+                        while (ctx.peek()?.isDigit() == true) ctx.advance()
+                        if (ctx.peek() == ')') ctx.advance()
+                    }
+                    ctx.peek() == 'n' || ctx.peek() == 'p' -> {
+                        ctx.advance() // skip n or p
+                        while (ctx.peek()?.isDigit() == true) ctx.advance()
+                    }
+                    else -> {
+                        if (ctx.peek() == '+' || ctx.peek() == '-') ctx.advance()
+                        while (ctx.peek()?.isDigit() == true) ctx.advance()
+                    }
+                }
+            }
+        }
+
+        val numEnd = ctx.pos
+        var numStr = ctx.substring(start, numEnd).replace("_", "")
+
+        // Check for type specifier (:i, :L, :d, :f)
+        var typeSpec = '\u0000'
+        if (ctx.peek() == ':') {
+            val typeChar = ctx.peek(1)
+            if (typeChar == 'i' || typeChar == 'L' || typeChar == 'd' || typeChar == 'f') {
+                typeSpec = typeChar
+                ctx.advance(2) // skip : and type char
+            }
+        }
+
+        // Build the quantity text with suffix notation and parse it
+        val quantityText = if (typeSpec != '\u0000') {
+            "$numStr${currency.symbol}:$typeSpec"
+        } else {
+            "$numStr${currency.symbol}"
+        }
+
+        return try {
+            Quantity.parse(quantityText)
+        } catch (e: Exception) {
+            throw ctx.error("Invalid currency amount: $prefixSymbol$numStr - ${e.message}")
         }
     }
 

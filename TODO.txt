@@ -2,6 +2,7 @@
 1. IDEA plugin for KD
 2. Currency
 3. Consider type inferencing for lists and maps.
-4. Consider KD templates with variables.
+4. Consider KDS: KD Schema
+5. Consider KD templates with variables.
 
 // Bugs
