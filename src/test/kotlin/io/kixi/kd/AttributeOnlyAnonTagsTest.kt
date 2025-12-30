@@ -311,9 +311,11 @@ class AttributeOnlyAnonTagsTest : FunSpec({
         }
 
         test("attribute with dollar sign in name") {
-            val tag = parser.parse("\$price = 99")
+            // Note: $ cannot start identifiers (reserved for currency prefix)
+            // but can appear in the middle
+            val tag = parser.parse("my\$price = 99")
             tag.isAnonymous() shouldBe true
-            tag["\$price"] shouldBe 99
+            tag["my\$price"] shouldBe 99
         }
 
         test("attribute with unicode name") {

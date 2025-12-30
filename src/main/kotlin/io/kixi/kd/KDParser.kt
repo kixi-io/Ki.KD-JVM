@@ -565,7 +565,7 @@ class KDParser {
     }
 
     private fun isIdentifierStart(ch: Char): Boolean =
-        ch.isLetter() || ch == '_' /* || ch == '$' */ || ch.isSurrogate()
+        ch.isLetter() || ch == '_' || ch.isSurrogate()
 
     private fun isIdentifierPart(ch: Char): Boolean =
         ch.isLetterOrDigit() || ch == '_' || ch == '$' || ch.isSurrogate()
@@ -649,13 +649,18 @@ class KDParser {
             return parseOpenRangeOrIdentifier(ctx)
         }
 
-        // Check for negative/positive currency prefix: -$100, +€50
+        // Check for negative/positive currency prefix: -$100, +€50, -$.50
         if ((ch == '-' || ch == '+') && ctx.peek(1)?.let { Currency.isPrefixSymbol(it) } == true) {
-            val isNegative = ch == '-'
-            ctx.advance() // consume the sign
-            val quantity = parseCurrencyWithPrefix(ctx)
-            @Suppress("UNCHECKED_CAST")
-            return if (isNegative) -(quantity as Quantity<Currency>) else quantity
+            val afterPrefix = ctx.peek(2)
+            // Only treat as currency if digit or period (for decimals like $.50) follows the prefix symbol
+            if (afterPrefix?.isDigit() == true || (afterPrefix == '.' && ctx.peek(3)?.isDigit() == true)) {
+                val isNegative = ch == '-'
+                ctx.advance() // consume the sign
+                val quantity = parseCurrencyWithPrefix(ctx)
+                @Suppress("UNCHECKED_CAST")
+                return if (isNegative) -(quantity as Quantity<Currency>) else quantity
+            }
+            // Otherwise fall through to normal parsing
         }
 
         val baseValue = when {
@@ -673,7 +678,21 @@ class KDParser {
             ch == '<' -> parseURL(ctx)
             ch == '-' || ch == '+' || ch.isDigit() -> parseNumberOrDateOrDuration(ctx)
             ch == '.' && ctx.peek(1)?.isLetter() == true -> parseDotLiteral(ctx)
-            Currency.isPrefixSymbol(ch) -> parseCurrencyWithPrefix(ctx)  // Currency prefix notation
+            Currency.isPrefixSymbol(ch) -> {
+                // Currency prefix must be followed by digit or period (e.g., $100, $.50)
+                val nextChar = ctx.peek(1)
+                when {
+                    // Digit follows -> currency (e.g., $100)
+                    nextChar?.isDigit() == true -> parseCurrencyWithPrefix(ctx)
+                    // Period followed by digit -> currency (e.g., $.50)
+                    nextChar == '.' && ctx.peek(2)?.isDigit() == true -> parseCurrencyWithPrefix(ctx)
+                    // Sign followed by digit -> currency (e.g., unusual but $-100)
+                    (nextChar == '-' || nextChar == '+') && ctx.peek(2)?.isDigit() == true ->
+                        parseCurrencyWithPrefix(ctx)
+                    // Invalid - currency prefix must be followed by number
+                    else -> throw ctx.error("Currency prefix '$ch' must be followed by a number")
+                }
+            }
             isIdentifierStart(ch) -> parseKeywordOrNakedOrCall(ctx)
             else -> null
         }
@@ -1540,11 +1559,14 @@ class KDParser {
             ctx.advance()
         }
 
-        // Parse digits before decimal
-        if (ctx.peek()?.isDigit() != true) {
+        // Parse digits before decimal, or handle leading decimal (e.g., $.50)
+        val startsWithDecimal = ctx.peek() == '.' && ctx.peek(1)?.isDigit() == true
+
+        if (ctx.peek()?.isDigit() != true && !startsWithDecimal) {
             throw ctx.error("Expected digit after currency symbol '$prefixSymbol'")
         }
 
+        // Parse integer part (may be empty for $.50 style)
         while (!ctx.isEOF()) {
             val c = ctx.peek() ?: break
             when {

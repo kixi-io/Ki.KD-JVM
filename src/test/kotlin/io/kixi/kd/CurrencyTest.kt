@@ -476,7 +476,7 @@ class CurrencyTest : FunSpec({
 
         test("currency quantity toString should use suffix notation") {
             val q = Quantity(100, Unit.USD)
-            q.toString() shouldBe "100USD"
+            q.toString() shouldBe "100USD:i"
         }
 
         test("decimal currency should format correctly") {

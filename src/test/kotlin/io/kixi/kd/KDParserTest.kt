@@ -75,8 +75,10 @@ class KDParserTest : FunSpec({
         }
 
         test("tag with dollar sign in name") {
-            val tag = parser.parse("\$special")
-            tag.nsid.name shouldBe "\$special"
+            // Note: $ cannot start identifiers (reserved for currency prefix)
+            // but can appear in the middle
+            val tag = parser.parse("my\$special")
+            tag.nsid.name shouldBe "my\$special"
         }
 
         test("tag starting with underscore") {
