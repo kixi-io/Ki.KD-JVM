@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "io.kixi"
-version = "2.1.1"
+version = "2.1.2"
 
 repositories {
     mavenCentral()
@@ -15,7 +15,7 @@ kotlin {
 
 dependencies {
     // Ki.Core-JVM via composite build
-    implementation("io.kixi:Ki.Core-JVM:2.1.1")
+    implementation("io.kixi:Ki.Core-JVM:2.1.2")
 
     testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
     testImplementation("io.kotest:kotest-assertions-core:5.9.1")
