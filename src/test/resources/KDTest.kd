@@ -18,7 +18,7 @@ metadata title="KD Comprehensive Test" description="""
     and showcase the expressive power of Ki Data.
 
     日本語とスペイン語の例も含まれています。
-    """ emoji="🚀"
+    """ emoji="🚀" .snip("test")
 
 # =============================================================================
 # 📝 STRING LITERALS - All four types
