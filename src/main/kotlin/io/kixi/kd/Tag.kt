@@ -231,6 +231,122 @@ class Tag : Call {
     override fun toString(): String = toString("")
 
     /**
+     * Returns a string representation of this tag with snip literals displayed
+     * in their original unresolved form.
+     *
+     * When parsing a KD file containing `.snip(path)` as a quoted string,
+     * it becomes an anonymous tag with a string value. This method detects
+     * these snip patterns and outputs them as `.snip(path)` instead of
+     * `".snip(path)"`.
+     *
+     * This is useful for displaying the structure of a KD document before
+     * snip resolution occurs.
+     *
+     * **Example**
+     * ```kotlin
+     * val tag = KD.read("""
+     *     colors {
+     *         ".snip(../colors)"
+     *     }
+     * """)
+     *
+     * println(tag.unresolvedSnipString())
+     * // Output:
+     * // colors {
+     * //     .snip(../colors)
+     * // }
+     * ```
+     *
+     * @return A string representation with snip literals shown verbatim
+     * @see Snip.isLiteral
+     */
+    fun unresolvedSnipString(): String = unresolvedSnipString("")
+
+    /**
+     * @param linePrefix A prefix to insert before every line.
+     * @return A string representation with snip literals shown verbatim
+     */
+    fun unresolvedSnipString(linePrefix: String): String {
+        val builder = StringBuilder()
+
+        // If present, output annotations at the top, one per line.
+        if (annotations.isNotEmpty()) {
+            for (anno in annotations) {
+                builder.append(linePrefix).append(anno.toString() + "\n")
+            }
+        }
+
+        // Check if this is a snip tag (anonymous with single string value matching snip pattern)
+        if (isAnonymous() && values.size == 1 && values[0] is String) {
+            val strValue = values[0] as String
+            if (Snip.isLiteral(strValue)) {
+                // Output the snip literal verbatim (without quotes)
+                builder.append(linePrefix).append(strValue)
+                return builder.toString()
+            }
+        }
+
+        builder.append(linePrefix)
+        var skipValueSpace = false
+
+        if (isAnonymous()) {
+            skipValueSpace = true
+        } else {
+            builder.append(nsid.toString())
+        }
+
+        // output values
+        if (!values.isEmpty()) {
+            val i: Iterator<*> = values.iterator()
+            while (i.hasNext()) {
+                if (skipValueSpace) skipValueSpace = false else builder.append(" ")
+
+                val next = i.next()
+                val literalText = Ki.format(next).trim()
+
+                // Deal with multiline blob literals
+                if (next is ByteArray && literalText.contains('\n')) {
+                    val buf = StringBuilder()
+                    val lines = literalText.lines()
+
+                    var first = true
+                    for (line in lines) {
+                        if (first) {
+                            buf.append(line + "\n")
+                            first = false
+                        } else {
+                            buf.append(linePrefix + line + "\n")
+                        }
+                    }
+                    builder.append(buf.toString().trimEnd())
+                } else {
+                    builder.append(literalText)
+                }
+            }
+        }
+
+        // output attributes
+        if (attributes.isNotEmpty()) {
+            val i = attributes.entries.iterator()
+            while (i.hasNext()) {
+                builder.append(" ")
+                val e = i.next()
+                builder.append("${Ki.format(e.key)}=${Ki.format(e.value)}")
+            }
+        }
+
+        // output children (recursively using unresolvedSnipString)
+        if (!children.isEmpty()) {
+            builder.append(" {$NEW_LINE")
+            for (t in children) {
+                builder.append(t.unresolvedSnipString("$linePrefix    ") + NEW_LINE)
+            }
+            builder.append("$linePrefix}")
+        }
+        return builder.toString()
+    }
+
+    /**
      * Gets the first child tag with the given name
      */
     fun getChild(name: String, namespace: String = "") : Tag? = children.find {
