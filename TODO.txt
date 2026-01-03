@@ -1,8 +1,8 @@
 // TODO
-1. Create KiException with suggestion property
-2. Add .ref(file or URL hosted KD snippet)
-3. Consider type inferencing for lists and maps.
-4. Consider KDS: KD Schema
-5. Consider KD templates with variables.
+1. Ki.KD-Light
+2. KD Schema
+2. Consider type inferencing for lists and maps.
+4. Consider KD templates with variables.
 
 // Bugs
+No known bugs
