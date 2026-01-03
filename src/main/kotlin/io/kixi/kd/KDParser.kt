@@ -49,6 +49,7 @@ import java.time.*
  * ### Phase 4 (Grid & Coordinate)
  * 25. Coordinate - 2D/3D grid positions (.coordinate(x=0, y=0) or .coordinate(c="A", r=1))
  * 26. Grid - 2D tabular data (.grid(...) with rows of values)
+ * 27. Snip - external document reference (.snip(path) or .snip(path, expand=true))
  *
  * ## Tag Structure
  * ```
@@ -2192,7 +2193,7 @@ class KDParser {
     }
 
     // ========================================================================
-    // Dot-prefixed Literals (.blob, .geo, .coordinate, .grid)
+    // Dot-prefixed Literals (.blob, .geo, .coordinate, .grid, .snip)
     // ========================================================================
 
     private fun parseDotLiteral(ctx: ParseContext): Any? {
@@ -2283,6 +2284,16 @@ class KDParser {
                     throw ctx.error("Invalid grid literal: ${e.message}")
                 } catch (e: Exception) {
                     throw ctx.error("Invalid grid literal: ${e.message}")
+                }
+            }
+            "snip" -> {
+                // Snip literals are returned as strings for later resolution
+                // by KD.readWithSnips(). This validates the literal syntax.
+                try {
+                    Snip.parse(literal)  // Validate syntax
+                    literal  // Return as string for KD.readWithSnips to process
+                } catch (e: Exception) {
+                    throw ctx.error("Invalid snip literal: ${e.message}")
                 }
             }
             else -> throw ctx.error("Unknown dot-literal type: .$name")

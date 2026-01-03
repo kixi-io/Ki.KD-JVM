@@ -1,8 +1,9 @@
 // TODO
-1. Ki.KD-Light
-2. KD Schema
-2. Consider type inferencing for lists and maps.
-4. Consider KD templates with variables.
+1. Time
+2. Ki.KD-Light
+3. KD Schema
+4. Consider type inferencing for lists and maps.
+5. Consider KD templates with variables.
 
 // Bugs
 No known bugs
