@@ -777,26 +777,26 @@ class KDParser {
         val c2 = ctx.peek(1) ?: return null
 
         // Determine range type
-        val rangeType: Range.Type
+        val rangeType: Range.RangeType
         when {
             c1 == '<' && c2 == '.' && ctx.peek(2) == '.' && ctx.peek(3) == '<' -> {
                 // <..<  exclusive both sides
-                rangeType = Range.Type.Exclusive
+                rangeType = Range.RangeType.Exclusive
                 ctx.advance(4)
             }
             c1 == '<' && c2 == '.' && ctx.peek(2) == '.' -> {
                 // <..   exclusive left
-                rangeType = Range.Type.ExclusiveLeft
+                rangeType = Range.RangeType.ExclusiveStart
                 ctx.advance(3)
             }
             c1 == '.' && c2 == '.' && ctx.peek(2) == '<' -> {
                 // ..<   exclusive right
-                rangeType = Range.Type.ExclusiveRight
+                rangeType = Range.RangeType.ExclusiveEnd
                 ctx.advance(3)
             }
             c1 == '.' && c2 == '.' -> {
                 // ..    inclusive
-                rangeType = Range.Type.Inclusive
+                rangeType = Range.RangeType.Inclusive
                 ctx.advance(2)
             }
             else -> return null
@@ -813,7 +813,7 @@ class KDParser {
             }
 
             // Validate range type for open right
-            if (rangeType !in listOf(Range.Type.Inclusive, Range.Type.ExclusiveLeft)) {
+            if (rangeType !in listOf(Range.RangeType.Inclusive, Range.RangeType.ExclusiveStart)) {
                 throw ctx.error("Right open ranges can only use .. and <.. operators")
             }
 
@@ -837,14 +837,14 @@ class KDParser {
         val c2 = ctx.peek(1)
 
         // Determine range type - only .. and ..< are valid for open left
-        val rangeType: Range.Type
+        val rangeType: Range.RangeType
         when {
             c1 == '.' && c2 == '.' && ctx.peek(2) == '<' -> {
-                rangeType = Range.Type.ExclusiveRight
+                rangeType = Range.RangeType.ExclusiveEnd
                 ctx.advance(3)
             }
             c1 == '.' && c2 == '.' -> {
-                rangeType = Range.Type.Inclusive
+                rangeType = Range.RangeType.Inclusive
                 ctx.advance(2)
             }
             else -> throw ctx.error("Left open ranges can only use .. and ..< operators")
@@ -860,64 +860,65 @@ class KDParser {
     }
 
     /**
-     * Creates an open-right range.
+     * Creates an open-right range (end is null).
      */
     @Suppress("UNCHECKED_CAST")
-    private fun createOpenRightRange(left: Any, type: Range.Type): Range<*> {
-        return createRangeInternal(left, left, type, openLeft = false, openRight = true)
+    private fun createOpenRightRange(start: Any, type: Range.RangeType): Range<*> {
+        return createRangeInternal(start, null, type)
     }
 
     /**
-     * Creates an open-left range.
+     * Creates an open-left range (start is null).
      */
     @Suppress("UNCHECKED_CAST")
-    private fun createOpenLeftRange(right: Any, type: Range.Type): Range<*> {
-        return createRangeInternal(right, right, type, openLeft = true, openRight = false)
+    private fun createOpenLeftRange(end: Any, type: Range.RangeType): Range<*> {
+        return createRangeInternal(null, end, type)
     }
 
     /**
      * Creates a range from two values.
      */
     @Suppress("UNCHECKED_CAST")
-    private fun createRange(left: Any, right: Any, type: Range.Type): Range<*> {
-        // Validate that left and right are compatible types
-        if (left::class != right::class) {
+    private fun createRange(start: Any, end: Any, type: Range.RangeType): Range<*> {
+        // Validate that start and end are compatible types
+        if (start::class != end::class) {
             // Allow numeric type mixing
-            if (left is Number && right is Number) {
+            if (start is Number && end is Number) {
                 // Convert to same type
-                val (l, r) = normalizeNumbers(left, right)
-                return createRangeInternal(l, r, type, openLeft = false, openRight = false)
+                val (s, e) = normalizeNumbers(start, end)
+                return createRangeInternal(s, e, type)
             }
-            throw ParseException("Range endpoints must be of compatible types: ${left::class.simpleName} vs ${right::class.simpleName}")
+            throw ParseException("Range endpoints must be of compatible types: ${start::class.simpleName} vs ${end::class.simpleName}")
         }
-        return createRangeInternal(left, right, type, openLeft = false, openRight = false)
+        return createRangeInternal(start, end, type)
     }
 
     /**
      * Internal helper to create a Range with proper type handling.
-     * Uses type-specific construction to satisfy the recursive Comparable<T> bound.
+     * Either start or end may be null for open ranges.
      */
     @Suppress("UNCHECKED_CAST")
-    private fun createRangeInternal(left: Any, right: Any, type: Range.Type, openLeft: Boolean, openRight: Boolean): Range<*> {
-        return when (left) {
-            is Int -> Range(left, right as Int, type, openLeft, openRight)
-            is Long -> Range(left, right as Long, type, openLeft, openRight)
-            is Double -> Range(left, right as Double, type, openLeft, openRight)
-            is Float -> Range(left, right as Float, type, openLeft, openRight)
-            is Dec -> Range(left, right as Dec, type, openLeft, openRight)
-            is String -> Range(left, right as String, type, openLeft, openRight)
-            is Char -> Range(left, right as Char, type, openLeft, openRight)
-            is Version -> Range(left, right as Version, type, openLeft, openRight)
-            is Duration -> Range(left, right as Duration, type, openLeft, openRight)
-            is LocalDate -> Range(left, right as LocalDate, type, openLeft, openRight)
-            is LocalDateTime -> Range(left, right as LocalDateTime, type, openLeft, openRight)
+    private fun createRangeInternal(start: Any?, end: Any?, type: Range.RangeType): Range<*> {
+        // Use whichever end is non-null to determine the type
+        val sample = start ?: end!!
+        return when (sample) {
+            is Int -> Range(start as Int?, end as Int?, type)
+            is Long -> Range(start as Long?, end as Long?, type)
+            is Double -> Range(start as Double?, end as Double?, type)
+            is Float -> Range(start as Float?, end as Float?, type)
+            is Dec -> Range(start as Dec?, end as Dec?, type)
+            is String -> Range(start as String?, end as String?, type)
+            is Char -> Range(start as Char?, end as Char?, type)
+            is Version -> Range(start as Version?, end as Version?, type)
+            is Duration -> Range(start as Duration?, end as Duration?, type)
+            is LocalDate -> Range(start as LocalDate?, end as LocalDate?, type)
+            is LocalDateTime -> Range(start as LocalDateTime?, end as LocalDateTime?, type)
             is Quantity<*> -> {
-                // Use Length as concrete type to satisfy compiler; type erasure makes this safe at runtime
-                val l = left as Quantity<Length>
-                val r = right as Quantity<Length>
-                Range<Quantity<Length>>(l, r, type, openLeft, openRight)
+                val s = start as Quantity<Length>?
+                val e = end as Quantity<Length>?
+                Range<Quantity<Length>?>(s, e, type)
             }
-            else -> throw ParseException("Unsupported type for range: ${left::class.simpleName}")
+            else -> throw ParseException("Unsupported type for range: ${sample::class.simpleName}")
         }
     }
 

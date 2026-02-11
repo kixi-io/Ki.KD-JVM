@@ -300,21 +300,21 @@ class KDLargeFileTest : FunSpec({
             val integers = inclusive!!.getChild("integers")
             integers!!.value.shouldBeInstanceOf<Range<*>>()
             val range = integers.value as Range<*>
-            range.type shouldBe Range.Type.Inclusive
-            range.left shouldBe 1
-            range.right shouldBe 10
+            range.type shouldBe Range.RangeType.Inclusive
+            range.start shouldBe 1
+            range.end shouldBe 10
 
             val exclusive = ranges.getChild("exclusive")
             exclusive shouldNotBe null
             val bothSides = exclusive!!.getChild("both_sides")
             bothSides!!.value.shouldBeInstanceOf<Range<*>>()
-            (bothSides.value as Range<*>).type shouldBe Range.Type.Exclusive
+            (bothSides.value as Range<*>).type shouldBe Range.RangeType.Exclusive
 
             val open = ranges.getChild("open")
             open shouldNotBe null
             val rightOpen = open!!.getChild("right_open")
             rightOpen!!.value.shouldBeInstanceOf<Range<*>>()
-            (rightOpen.value as Range<*>).openRight shouldBe true
+            (rightOpen.value as Range<*>).isOpenEnd shouldBe true
         }
 
         test("should parse lists section") {

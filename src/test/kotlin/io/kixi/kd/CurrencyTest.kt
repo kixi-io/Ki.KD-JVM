@@ -458,8 +458,8 @@ class CurrencyTest : FunSpec({
             val tag = parser.parse("budget 1000USD..5000USD")
             tag.value.shouldBeInstanceOf<io.kixi.Range<*>>()
             val range = tag.value as io.kixi.Range<*>
-            (range.left as Quantity<*>).unit shouldBe Unit.USD
-            (range.right as Quantity<*>).unit shouldBe Unit.USD
+            (range.start as Quantity<*>).unit shouldBe Unit.USD
+            (range.end as Quantity<*>).unit shouldBe Unit.USD
         }
 
         test("should parse prefix currency range") {
@@ -474,19 +474,19 @@ class CurrencyTest : FunSpec({
 
     context("Currency toString and round-trip") {
 
-        test("currency quantity toString should use suffix notation") {
+        test("currency quantity toString should use prefix symbol notation") {
             val q = Quantity(100, Unit.USD)
-            q.toString() shouldBe "100USD:i"
+            q.toString() shouldBe "\$100:i"
         }
 
         test("decimal currency should format correctly") {
             val q = Quantity(Dec("99.99"), Unit.EUR)
-            q.toString() shouldBe "99.99EUR"
+            q.toString() shouldBe "\u20AC99.99"
         }
 
         test("Long currency should include type suffix") {
             val q = Quantity(100L, Unit.USD)
-            q.toString() shouldBe "100USD:L"
+            q.toString() shouldBe "\$100:L"
         }
     }
 
