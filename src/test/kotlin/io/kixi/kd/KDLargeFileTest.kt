@@ -300,7 +300,7 @@ class KDLargeFileTest : FunSpec({
             val integers = inclusive!!.getChild("integers")
             integers!!.value.shouldBeInstanceOf<Range<*>>()
             val range = integers.value as Range<*>
-            range.type shouldBe Range.RangeType.Inclusive
+            range.bound shouldBe Range.Bound.Inclusive
             range.start shouldBe 1
             range.end shouldBe 10
 
@@ -308,7 +308,7 @@ class KDLargeFileTest : FunSpec({
             exclusive shouldNotBe null
             val bothSides = exclusive!!.getChild("both_sides")
             bothSides!!.value.shouldBeInstanceOf<Range<*>>()
-            (bothSides.value as Range<*>).type shouldBe Range.RangeType.Exclusive
+            (bothSides.value as Range<*>).bound shouldBe Range.Bound.Exclusive
 
             val open = ranges.getChild("open")
             open shouldNotBe null

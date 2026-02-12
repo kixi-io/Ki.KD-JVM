@@ -7,7 +7,6 @@ import io.kixi.uom.Unit as UOM
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.collections.shouldContainExactly
 import java.math.BigDecimal as Dec
@@ -318,7 +317,7 @@ class KDParserTest3 : FunSpec({
             val tag = parser.parse("range 1..5")
             tag.value.shouldBeInstanceOf<Range<*>>()
             val range = tag.value as Range<*>
-            range.type shouldBe Range.RangeType.Inclusive
+            range.bound shouldBe Range.Bound.Inclusive
             range.start shouldBe 1
             range.end shouldBe 5
         }
@@ -335,7 +334,7 @@ class KDParserTest3 : FunSpec({
             val tag = parser.parse("range 1.5..5.5")
             tag.value.shouldBeInstanceOf<Range<*>>()
             val range = tag.value as Range<*>
-            range.type shouldBe Range.RangeType.Inclusive
+            range.bound shouldBe Range.Bound.Inclusive
         }
 
         test("should parse inclusive Long range") {
@@ -360,21 +359,21 @@ class KDParserTest3 : FunSpec({
             val tag = parser.parse("range 1<..<10")
             tag.value.shouldBeInstanceOf<Range<*>>()
             val range = tag.value as Range<*>
-            range.type shouldBe Range.RangeType.Exclusive
+            range.bound shouldBe Range.Bound.Exclusive
         }
 
         test("should parse exclusive left") {
             val tag = parser.parse("range 1<..10")
             tag.value.shouldBeInstanceOf<Range<*>>()
             val range = tag.value as Range<*>
-            range.type shouldBe Range.RangeType.ExclusiveStart
+            range.bound shouldBe Range.Bound.ExclusiveStart
         }
 
         test("should parse exclusive right") {
             val tag = parser.parse("range 1..<10")
             tag.value.shouldBeInstanceOf<Range<*>>()
             val range = tag.value as Range<*>
-            range.type shouldBe Range.RangeType.ExclusiveEnd
+            range.bound shouldBe Range.Bound.ExclusiveEnd
         }
     }
 
@@ -400,7 +399,7 @@ class KDParserTest3 : FunSpec({
             val tag = parser.parse("range 5<.._")
             tag.value.shouldBeInstanceOf<Range<*>>()
             val range = tag.value as Range<*>
-            range.type shouldBe Range.RangeType.ExclusiveStart
+            range.bound shouldBe Range.Bound.ExclusiveStart
             range.isOpenEnd shouldBe true
         }
 
@@ -408,7 +407,7 @@ class KDParserTest3 : FunSpec({
             val tag = parser.parse("range _..<100")
             tag.value.shouldBeInstanceOf<Range<*>>()
             val range = tag.value as Range<*>
-            range.type shouldBe Range.RangeType.ExclusiveEnd
+            range.bound shouldBe Range.Bound.ExclusiveEnd
             range.isOpenStart shouldBe true
         }
     }
@@ -427,7 +426,7 @@ class KDParserTest3 : FunSpec({
             val tag = parser.parse("letters 'a'<..<'z'")
             tag.value.shouldBeInstanceOf<Range<*>>()
             val range = tag.value as Range<*>
-            range.type shouldBe Range.RangeType.Exclusive
+            range.bound shouldBe Range.Bound.Exclusive
         }
     }
 
@@ -468,7 +467,7 @@ class KDParserTest3 : FunSpec({
             val tag = parser.parse("window 5min<..<30min")
             tag.value.shouldBeInstanceOf<Range<*>>()
             val range = tag.value as Range<*>
-            range.type shouldBe Range.RangeType.Exclusive
+            range.bound shouldBe Range.Bound.Exclusive
         }
     }
 
@@ -947,19 +946,19 @@ class KDParserTest3 : FunSpec({
         test("should parse range examples from spec") {
             // 1..5 - inclusive
             var range = parser.parse("r 1..5").value as Range<*>
-            range.type shouldBe Range.RangeType.Inclusive
+            range.bound shouldBe Range.Bound.Inclusive
 
             // 5.0<..<15.0 - exclusive
             range = parser.parse("r 5.0<..<15.0").value as Range<*>
-            range.type shouldBe Range.RangeType.Exclusive
+            range.bound shouldBe Range.Bound.Exclusive
 
             // 2<..17 - exclusive left
             range = parser.parse("r 2<..17").value as Range<*>
-            range.type shouldBe Range.RangeType.ExclusiveStart
+            range.bound shouldBe Range.Bound.ExclusiveStart
 
             // 6..<12 - exclusive right
             range = parser.parse("r 6..<12").value as Range<*>
-            range.type shouldBe Range.RangeType.ExclusiveEnd
+            range.bound shouldBe Range.Bound.ExclusiveEnd
 
             // 6.._ - open right
             range = parser.parse("r 6.._").value as Range<*>

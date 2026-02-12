@@ -777,26 +777,26 @@ class KDParser {
         val c2 = ctx.peek(1) ?: return null
 
         // Determine range type
-        val rangeType: Range.RangeType
+        val rangeType: Range.Bound
         when {
             c1 == '<' && c2 == '.' && ctx.peek(2) == '.' && ctx.peek(3) == '<' -> {
                 // <..<  exclusive both sides
-                rangeType = Range.RangeType.Exclusive
+                rangeType = Range.Bound.Exclusive
                 ctx.advance(4)
             }
             c1 == '<' && c2 == '.' && ctx.peek(2) == '.' -> {
                 // <..   exclusive left
-                rangeType = Range.RangeType.ExclusiveStart
+                rangeType = Range.Bound.ExclusiveStart
                 ctx.advance(3)
             }
             c1 == '.' && c2 == '.' && ctx.peek(2) == '<' -> {
                 // ..<   exclusive right
-                rangeType = Range.RangeType.ExclusiveEnd
+                rangeType = Range.Bound.ExclusiveEnd
                 ctx.advance(3)
             }
             c1 == '.' && c2 == '.' -> {
                 // ..    inclusive
-                rangeType = Range.RangeType.Inclusive
+                rangeType = Range.Bound.Inclusive
                 ctx.advance(2)
             }
             else -> return null
@@ -813,7 +813,7 @@ class KDParser {
             }
 
             // Validate range type for open right
-            if (rangeType !in listOf(Range.RangeType.Inclusive, Range.RangeType.ExclusiveStart)) {
+            if (rangeType !in listOf(Range.Bound.Inclusive, Range.Bound.ExclusiveStart)) {
                 throw ctx.error("Right open ranges can only use .. and <.. operators")
             }
 
@@ -837,14 +837,14 @@ class KDParser {
         val c2 = ctx.peek(1)
 
         // Determine range type - only .. and ..< are valid for open left
-        val rangeType: Range.RangeType
+        val rangeType: Range.Bound
         when {
             c1 == '.' && c2 == '.' && ctx.peek(2) == '<' -> {
-                rangeType = Range.RangeType.ExclusiveEnd
+                rangeType = Range.Bound.ExclusiveEnd
                 ctx.advance(3)
             }
             c1 == '.' && c2 == '.' -> {
-                rangeType = Range.RangeType.Inclusive
+                rangeType = Range.Bound.Inclusive
                 ctx.advance(2)
             }
             else -> throw ctx.error("Left open ranges can only use .. and ..< operators")
@@ -863,7 +863,7 @@ class KDParser {
      * Creates an open-right range (end is null).
      */
     @Suppress("UNCHECKED_CAST")
-    private fun createOpenRightRange(start: Any, type: Range.RangeType): Range<*> {
+    private fun createOpenRightRange(start: Any, type: Range.Bound): Range<*> {
         return createRangeInternal(start, null, type)
     }
 
@@ -871,7 +871,7 @@ class KDParser {
      * Creates an open-left range (start is null).
      */
     @Suppress("UNCHECKED_CAST")
-    private fun createOpenLeftRange(end: Any, type: Range.RangeType): Range<*> {
+    private fun createOpenLeftRange(end: Any, type: Range.Bound): Range<*> {
         return createRangeInternal(null, end, type)
     }
 
@@ -879,7 +879,7 @@ class KDParser {
      * Creates a range from two values.
      */
     @Suppress("UNCHECKED_CAST")
-    private fun createRange(start: Any, end: Any, type: Range.RangeType): Range<*> {
+    private fun createRange(start: Any, end: Any, type: Range.Bound): Range<*> {
         // Validate that start and end are compatible types
         if (start::class != end::class) {
             // Allow numeric type mixing
@@ -898,7 +898,7 @@ class KDParser {
      * Either start or end may be null for open ranges.
      */
     @Suppress("UNCHECKED_CAST")
-    private fun createRangeInternal(start: Any?, end: Any?, type: Range.RangeType): Range<*> {
+    private fun createRangeInternal(start: Any?, end: Any?, type: Range.Bound): Range<*> {
         // Use whichever end is non-null to determine the type
         val sample = start ?: end!!
         return when (sample) {
