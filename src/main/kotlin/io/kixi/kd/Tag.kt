@@ -38,6 +38,7 @@ class PropertyNotFoundException(
  *     secure true
  *     version 5.2.3-beta-3
  *     range 25..50
+ *     range 25.._
  *     oddValues 1 3 5 7
  *     valueAndAtt "manahoana" greeting=true
  *     myList [2 4 6]
