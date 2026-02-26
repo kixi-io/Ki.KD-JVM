@@ -607,7 +607,7 @@ class GridAndCoordinateTest : StringSpec({
     // 📊 GRID ACCESS METHODS
     // =========================================================================
 
-    "access grid with sheet notation" {
+    "access grid with plate notation" {
         val tag = KD.read("""
             data .grid(
                 1   2   3   4   5
@@ -618,15 +618,22 @@ class GridAndCoordinateTest : StringSpec({
 
         val grid = tag.value as Grid<*>
 
-        // Sheet notation: column "A" = index 0, row 1 = index 0
+        // Plate notation: letter = row, number = column (1-based)
+        // Row A (y=0), Row B (y=1), Row C (y=2)
+        // Col 1 (x=0), Col 2 (x=1), ... Col 5 (x=4)
         grid["A", 1] shouldBe 1
-        grid["E", 1] shouldBe 5
-        grid["A", 3] shouldBe 11
-        grid["C", 2] shouldBe 8
+        grid["A", 5] shouldBe 5
+        grid["C", 1] shouldBe 11
+        grid["B", 3] shouldBe 8
 
-        // String notation
+        // Standard zero-based access matches
+        grid[0, 0] shouldBe 1
+        grid[4, 0] shouldBe 5
+        grid[0, 2] shouldBe 11
+        grid[2, 1] shouldBe 8
+
+        // String notation (parses as sheet-style via Coordinate.parse)
         grid["A1"] shouldBe 1
-        grid["E3"] shouldBe 15
     }
 
     "access grid with coordinate" {
@@ -830,16 +837,20 @@ class GridAndCoordinateTest : StringSpec({
         grid.width shouldBe 5
         grid.height shouldBe 4
 
-        // Header row
+        // Plate notation: letter = row, number = column
+        // Row A = header, Row B = Widget, Row C = Gadget, Row D = Gizmo
+        // Col 1 = Product name, Col 2 = Q1, Col 3 = Q2, Col 4 = Q3, Col 5 = Q4
+
+        // Header row (A)
         grid["A", 1] shouldBe "Product"
-        grid["B", 1] shouldBe "Q1"
+        grid["A", 2] shouldBe "Q1"
 
-        // Data rows - using sheet notation
-        grid["A", 2] shouldBe "Widget"
-        grid["E", 2] shouldBe 1800  // Q4 for Widget
+        // Data rows - using plate notation
+        grid["B", 1] shouldBe "Widget"
+        grid["B", 5] shouldBe 1800  // Q4 for Widget
 
-        grid["A", 4] shouldBe "Gizmo"
-        grid["B", 4] shouldBe 500   // Q1 for Gizmo
+        grid["D", 1] shouldBe "Gizmo"
+        grid["D", 2] shouldBe 500   // Q1 for Gizmo
     }
 
     // =========================================================================
