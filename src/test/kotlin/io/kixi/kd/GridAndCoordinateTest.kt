@@ -445,7 +445,7 @@ class GridAndCoordinateTest : StringSpec({
 
         val grid = tag.value as Grid<*>
         val str = grid.toString()
-        str shouldContain ".grid<Number>("
+        str shouldContain ".grid<Number> {"
     }
 
     "grid toString outputs inferred Any type" {
@@ -457,7 +457,7 @@ class GridAndCoordinateTest : StringSpec({
 
         val grid = tag.value as Grid<*>
         val str = grid.toString()
-        str shouldContain ".grid<Any>("
+        str shouldContain ".grid<Any> {"
     }
 
     // =========================================================================
