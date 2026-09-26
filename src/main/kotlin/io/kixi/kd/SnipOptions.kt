@@ -9,7 +9,7 @@ package io.kixi.kd
  * ## Default Configuration
  * The default configuration is conservative for security:
  * - Remote URLs are **disabled** by default
- * - Absolute paths are allowed (with logging)
+ * - Absolute paths are allowed
  * - Maximum snip depth is 50
  * - URL timeout is 10 seconds
  *
@@ -24,7 +24,7 @@ package io.kixi.kd
  *
  * // Use with parser
  * val resolver = SnipResolver(options)
- * val parser = KDParser(snipResolver = resolver)
+ * val document = KD.parseWithSnips(text, basePath, resolver)
  * ```
  *
  * ## Security Considerations
@@ -137,7 +137,7 @@ data class SnipOptions(
 ) {
 
     init {
-        require(urlTimeoutMs > 0) { "urlTimeoutMs must be positive" }
+        require(urlTimeoutMs in 1..Int.MAX_VALUE.toLong()) { "urlTimeoutMs must fit a positive Int" }
         require(maxSnipDepth > 0) { "maxSnipDepth must be positive" }
     }
 

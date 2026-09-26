@@ -160,7 +160,7 @@ class KDParser {
         fun isEOF(): Boolean = pos >= length
         fun remaining(): String = if (pos < length) content.substring(pos) else ""
         fun substring(start: Int, end: Int = pos): String = content.substring(start, end)
-        fun error(message: String): ParseException = ParseException(message, line, column)
+        fun error(message: String): KDParseException = KDParseException(message, line, column)
     }
 
     // ========================================================================
@@ -218,6 +218,7 @@ class KDParser {
                 else -> ctx.advance()
             }
         }
+        if (depth > 0) throw ctx.error("Unterminated block comment")
     }
 
     // ========================================================================
@@ -231,7 +232,10 @@ class KDParser {
         val annotations = parseAnnotations(ctx)
 
         skipWhitespaceAndComments(ctx)
-        if (ctx.isEOF()) return null
+        if (ctx.isEOF()) {
+            if (annotations.isNotEmpty()) throw ctx.error("Expected tag after annotations")
+            return null
+        }
 
         if (ctx.peek() == ';') {
             ctx.advance()
@@ -306,18 +310,8 @@ class KDParser {
             ctx.restoreState(attrCheckState)
 
             if (!nsid.hasNamespace && isKeyword(name)) {
-                skipSpacesAndTabs(ctx)
-                val nextCh = ctx.peek()
-                val nextCh2 = ctx.peek(1)
-                val isLineEnd = nextCh == null || nextCh == '\n' || nextCh == '\r' ||
-                        nextCh == ';' || nextCh == '}' || nextCh == '{'
-                val isComment = nextCh == '#' || (nextCh == '/' && (nextCh2 == '/' || nextCh2 == '*'))
-                if (isLineEnd || isComment) {
-                    tag = Tag(NSID.ANONYMOUS)
-                    tag.values.add(keywordToValue(name))
-                } else {
-                    tag = Tag(nsid)
-                }
+                tag = Tag(NSID.ANONYMOUS)
+                tag.values.add(keywordToValue(name))
             } else {
                 tag = Tag(nsid)
             }
@@ -403,17 +397,14 @@ class KDParser {
                 val (nsid, value) = parseAttribute(ctx)
                 annotation.setAttribute(nsid, value)
             } else {
-                val value = parseValue(ctx)
-                if (value != null) {
-                    annotation.values.add(value)
-                } else {
-                    break
-                }
+                val value = parseRequiredValue(ctx)
+                annotation.values.add(value)
             }
 
             skipSpacesAndTabs(ctx)
             if (ctx.peek() == ',') ctx.advance()
         }
+        throw ctx.error("Unterminated annotation: expected ')'")
     }
 
     private fun parseValuesAndAttributes(ctx: ParseContext, tag: Tag, isAttributeOnlyAnonymous: Boolean = false) {
@@ -461,8 +452,7 @@ class KDParser {
             }
 
             if (ch == '#' || (ch == '/' && ctx.peek(1) == '/')) {
-                skipToEndOfLine(ctx)
-                // After line comment, check if next line has attributes
+                while (!ctx.isEOF() && ctx.peek() != '\n' && ctx.peek() != '\r') ctx.advance()
                 continue
             }
 
@@ -476,12 +466,12 @@ class KDParser {
                 val (nsid, value) = parseAttribute(ctx)
                 tag.setAttribute(nsid, value)
             } else {
-                val value = parseValue(ctx)
-                if (value != null) {
-                    tag.values.add(value)
-                } else {
-                    break
+                val directiveStart = ctx.peek() == '.'
+                val value = parseRequiredValue(ctx)
+                if (directiveStart && value is String && Snip.isLiteral(value)) {
+                    tag.snipDirective = Snip.parse(value)
                 }
+                tag.values.add(value)
             }
         }
     }
@@ -503,6 +493,7 @@ class KDParser {
                 throw ctx.error("Unexpected character '${ctx.peek()}' in children block")
             }
         }
+        throw ctx.error("Unterminated children block: expected '}'")
     }
 
     // ========================================================================
@@ -510,7 +501,7 @@ class KDParser {
     // ========================================================================
 
     private fun tryParseNSID(ctx: ParseContext, detectCalls: Boolean = true): NSID? {
-        val startPos = ctx.pos
+        val startPos = ctx.saveState()
         val first = parseIdentifier(ctx) ?: return null
 
         // Check if this looks like a Call (identifier followed by '(')
@@ -520,7 +511,7 @@ class KDParser {
             skipSpacesAndTabs(ctx)
             if (ctx.peek() == '(') {
                 // Backtrack - this is a call, not a tag NSID
-                ctx.pos = startPos
+                ctx.restoreState(startPos)
                 return null
             }
         }
@@ -535,7 +526,7 @@ class KDParser {
                 skipSpacesAndTabs(ctx)
                 if (ctx.peek() == '(') {
                     // Backtrack - this is a namespaced call, not a tag NSID
-                    ctx.pos = startPos
+                    ctx.restoreState(startPos)
                     return null
                 }
             }
@@ -615,7 +606,7 @@ class KDParser {
         ctx.advance()
         skipSpacesAndTabs(ctx)
 
-        val value = parseValue(ctx)
+        val value = parseRequiredValue(ctx)
         return nsid to value
     }
 
@@ -638,6 +629,14 @@ class KDParser {
             Currency.isPrefixSymbol(ch) -> true  // Currency prefix symbols ($, €, ¥, £, ₿, Ξ)
             else -> false
         }
+    }
+
+    private fun parseRequiredValue(ctx: ParseContext): Any? {
+        skipSpacesAndTabs(ctx)
+        val start = ctx.pos
+        val value = parseValue(ctx)
+        if (ctx.pos == start) throw ctx.error("Expected value")
+        return value
     }
 
     private fun parseValue(ctx: ParseContext): Any? {
@@ -1643,7 +1642,7 @@ class KDParser {
      */
     private fun tryParseDurationUnit(ctx: ParseContext, start: Int): Duration? {
         val suffix = ctx.peek() ?: return null
-        val savePos = ctx.pos
+        val savePos = ctx.saveState()
 
         when {
             // days or day
@@ -1652,53 +1651,53 @@ class KDParser {
                 if (ctx.peek() == 's') ctx.advance()
                 // Make sure this isn't followed by more identifier chars
                 if (ctx.peek()?.isLetterOrDigit() == true) {
-                    ctx.pos = savePos
+                    ctx.restoreState(savePos)
                     return null
                 }
                 val text = ctx.substring(start, ctx.pos).replace("_", "")
-                return try { Ki.parseDuration(text) } catch (e: Exception) { ctx.pos = savePos; null }
+                return try { Ki.parseDuration(text) } catch (e: Exception) { ctx.restoreState(savePos); null }
             }
             // hours
             suffix == 'h' && ctx.peek(1)?.isLetterOrDigit() != true -> {
                 ctx.advance()
                 val text = ctx.substring(start, ctx.pos).replace("_", "")
-                return try { Ki.parseDuration(text) } catch (e: Exception) { ctx.pos = savePos; null }
+                return try { Ki.parseDuration(text) } catch (e: Exception) { ctx.restoreState(savePos); null }
             }
             // minutes
             suffix == 'm' && ctx.peek(1) == 'i' && ctx.peek(2) == 'n' -> {
                 ctx.advance(3)
                 if (ctx.peek()?.isLetterOrDigit() == true) {
-                    ctx.pos = savePos
+                    ctx.restoreState(savePos)
                     return null
                 }
                 val text = ctx.substring(start, ctx.pos).replace("_", "")
-                return try { Ki.parseDuration(text) } catch (e: Exception) { ctx.pos = savePos; null }
+                return try { Ki.parseDuration(text) } catch (e: Exception) { ctx.restoreState(savePos); null }
             }
             // milliseconds
             suffix == 'm' && ctx.peek(1) == 's' -> {
                 ctx.advance(2)
                 if (ctx.peek()?.isLetterOrDigit() == true) {
-                    ctx.pos = savePos
+                    ctx.restoreState(savePos)
                     return null
                 }
                 val text = ctx.substring(start, ctx.pos).replace("_", "")
-                return try { Ki.parseDuration(text) } catch (e: Exception) { ctx.pos = savePos; null }
+                return try { Ki.parseDuration(text) } catch (e: Exception) { ctx.restoreState(savePos); null }
             }
             // nanoseconds
             suffix == 'n' && ctx.peek(1) == 's' -> {
                 ctx.advance(2)
                 if (ctx.peek()?.isLetterOrDigit() == true) {
-                    ctx.pos = savePos
+                    ctx.restoreState(savePos)
                     return null
                 }
                 val text = ctx.substring(start, ctx.pos).replace("_", "")
-                return try { Ki.parseDuration(text) } catch (e: Exception) { ctx.pos = savePos; null }
+                return try { Ki.parseDuration(text) } catch (e: Exception) { ctx.restoreState(savePos); null }
             }
             // seconds (but not type suffix 's')
             suffix == 's' && ctx.peek(1)?.isLetter() != true -> {
                 ctx.advance()
                 val text = ctx.substring(start, ctx.pos).replace("_", "")
-                return try { Ki.parseDuration(text) } catch (e: Exception) { ctx.pos = savePos; null }
+                return try { Ki.parseDuration(text) } catch (e: Exception) { ctx.restoreState(savePos); null }
             }
         }
 
@@ -1709,7 +1708,7 @@ class KDParser {
      * Tries to parse a version with qualifier.
      */
     private fun tryParseVersionWithQualifier(ctx: ParseContext, start: Int): Version? {
-        val savedPos = ctx.pos
+        val savedPos = ctx.saveState()
 
         ctx.advance() // skip -
 
@@ -1728,7 +1727,7 @@ class KDParser {
         return try {
             Version.parse(text)
         } catch (e: Exception) {
-            ctx.pos = savedPos
+            ctx.restoreState(savedPos)
             null
         }
     }
@@ -1865,9 +1864,9 @@ class KDParser {
             return emptyList<Any?>()
         }
 
-        val savedPos = ctx.pos
+        val savedPos = ctx.saveState()
         val isMap = isMapStart(ctx)
-        ctx.pos = savedPos
+        ctx.restoreState(savedPos)
 
         return if (isMap) parseMap(ctx) else parseList(ctx)
     }
@@ -2116,12 +2115,8 @@ class KDParser {
                 val (attrNsid, value) = parseCallAttribute(ctx)
                 call.setAttribute(attrNsid, value)
             } else {
-                val value = parseValue(ctx)
-                if (value != null) {
-                    call.values.add(value)
-                } else {
-                    break
-                }
+                val value = parseRequiredValue(ctx)
+                call.values.add(value)
             }
 
             skipSpacesAndTabs(ctx)
@@ -2135,7 +2130,7 @@ class KDParser {
      * Checks if we're at the start of a Call attribute (identifier followed by =).
      */
     private fun isCallAttributeStart(ctx: ParseContext): Boolean {
-        val savedPos = ctx.pos
+        val savedPos = ctx.saveState()
         val first = ctx.peek() ?: return false
 
         if (!isIdentifierStart(first)) {
@@ -2154,7 +2149,7 @@ class KDParser {
 
         skipSpacesAndTabs(ctx)
         val result = ctx.peek() == '='
-        ctx.pos = savedPos
+        ctx.restoreState(savedPos)
         return result
     }
 
@@ -2171,7 +2166,7 @@ class KDParser {
         ctx.advance()
         skipSpacesAndTabs(ctx)
 
-        val value = parseValue(ctx)
+        val value = parseRequiredValue(ctx)
         return nsid to value
     }
 
@@ -2198,7 +2193,7 @@ class KDParser {
     // ========================================================================
 
     private fun parseDotLiteral(ctx: ParseContext): Any? {
-        val start = ctx.pos
+        val start = ctx.saveState()
         ctx.advance() // skip .
 
         val nameStart = ctx.pos
@@ -2225,8 +2220,13 @@ class KDParser {
             skipSpacesAndTabs(ctx)
         }
 
+        if (name.equals("grid", ignoreCase = true) && (ctx.peek() == '(' || ctx.peek() == '{')) {
+            val closing = if (ctx.advance() == '(') ')' else '}'
+            return parseGrid(ctx, closing, typeParam)
+        }
+
         if (ctx.peek() != '(') {
-            ctx.pos = start
+            ctx.restoreState(start)
             return null
         }
 
@@ -2276,15 +2276,6 @@ class KDParser {
                     Coordinate.parseLiteral(literal)
                 } catch (e: Exception) {
                     throw ctx.error("Invalid coordinate literal: ${e.message}")
-                }
-            }
-            "grid" -> {
-                try {
-                    parseGridContent(content, typeParam)
-                } catch (e: ParseException) {
-                    throw ctx.error("Invalid grid literal: ${e.message}")
-                } catch (e: Exception) {
-                    throw ctx.error("Invalid grid literal: ${e.message}")
                 }
             }
             "snip" -> {
@@ -2346,103 +2337,45 @@ class KDParser {
         if (ctx.peek() == '\'') ctx.advance()
     }
 
-    /**
-     * Parses the content of a .grid(...) literal.
-     *
-     * Grid content consists of rows of values. Rows can be separated by:
-     * - Newlines (the primary format)
-     * - Semicolons (for inline grids like `1 2 3; 4 5 6`)
-     *
-     * Values within a row can be separated by:
-     * - Whitespace (the primary format)
-     * - Commas (optional, for readability like `.grid(1, 2, 3)`)
-     * - Both whitespace and commas can be combined
-     *
-     * Single-line grids with commas are treated as single-row grids:
-     * - `.grid(1, 2, 3)` creates a 3x1 grid
-     * - `.grid<Int>(4, 5, 6)` creates a typed 3x1 grid
-     *
-     * Special handling:
-     * - `-` (standalone dash) is treated as null
-     * - `nil` and `null` are treated as null
-     *
-     * @param content The content inside the parentheses
-     * @param typeParam Optional type parameter (e.g., "Int", "String")
-     * @return The parsed Grid
-     */
-    private fun parseGridContent(content: String, typeParam: String?): Grid<*> {
-        val trimmed = content.trim()
-
-        // Empty grid - not allowed (Grid requires positive dimensions)
-        if (trimmed.isEmpty()) {
-            throw ParseException("Empty grid is not allowed. Grid requires at least one cell.", index = 0)
-        }
-
-        // Split into rows by newlines or semicolons
-        val rowStrings = splitGridRows(trimmed)
-
-        if (rowStrings.isEmpty()) {
-            throw ParseException("Empty grid is not allowed. Grid requires at least one cell.", index = 0)
-        }
-
-        // Parse each row into a list of values
+    /** Parse rows directly, letting the value parser consume nested literals intact. */
+    private fun parseGrid(ctx: ParseContext, closing: Char, typeParam: String?): Grid<*> {
         val rows = mutableListOf<List<Any?>>()
-        var expectedWidth: Int? = null
-
-        for ((rowIndex, rowStr) in rowStrings.withIndex()) {
-            val rowValues = parseGridRow(rowStr)
-
-            if (rowValues.isEmpty()) continue // Skip empty rows
-
-            if (expectedWidth == null) {
-                expectedWidth = rowValues.size
-            } else if (rowValues.size != expectedWidth) {
-                throw ParseException(
-                    "Grid row $rowIndex has ${rowValues.size} values, expected $expectedWidth",
-                    index = 0
-                )
+        var row = mutableListOf<Any?>()
+        fun endRow() {
+            if (row.isEmpty()) return
+            if (rows.isNotEmpty() && row.size != rows[0].size) {
+                throw ctx.error("Grid row ${rows.size} has ${row.size} values, expected ${rows[0].size}")
             }
-
-            rows.add(rowValues)
+            rows.add(row)
+            row = mutableListOf()
         }
-
-        // Handle case where all rows were empty
-        if (rows.isEmpty()) {
-            throw ParseException("Empty grid is not allowed. Grid requires at least one cell.", index = 0)
-        }
-
-        val allValues = rows.flatten()
-        val hasNullValues = allValues.any { it == null }
-
-        // Determine element type and nullability from explicit type parameter or infer from values
-        val elementType: Class<*>?
-        val elementNullable: Boolean
-
-        if (typeParam != null) {
-            val (type, nullable) = parseTypeParam(typeParam)
-            elementType = type
-            // If type is explicitly nullable (e.g., Int?), allow nulls
-            // If type is non-nullable (e.g., Int), we still allow nulls in the data
-            // but the grid is marked as non-nullable
-            elementNullable = nullable
-        } else {
-            // Infer type and nullability from values
-            elementType = inferElementType(allValues)
-            elementNullable = hasNullValues
-        }
-
-        // Build the grid directly with the correct elementType
-        val width = rows[0].size
-        val height = rows.size
-        val data = Array<Any?>(width * height) { null }
-
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                data[y * width + x] = rows[y][x]
+        while (!ctx.isEOF()) {
+            val ch = ctx.peek()
+            when {
+                ch == closing -> {
+                    ctx.advance()
+                    endRow()
+                    if (rows.isEmpty()) throw ctx.error("Empty grid is not allowed. Grid requires at least one cell.")
+                    val values = rows.flatten()
+                    val (elementType, nullable) = typeParam?.let { parseTypeParam(it.trim()) }
+                        ?: (inferElementType(values) to values.any { it == null })
+                    return Grid<Any?>(rows.firstOrNull()?.size ?: 0, rows.size,
+                        values.toTypedArray(), elementType, nullable)
+                }
+                ch == '\n' || ch == '\r' || ch == ';' -> { ctx.advance(); endRow() }
+                ch == ' ' || ch == '\t' || ch == ',' -> ctx.advance()
+                ch == '#' || (ch == '/' && ctx.peek(1) == '/') -> {
+                    while (!ctx.isEOF() && ctx.peek() != '\n' && ctx.peek() != '\r') ctx.advance()
+                }
+                ch == '/' && ctx.peek(1) == '*' -> skipBlockComment(ctx)
+                ch == '-' && (ctx.peek(1) == closing || ctx.peek(1) == ',' ||
+                        ctx.peek(1) == ';' || ctx.peek(1)?.isWhitespace() == true) -> {
+                    ctx.advance(); row.add(null)
+                }
+                else -> row.add(parseRequiredValue(ctx))
             }
         }
-
-        return Grid<Any?>(width, height, data, elementType, elementNullable)
+        throw ctx.error("Unterminated grid: expected '$closing'")
     }
 
     /**
@@ -2518,113 +2451,4 @@ class KDParser {
         }
     }
 
-    /**
-     * Splits grid content into row strings.
-     * Handles both newline-separated and semicolon-separated formats.
-     */
-    private fun splitGridRows(content: String): List<String> {
-        val rows = mutableListOf<String>()
-        val current = StringBuilder()
-        var inString = false
-        var stringChar = ' '
-        var i = 0
-
-        while (i < content.length) {
-            val ch = content[i]
-
-            // Track string state
-            if (!inString && (ch == '"' || ch == '\'')) {
-                inString = true
-                stringChar = ch
-                current.append(ch)
-                i++
-                continue
-            }
-
-            if (inString) {
-                current.append(ch)
-                if (ch == '\\' && i + 1 < content.length) {
-                    i++
-                    current.append(content[i])
-                } else if (ch == stringChar) {
-                    inString = false
-                }
-                i++
-                continue
-            }
-
-            // Row separators (outside strings)
-            if (ch == '\n' || ch == ';') {
-                val row = current.toString().trim()
-                if (row.isNotEmpty()) {
-                    rows.add(row)
-                }
-                current.clear()
-                i++
-                continue
-            }
-
-            current.append(ch)
-            i++
-        }
-
-        // Don't forget the last row
-        val lastRow = current.toString().trim()
-        if (lastRow.isNotEmpty()) {
-            rows.add(lastRow)
-        }
-
-        return rows
-    }
-
-    /**
-     * Parses a single grid row into a list of values.
-     *
-     * Values can be separated by whitespace and/or commas.
-     * Commas are optional separators for readability.
-     */
-    private fun parseGridRow(rowStr: String): List<Any?> {
-        val values = mutableListOf<Any?>()
-        val ctx = ParseContext(rowStr)
-
-        while (!ctx.isEOF()) {
-            skipSpacesTabsAndCommas(ctx)
-            if (ctx.isEOF()) break
-
-            // Check for dash as null indicator
-            if (ctx.peek() == '-') {
-                val nextChar = ctx.peek(1)
-                // Standalone dash is null, but -5 is a negative number
-                if (nextChar == null || nextChar.isWhitespace() || nextChar == ';' || nextChar == ',') {
-                    ctx.advance()
-                    values.add(null)
-                    skipSpacesTabsAndCommas(ctx)
-                    continue
-                }
-            }
-
-            // Parse the next value
-            val value = parseValue(ctx)
-            values.add(value)
-
-            // Skip optional comma and whitespace after value
-            skipSpacesTabsAndCommas(ctx)
-        }
-
-        return values
-    }
-
-    /**
-     * Skips spaces, tabs, and commas (used in grid row parsing).
-     */
-    private fun skipSpacesTabsAndCommas(ctx: ParseContext) {
-        while (!ctx.isEOF()) {
-            val ch = ctx.peek()
-            if (ch == ' ' || ch == '\t' || ch == ',') {
-                ctx.advance()
-            } else {
-                break
-            }
-        }
-    }
 }

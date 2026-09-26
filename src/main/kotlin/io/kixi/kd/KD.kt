@@ -75,7 +75,7 @@ class KD {
          * @throws ParseException if parsing fails
          */
         @JvmStatic
-        fun read(file: File): Tag = read(FileReader(file))
+        fun read(file: File): Tag = file.bufferedReader(Charsets.UTF_8).use { read(it) }
 
         /**
          * Reads tags from a URL.
@@ -96,7 +96,9 @@ class KD {
          */
         @JvmStatic
         fun readResource(resource: String): Tag = read(
-            this::class.java.getResource("/$resource")
+            requireNotNull(this::class.java.getResource("/${resource.removePrefix("/")}")) {
+                "Classpath resource not found: $resource"
+            }
         )
 
         /**
@@ -193,107 +195,46 @@ class KD {
             snipResolver: SnipResolver = SnipResolver(),
             initialChain: List<String> = emptyList()
         ): Tag {
-            // First, parse the document
-            val rootTag = read(text)
-
-            // Then, recursively resolve snips
-            resolveSnipsInTag(rootTag, basePath, snipResolver, initialChain, 0)
-
-            return rootTag
+            snipResolver.reset()
+            return resolvedRoot(resolveSnipTree(read(text), basePath, snipResolver, initialChain, 0))
         }
 
-        /**
-         * Recursively resolves snips within a tag tree.
-         *
-         * This modifies the tag tree in place, replacing snip placeholders with
-         * the resolved content.
-         *
-         * @param tag The tag to process
-         * @param basePath Base path for resolving relative snips
-         * @param resolver The snip resolver
-         * @param chain Chain of absolute paths for circular reference detection
-         * @param depth Current nesting depth
-         */
-        private fun resolveSnipsInTag(
+        internal fun resolvedRoot(tags: List<Tag>): Tag = when (tags.size) {
+            1 -> tags.single()
+            else -> Tag("root").apply { children.addAll(tags) }
+        }
+
+        internal fun resolveSnipTree(
             tag: Tag,
             basePath: Path,
             resolver: SnipResolver,
             chain: List<String>,
-            depth: Int
-        ) {
-            // Process children, replacing snips with resolved content
-            val newChildren = mutableListOf<Tag>()
-
-            for (child in tag.children) {
-                if (isSnipTag(child)) {
-                    // This is a snip - resolve it
-                    val snip = extractSnip(child)
-                    val line = 1  // TODO: Track line numbers through parsing
-                    val index = 1
-
-                    val resolvedTags = resolver.resolve(
-                        snip, basePath, chain, depth, line, index
-                    )
-
-                    // Calculate new base path and absolute path for nested snips
-                    val resolvedAbsolutePath = if (snip.isUrl) {
-                        snip.path  // URLs stay as-is
-                    } else {
-                        snip.resolve(basePath).toAbsolutePath().normalize().toString()
-                    }
-
-                    val newBasePath = if (snip.isUrl) {
-                        basePath  // Keep original for URLs
-                    } else {
-                        snip.resolve(basePath).parent ?: basePath
-                    }
-
-                    // Update chain with absolute path for circular detection
-                    val newChain = chain + resolvedAbsolutePath
-
-                    // Recursively resolve snips in the resolved content
-                    for (resolved in resolvedTags) {
-                        resolveSnipsInTag(resolved, newBasePath, resolver, newChain, depth + 1)
-                        newChildren.add(resolved)
-                    }
-                } else {
-                    // Regular tag - recurse into its children
-                    resolveSnipsInTag(child, basePath, resolver, chain, depth)
-                    newChildren.add(child)
+            depth: Int,
+            baseUrl: String? = null
+        ): List<Tag> {
+            // Preserve the established readWithSnips/parseWithSnips contract:
+            // anonymous string-valued snip tags are resolved even when quoted.
+            // Plain KD.read continues to leave strings and directives unresolved.
+            val legacyLiteral = if (tag.nsid.isAnonymous && tag.values.size == 1) {
+                (tag.values.single() as? String)?.takeIf { Snip.isLiteral(it) }
+            } else null
+            val directive = tag.snipDirective ?: legacyLiteral?.let { Snip.parse(it) }
+            if (directive != null) {
+                if (!tag.nsid.isAnonymous || tag.values.size != 1 ||
+                    tag.attributes.isNotEmpty() || tag.annotations.isNotEmpty() || tag.children.isNotEmpty()) {
+                    throw KDParseException("A snip directive must appear alone in an anonymous tag")
                 }
+                val snip = if (baseUrl != null && !directive.isUrl) {
+                    directive.copy(path = java.net.URI(baseUrl).resolve(directive.path).toString())
+                } else directive
+                return resolver.resolve(snip, basePath, chain, depth, -1, -1)
             }
-
-            // Replace children with resolved content
+            val children = tag.children.flatMap {
+                resolveSnipTree(it, basePath, resolver, chain, depth, baseUrl)
+            }
             tag.children.clear()
-            tag.children.addAll(newChildren)
-        }
-
-        /**
-         * Checks if a tag represents a snip directive.
-         *
-         * A snip tag is an anonymous tag with a single string value that matches
-         * the snip literal pattern `.snip(...)`.
-         *
-         * @param tag The tag to check
-         * @return true if this tag represents a snip
-         */
-        private fun isSnipTag(tag: Tag): Boolean {
-            if (!tag.nsid.isAnonymous) return false
-            if (tag.values.size != 1) return false
-
-            val value = tag.values[0]
-            return value is String && Snip.isLiteral(value)
-        }
-
-        /**
-         * Extracts a Snip from a snip tag.
-         *
-         * @param tag The tag containing the snip literal
-         * @return The parsed Snip
-         */
-        private fun extractSnip(tag: Tag): Snip {
-            val literal = tag.values[0] as String
-            return Snip.parse(literal)
+            tag.children.addAll(children)
+            return listOf(tag)
         }
     }
 }

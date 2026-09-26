@@ -1,6 +1,7 @@
 package io.kixi.kd
 
 import io.kixi.KiException
+import io.kixi.text.ParseException
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -55,9 +56,9 @@ class SnipResolver(
     private val logger = Logger.getLogger(SnipResolver::class.java.name)
 
     /**
-     * Cache of resolved snips: normalized path -> parsed Tag
+     * Cache of source documents: normalized path -> source text
      */
-    private val cache = mutableMapOf<String, Tag>()
+    private val cache = mutableMapOf<String, String>()
 
     /**
      * Stack of paths currently being resolved (for circular reference detection)
@@ -118,29 +119,28 @@ class SnipResolver(
         // Check security constraints
         checkSecurityConstraints(snip, line, index)
 
-        // Check cache
-        if (options.cacheResolvedSnips && cache.containsKey(resolvedPath)) {
-            val cachedTag = cache[resolvedPath]!!
-            return extractResult(cachedTag, snip.expand)
-        }
-
         // Push onto resolution stack
         resolutionStack.add(resolvedPath)
 
         try {
             // Read content
-            val content = if (snip.isUrl) {
+            val content = cache[resolvedPath] ?: if (snip.isUrl) {
                 fetchUrl(snip, line, index)
             } else {
-                readFile(snip, basePath, resolvedPath, line, index)
+                readFile(snip, resolvedPath, line, index)
             }
 
             // Parse content
-            val rootTag = parseContent(snip, content, resolvedPath, line, index)
+            val parsed = parseContent(snip, content, line, index)
+            val newBasePath = if (snip.isUrl) basePath else Path.of(resolvedPath).parent ?: basePath
+            val rootTag = KD.resolvedRoot(KD.resolveSnipTree(
+                parsed, newBasePath, this, currentChain + resolvedPath, currentDepth + 1,
+                if (snip.isUrl) resolvedPath else null
+            ))
 
-            // Cache the result
+            // Cache text, never mutable trees; every inclusion is parsed independently.
             if (options.cacheResolvedSnips) {
-                cache[resolvedPath] = rootTag
+                cache[resolvedPath] = content
             }
 
             return extractResult(rootTag, snip.expand)
@@ -155,6 +155,9 @@ class SnipResolver(
      * Checks security constraints and throws if violated.
      */
     private fun checkSecurityConstraints(snip: Snip, line: Int, index: Int) {
+        if (snip.path.startsWith("file://")) {
+            throw SnipSecurityException(snip.path, "Use a filesystem path instead of a file URL", line, index)
+        }
         if (snip.isUrl) {
             // Check if remote URLs are allowed
             if (!options.allowRemoteUrls) {
@@ -183,7 +186,6 @@ class SnipResolver(
      */
     private fun readFile(
         snip: Snip,
-        basePath: Path,
         resolvedPath: String,
         line: Int,
         index: Int
@@ -211,20 +213,26 @@ class SnipResolver(
             val url = URL(urlString)
             val connection = url.openConnection() as HttpURLConnection
 
-            connection.connectTimeout = options.urlTimeoutMs.toInt()
-            connection.readTimeout = options.urlTimeoutMs.toInt()
-            connection.requestMethod = "GET"
-            connection.setRequestProperty("Accept", "text/plain, application/x-kd, */*")
+            try {
+                // Do not follow redirects without applying the URL policy to each hop.
+                connection.instanceFollowRedirects = false
+                connection.connectTimeout = options.urlTimeoutMs.toInt()
+                connection.readTimeout = options.urlTimeoutMs.toInt()
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Accept", "text/plain, application/x-kd, */*")
 
-            val responseCode = connection.responseCode
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw SnipPathNotFoundException(
-                    snip.path, urlString, line, index,
-                    IOException("HTTP $responseCode: ${connection.responseMessage}")
-                )
+                val responseCode = connection.responseCode
+                if (responseCode != HttpURLConnection.HTTP_OK) {
+                    throw SnipPathNotFoundException(
+                        snip.path, urlString, line, index,
+                        IOException("HTTP $responseCode: ${connection.responseMessage}")
+                    )
+                }
+
+                return connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+            } finally {
+                connection.disconnect()
             }
-
-            return connection.inputStream.bufferedReader().use { it.readText() }
 
         } catch (e: java.net.SocketTimeoutException) {
             throw SnipTimeoutException(snip.path, options.urlTimeoutMs, line, index, e)
@@ -241,32 +249,16 @@ class SnipResolver(
     private fun parseContent(
         snip: Snip,
         content: String,
-        resolvedPath: String,
         line: Int,
         index: Int
     ): Tag {
         try {
-            // Create a new parser with this resolver for nested snips
-            val parser = KDParser()
+            return KDParser().parse(content)
 
-            // Calculate the new base path for nested snips
-            val newBasePath = if (snip.isUrl) {
-                // For URLs, extract the base URL
-                val lastSlash = resolvedPath.lastIndexOf('/')
-                if (lastSlash > 0) resolvedPath.substring(0, lastSlash) else resolvedPath
-            } else {
-                Path.of(resolvedPath).parent?.toString() ?: "."
-            }
-
-            // Parse the content
-            // Note: The parser would need to be extended to support snip resolution
-            // For now, we parse without nested snip support
-            return parser.parse(content)
-
-        } catch (e: KDParseException) {
+        } catch (e: ParseException) {
             throw SnipParseException(
                 snipPath = snip.path,
-                parseError = e,
+                parseError = if (e is KDParseException) e else KDParseException(e.message ?: "Invalid KD", cause = e),
                 snipLine = line,
                 snipIndex = index
             )

@@ -2,6 +2,9 @@ package io.kixi.kd
 
 import io.kixi.Parseable
 import io.kixi.text.ParseException
+import io.kixi.text.escape
+import io.kixi.text.resolveEscapes
+import java.net.URI
 import java.nio.file.Path
 
 /**
@@ -119,7 +122,15 @@ data class Snip(
      * If the path already has an extension (contains a `.` in the filename portion),
      * it is returned unchanged. Otherwise, `.kd` is appended.
      */
-    val normalizedPath: String = if (hasExtension(path)) path else "$path.kd"
+    val normalizedPath: String = if (isUrl) {
+        val uri = URI(path)
+        val urlPath = uri.rawPath.orEmpty()
+        if (urlPath.isEmpty() || urlPath.endsWith('/') || hasExtension(urlPath)) path
+        else {
+            val suffixStart = path.indexOfAny(charArrayOf('?', '#')).let { if (it < 0) path.length else it }
+            path.substring(0, suffixStart) + ".kd" + path.substring(suffixStart)
+        }
+    } else if (hasExtension(path)) path else "$path.kd"
 
     /**
      * Resolves this snip's path relative to a base path.
@@ -137,7 +148,7 @@ data class Snip(
      * Returns the Ki literal representation of this snip.
      */
     override fun toString(): String {
-        val pathStr = if (needsQuotes(path)) "\"$path\"" else path
+        val pathStr = if (needsQuotes(path)) "\"${path.escape()}\"" else path
         return if (expand) {
             ".snip($pathStr, expand=true)"
         } else {
@@ -239,12 +250,13 @@ data class Snip(
                     throw ParseException("Unterminated quoted string in snip path")
                 }
 
-                path = content.substring(1, endQuote)
+                path = content.substring(1, endQuote).resolveEscapes()
 
                 // Check for expand parameter after the path
                 val remaining = content.substring(endQuote + 1).trim()
                 if (remaining.isNotEmpty()) {
-                    expand = parseExpandParameter(remaining)
+                    if (!remaining.startsWith(',')) throw ParseException("Expected comma before snip parameter")
+                    expand = parseExpandParameter(remaining.substring(1))
                 }
             } else {
                 // Unquoted path - look for comma separator or end
@@ -301,13 +313,12 @@ data class Snip(
          */
         private fun parseExpandParameter(params: String): Boolean {
             // Remove leading comma if present
-            val trimmed = params.trimStart(',').trim()
+            val trimmed = params.trim()
 
-            if (trimmed.isEmpty()) return false
 
             // Parse expand=true or expand=false
             val expandMatch = Regex("""expand\s*=\s*(true|false)""", RegexOption.IGNORE_CASE)
-                .find(trimmed)
+                .matchEntire(trimmed)
 
             if (expandMatch != null) {
                 return expandMatch.groupValues[1].equals("true", ignoreCase = true)

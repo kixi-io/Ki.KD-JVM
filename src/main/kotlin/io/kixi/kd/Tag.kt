@@ -127,6 +127,9 @@ class PropertyNotFoundException(
 @Suppress("unused")
 class Tag : Call {
 
+    // Distinguish a parsed directive from a quoted string with the same text.
+    internal var snipDirective: Snip? = null
+
     // TODO: We need better lazy initialization.
     // These will be initialized anytime find operations are used, or toString() is called.
     val annotations: MutableList<Annotation> by lazy { ArrayList<Annotation>() }
@@ -357,16 +360,8 @@ class Tag : Call {
     /**
      * Gets the first child tag with the given name, searching all descendants
      */
-    fun findChild(name: String, namespace: String = "")  : Tag? {
-        val child = getChild(name, namespace)
-        if(child==null) {
-            for(kid in children) {
-                val grandChild = kid.getChild(name, namespace)
-                if(grandChild!=null)
-                    return grandChild
-            }
-        }
-        return null
+    fun findChild(name: String, namespace: String = ""): Tag? = findChild {
+        it.nsid.name == name && it.nsid.namespace == namespace
     }
 
     /**
@@ -379,20 +374,8 @@ class Tag : Call {
     /**
      * Gets all child tags with the given name, searching all descendants
      */
-    fun findChildren(name: String, namespace: String = "") : List<Tag> {
-        val descendents = ArrayList<Tag>()
-
-        descendents.addAll(children.filter {
-            it.nsid.name == name && it.nsid.namespace == namespace
-        })
-
-        for(descendent in children) {
-            descendents.addAll(descendent.children.filter {
-                it.nsid.name == name && it.nsid.namespace == namespace
-            })
-        }
-
-        return descendents
+    fun findChildren(name: String, namespace: String = ""): List<Tag> = findChildren {
+        it.nsid.name == name && it.nsid.namespace == namespace
     }
 
     // ========================================================================
