@@ -1,11 +1,28 @@
-
 import io.kixi.kd.KD
 import io.kixi.NSID
 import io.kixi.kd.Tag
 
+import io.kixi.kd.schema.KDS
+import java.io.File
+import kotlin.io.println
+
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 fun main() {
+
+    val schema = KDS.compile(File("person.kds"))
+    val result = schema.validate(File("person.kd").readText())
+
+    if (result.isValid) {
+        println("Valid!")
+    } else {
+        result.issues.forEach {
+            println("${it.documentPath}: ${it.message}")
+        }
+    }
+
+    println("--- --- ---")
+
     val name = "Kotlin"
     //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
     // to see how IntelliJ IDEA suggests fixing it.

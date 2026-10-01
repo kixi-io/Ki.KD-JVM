@@ -1,0 +1,24 @@
+schema Assay kds=1 {
+    tag assay {
+        attribute id type=String required=true minLength=1
+        attribute name type=String required=true
+        children {
+            tag temperature {
+                value type=Quantity dimension=Temperature min=20°C max=40°C
+            }
+            tag replicates {
+                value type=Int min=1 max=12
+            }
+            tag status {
+                value type=String enum=[planned running complete]
+            }
+            tag note occurs=0..1 {
+                value type=String
+            }
+            tag measurement occurs=1.._ {
+                attribute well type=String required=true pattern=@"[A-P]\d{1,2}"
+                value type=Number min=0
+            }
+        }
+    }
+}

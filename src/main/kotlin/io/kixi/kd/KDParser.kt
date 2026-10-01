@@ -89,10 +89,16 @@ class KDParser {
      * @throws ParseException if the content cannot be parsed
      */
     fun parse(content: String): Tag {
-        if (content.isBlank()) {
-            return Tag("root")
+        val tags = parseDocument(content)
+        return when (tags.size) {
+            0 -> Tag("root")
+            1 -> tags[0]
+            else -> Tag("root").apply { children.addAll(tags) }
         }
+    }
 
+    /** Parses top-level tags without introducing a synthetic root or resolving snips. */
+    fun parseDocument(content: String): List<Tag> {
         val ctx = ParseContext(content)
         val tags = mutableListOf<Tag>()
 
@@ -111,11 +117,7 @@ class KDParser {
             }
         }
 
-        return when (tags.size) {
-            0 -> Tag("root")
-            1 -> tags[0]
-            else -> Tag("root").apply { children.addAll(tags) }
-        }
+        return tags.toList()
     }
 
     // ========================================================================

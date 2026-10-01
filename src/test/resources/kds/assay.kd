@@ -1,0 +1,7 @@
+assay id="A-001" name="Initial screen" {
+    temperature 37°C
+    replicates 3
+    status running
+    measurement 125.4 well=A1
+    measurement 118.9 well=A2
+}

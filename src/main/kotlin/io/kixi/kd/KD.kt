@@ -42,6 +42,19 @@ import java.nio.file.Path
 class KD {
 
     companion object {
+        /** Reads a document as its top-level tags, without a synthetic root or snip resolution. */
+        @JvmStatic
+        fun readDocument(text: String): List<Tag> = KDParser().parseDocument(text)
+
+        /** Reads a document without closing the caller-owned reader. */
+        @JvmStatic
+        fun readDocument(reader: Reader): List<Tag> = readDocument(reader.readText())
+
+        /** Reads a UTF-8 document. Does not resolve snips. */
+        @JvmStatic
+        fun readDocument(file: File): List<Tag> = file.bufferedReader(Charsets.UTF_8).use { readDocument(it) }
+
+
         /**
          * Reads tags from the reader. If there is a single tag it is returned as is.
          * If there are multiple tags they are returned as children of a root tag
