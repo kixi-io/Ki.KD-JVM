@@ -130,6 +130,9 @@ class Tag : Call {
     // Distinguish a parsed directive from a quoted string with the same text.
     internal var snipDirective: Snip? = null
 
+    // Set by the parser for a top-level `.schema(path)` directive; see SchemaRef.
+    internal var schemaDirective: SchemaRef? = null
+
     // TODO: We need better lazy initialization.
     // These will be initialized anytime find operations are used, or toString() is called.
     val annotations: MutableList<Annotation> by lazy { ArrayList<Annotation>() }

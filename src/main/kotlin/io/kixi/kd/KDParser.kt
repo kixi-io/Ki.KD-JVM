@@ -50,6 +50,7 @@ import java.time.*
  * 25. Coordinate - 2D/3D grid positions (.coordinate(x=0, y=0) or .coordinate(c="A", r=1))
  * 26. Grid - 2D tabular data (.grid(...) with rows of values)
  * 27. Snip - external document reference (.snip(path) or .snip(path, expand=true))
+ * 28. Schema directive - reference to the document's KDS schema (.schema(path))
  *
  * ## Tag Structure
  * ```
@@ -470,8 +471,9 @@ class KDParser {
             } else {
                 val directiveStart = ctx.peek() == '.'
                 val value = parseRequiredValue(ctx)
-                if (directiveStart && value is String && Snip.isLiteral(value)) {
-                    tag.snipDirective = Snip.parse(value)
+                if (directiveStart && value is String) {
+                    if (Snip.isLiteral(value)) tag.snipDirective = Snip.parse(value)
+                    else if (SchemaRef.isLiteral(value)) tag.schemaDirective = SchemaRef.parse(value)
                 }
                 tag.values.add(value)
             }
@@ -2288,6 +2290,16 @@ class KDParser {
                     literal  // Return as string for KD.readWithSnips to process
                 } catch (e: Exception) {
                     throw ctx.error("Invalid snip literal: ${e.message}")
+                }
+            }
+            "schema" -> {
+                // Schema directives are returned as strings; KDS.read() applies
+                // them. Plain parsing only validates the literal syntax.
+                try {
+                    SchemaRef.parse(literal)
+                    literal
+                } catch (e: Exception) {
+                    throw ctx.error("Invalid schema directive: ${e.message}")
                 }
             }
             else -> throw ctx.error("Unknown dot-literal type: .$name")

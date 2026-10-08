@@ -1,9 +1,13 @@
 package io.kixi.kd.schema
 
+import io.kixi.kd.Document
 import io.kixi.kd.KD
+import io.kixi.kd.LoadOptions
+import io.kixi.kd.SnipResolver
 import io.kixi.kd.Tag
 import java.io.File
 import java.io.Reader
+import java.nio.file.Path
 
 /** Compiles version 1 KDS schemas. A schema is an ordinary KD document. */
 object KDS {
@@ -16,6 +20,29 @@ object KDS {
 
     @JvmStatic
     fun compile(file: File): KDSchema = file.bufferedReader(Charsets.UTF_8).use { compile(it) }
+
+    // ========================================================================
+    // Self-describing documents
+    // ========================================================================
+
+    /**
+     * Loads a KD file that must declare its schema. This is
+     * `KD.load(file, LoadOptions.SCHEMA_REQUIRED)`: see [KD.load] for the
+     * declaration forms and the loading rules. Use [KD.load] directly when
+     * a schema is optional.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun read(file: File, options: ValidationOptions = ValidationOptions(),
+             snipResolver: SnipResolver = SnipResolver()): Document =
+        KD.load(file, LoadOptions(requireSchema = true, validation = options, snipResolver = snipResolver))
+
+    /** Loads self-describing KD text; see [read] and [KD.load]. */
+    @JvmStatic
+    @JvmOverloads
+    fun read(text: String, basePath: Path? = null, options: ValidationOptions = ValidationOptions(),
+             snipResolver: SnipResolver = SnipResolver()): Document =
+        KD.load(text, basePath, LoadOptions(requireSchema = true, validation = options, snipResolver = snipResolver))
 }
 
 /** A compiled schema. Validation never changes document values or resolves external resources. */
@@ -57,6 +84,27 @@ data class ValidationResult(val issues: List<ValidationIssue>, val truncated: Bo
     val isValid: Boolean get() = issues.isEmpty()
     fun requireValid() {
         if (!isValid) throw KDValidationException(this)
+    }
+
+    /**
+     * A human-readable, multi-line summary: `valid` for a clean result, or an
+     * issue count followed by one entry per issue with its code, document
+     * path, message, and expected/actual values when present.
+     */
+    fun report(): String {
+        if (isValid) return "valid"
+        val sb = StringBuilder("${issues.size} issue(s)")
+        if (truncated) sb.append(" (list truncated)")
+        for (i in issues) {
+            sb.append("\n  ").append(i.code.padEnd(20)).append(i.documentPath)
+            sb.append("\n      ").append(i.message)
+            when {
+                i.expected != null && i.actual != null -> sb.append("  [expected ${i.expected}, actual ${i.actual}]")
+                i.expected != null -> sb.append("  [expected ${i.expected}]")
+                i.actual != null -> sb.append("  [actual ${i.actual}]")
+            }
+        }
+        return sb.toString()
     }
 }
 

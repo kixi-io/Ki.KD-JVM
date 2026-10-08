@@ -221,8 +221,8 @@ internal class SchemaCompiler {
     }
 
     private fun check(t: Tag, p: String, attrs: Set<String>, children: Set<String>, values: Int) {
-        if (t.namespace.isNotEmpty() || t.annotations.isNotEmpty() || t.snipDirective != null)
-            fail(p, "Schema vocabulary must be unnamespaced and cannot carry annotations or snip directives")
+        if (t.namespace.isNotEmpty() || t.annotations.isNotEmpty() || t.snipDirective != null || t.schemaDirective != null)
+            fail(p, "Schema vocabulary must be unnamespaced and cannot carry annotations or directives")
         if (t.values.size != values) fail(p, "Expected $values positional value(s)")
         t.attributes.keys.forEach { if (it.namespace.isNotEmpty() || it.name !in attrs) fail(p, "Unknown attribute $it") }
         t.children.forEach { if (it.namespace.isNotEmpty() || it.name !in children) fail(p, "Unknown child ${it.nsid}") }

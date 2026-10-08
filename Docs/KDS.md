@@ -260,3 +260,109 @@ DIMENSION, UNIT, GRID_ROWS, GRID_COLUMNS, COUNT_BELOW_MIN, COUNT_ABOVE_MAX,
 OCCURRENCE, MISSING_ATTRIBUTE, MISSING_VALUE, UNEXPECTED_TAG,
 UNEXPECTED_ATTRIBUTE, UNEXPECTED_VALUE, UNEXPECTED_ANNOTATION,
 UNRESOLVED_SNIP, CYCLIC_DOCUMENT, and DEPTH_LIMIT.
+## Loading documents with KD.load
+
+`KD.load` is the one call for reading a KD file. It parses, resolves snips
+relative to the file, and if the document declares a schema, compiles it and
+validates the data. Schemas are optional but recommended: a file with no
+declaration loads as plain data.
+
+```kotlin
+val doc = KD.load(File("run.kd"))   // Document
+doc.root                            // the single top-level tag, or a synthetic root
+doc.tags                            // the top-level tags
+doc.hasSchema                       // did the document declare one?
+doc.isValid                         // true when no schema, or the data satisfies it
+doc.issues                          // validation issues (empty when none)
+doc.requireValid()                  // throw KDValidationException on data problems
+println(doc.report())               // "no schema", "Assay: valid", or the issue list
+```
+
+`load` also accepts a `Path`, or text with an optional base path. Text
+without a base path cannot resolve a `.schema` directive or snips; an inline
+schema works either way.
+
+### Declaring a schema
+
+The declaration is always the first top-level tag, in one of two forms.
+
+**External schema.** The `.schema(path)` directive names a `.kds` file. It
+occupies an anonymous tag of its own, like `.snip`. The path resolves
+against the document's directory; a missing extension means `.kds`.
+
+```kd
+.schema(assay)
+
+assay id="HTS-0042" operator="dan" {
+    .snip(shared/instrument)
+    measurement 0.82 well=A1
+}
+```
+
+**Inline schema.** The schema tag itself comes first and the data follows.
+A KDS schema is already a KD document, so nothing new is needed.
+
+```kd
+schema Reagents kds=1 {
+    tag reagent occurs=1.._ {
+        attribute name type=String required=true
+        attribute volume type=Quantity dimension=Volume max=10ℓ
+    }
+}
+
+reagent name="Trypsin" volume=250mℓ
+reagent name="DMEM" volume=2ℓ
+```
+
+Comments may precede the declaration; tags may not. A tag named `schema`
+without `kds=1` is ordinary data.
+
+### What is thrown and what is returned
+
+Data that violates its schema is returned in `Document.issues`, so a caller
+decides how to report it. Schema problems throw `KDSchemaException` with a
+path: a declaration that is not the first tag, a `.schema` directive sharing
+its tag with other content, a missing or unreadable schema file, or an
+invalid schema (inline or external). KD syntax errors remain
+`KDParseException`; snip problems remain `SnipException`.
+
+### LoadOptions
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| resolveSnips | true | Resolve `.snip` directives. When false they stay in the tree and a schema reports UNRESOLVED_SNIP. |
+| requireSchema | false | Treat a missing declaration as a schema error. `LoadOptions.SCHEMA_REQUIRED` is the ready-made instance. |
+| validation | ValidationOptions() | maxIssues and maxDepth for validation. |
+| snipResolver | SnipResolver() | Resolver and security options for snips. |
+
+`KDS.read(file)` is a one-line alias for `KD.load(file, LoadOptions.SCHEMA_REQUIRED)`.
+
+### Report format
+
+`ValidationResult.report()` returns `valid`, or an issue count followed by
+one entry per issue; `Document.report()` prefixes the schema name:
+
+```
+Assay: 6 issue(s)
+  PATTERN             /assay[0]/attributes/id
+      String does not fully match HTS-\d{4}
+  VALUE_ABOVE_MAX     /assay[0]/temperature[0]/values[0]
+      Expected <= 40°C; found 120°F  [expected 40°C, actual 120°F]
+```
+
+### Plain parsing
+
+`KD.read` and `KD.readDocument` still parse without resolving anything. They
+record a `.schema` directive on its tag, as they do for snips, and a quoted
+string with the same text stays a string. A directive that reaches
+`schema.validate` directly is reported as `MISPLACED_SCHEMA_DIRECTIVE`.
+Schema vocabulary cannot carry directives.
+
+### Deprecated
+
+`KD.readWithSnips` and `KD.parseWithSnips` are superseded by `load`, which
+does the same work and also applies a declared schema. They still work and
+return the same tree as `KD.load(...).root`; they will be removed in a later
+release.
+
+New code: `MISPLACED_SCHEMA_DIRECTIVE`.

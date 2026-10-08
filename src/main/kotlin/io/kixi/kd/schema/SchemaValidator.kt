@@ -49,6 +49,7 @@ internal class SchemaValidator(private val options: ValidationOptions) {
                 is Call -> {
                     if (v is Tag) {
                         if (v.snipDirective != null) add("UNRESOLVED_SNIP", p, sp, "Resolve snip directives explicitly before validation")
+                        if (v.schemaDirective != null) add("MISPLACED_SCHEMA_DIRECTIVE", p, sp, "A .schema directive is only allowed as the first top-level tag of a document read with KDS.read")
                         v.children.forEachIndexed { i, child -> scan(child, "$p/children[$i]", sp, depth + 1, active) }
                         v.annotations.forEachIndexed { i, a -> scan(a, "$p/annotations[$i]", sp, depth + 1, active) }
                     }
