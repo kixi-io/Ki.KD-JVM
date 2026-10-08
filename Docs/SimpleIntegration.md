@@ -20,10 +20,12 @@ the referenced files.
 ## Kotlin usage
 
 ```kotlin
+/*
 import io.kixi.kd.KD
 import io.kixi.kd.SnipOptions
 import io.kixi.kd.SnipResolver
 import java.nio.file.Path
+*/
 
 val document = KD.readWithSnips(Path.of("webapp/app.kd"))
 
@@ -365,10 +367,12 @@ KDS validation never loads snips. Resolve them explicitly first, then validate
 the resulting document. For a document with one known application root:
 
 ```kotlin
+/*
 import io.kixi.kd.KD
 import io.kixi.kd.schema.KDS
 import java.io.File
 import java.nio.file.Path
+*/
 
 val schema = KDS.compile(File("app.kds"))
 val app = KD.readWithSnips(Path.of("app.kd"))
