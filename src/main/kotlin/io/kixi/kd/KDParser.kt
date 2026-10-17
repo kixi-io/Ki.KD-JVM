@@ -2282,6 +2282,20 @@ class KDParser {
                     throw ctx.error("Invalid coordinate literal: ${e.message}")
                 }
             }
+            "id" -> {
+                try {
+                    Id.parseLiteral(literal)
+                } catch (e: Exception) {
+                    throw ctx.error("Invalid id literal: ${e.message}")
+                }
+            }
+            "ref" -> {
+                try {
+                    Ref.parseLiteral(literal)
+                } catch (e: Exception) {
+                    throw ctx.error("Invalid ref literal: ${e.message}")
+                }
+            }
             "snip" -> {
                 // Snip literals are returned as strings for later resolution
                 // by KD.readWithSnips(). This validates the literal syntax.
@@ -2461,6 +2475,8 @@ class KDParser {
             "Char" -> Char::class.javaObjectType
             "Number" -> Number::class.java
             "Any" -> Any::class.java
+            "Id" -> Id::class.java
+            "Ref" -> Ref::class.java
             else -> null
         }
     }
