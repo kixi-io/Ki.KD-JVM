@@ -69,15 +69,16 @@ class IdAndRefLiteralTest : StringSpec({
     // Grids
     // =========================================================================
 
-    "parse .grid<Ref> with nil cells" {
+    "parse .grid<Ref?> with nil cells" {
         val tag = KD.read("""
-            layout .grid<Ref> {
+            layout .grid<Ref?> {
                 .ref(compounds/$id1Text)  nil
                 .ref($id2Text)            .ref(compounds/$id1Text)
             }
         """.trimIndent())
         val grid = tag.value as Grid<*>
         grid.elementType shouldBe Ref::class.java
+        grid.elementNullable shouldBe true
         grid.width shouldBe 2
         grid.height shouldBe 2
         grid[0, 0] shouldBe Ref("compounds", id1)
@@ -132,7 +133,7 @@ class IdAndRefLiteralTest : StringSpec({
             @node(.id($id1Text) labels=[chebi:CHEBI_57514 kinase_inhibitor])
             compound name="Staurosporine" assay=.ref(assays/$id2Text) refs=[.ref($id1Text) .ref(assays/$id2Text)] {
                 derived_from .ref(plates/$id2Text) version=1.4.2
-                layout .grid<Ref> {
+                layout .grid<Ref?> {
                     .ref(compounds/$id1Text)  nil
                     .ref($id2Text)            .ref(compounds/$id1Text)
                 }

@@ -690,7 +690,7 @@ science {
 
         # Periodic table excerpt (first 3 rows)
         @PeriodicTable
-        periodic_excerpt .grid<String>(
+        periodic_excerpt .grid<String?>(
             "H"   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   "He"
             "Li"  "Be"  nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   "B"   "C"   "N"   "O"   "F"   "Ne"
             "Na"  "Mg"  nil   nil   nil   nil   nil   nil   nil   nil   nil   nil   "Al"  "Si"  "P"   "S"   "Cl"  "Ar"

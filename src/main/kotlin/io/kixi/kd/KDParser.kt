@@ -716,7 +716,8 @@ class KDParser {
      */
     private fun isRangeableValue(value: Any?): Boolean {
         return value is Number || value is Char || value is String ||
-                value is Version || value is Duration || value is Quantity<*>
+                value is Version || value is Duration || value is Quantity<*> ||
+                value is LocalDate || value is LocalDateTime || value is ZonedDateTime || value is KiTZDateTime
     }
 
     /**
@@ -916,6 +917,8 @@ class KDParser {
             is Duration -> Range(start as Duration?, end as Duration?, type)
             is LocalDate -> Range(start as LocalDate?, end as LocalDate?, type)
             is LocalDateTime -> Range(start as LocalDateTime?, end as LocalDateTime?, type)
+            is ZonedDateTime -> Range(start as ZonedDateTime?, end as ZonedDateTime?, type)
+            is KiTZDateTime -> Range(start as KiTZDateTime?, end as KiTZDateTime?, type)
             is Quantity<*> -> {
                 val s = start as Quantity<Length>?
                 val e = end as Quantity<Length>?
@@ -2367,6 +2370,7 @@ class KDParser {
 
     /** Parse rows directly, letting the value parser consume nested literals intact. */
     private fun parseGrid(ctx: ParseContext, closing: Char, typeParam: String?): Grid<*> {
+        val declared = typeParam?.let { parseTypeParam(ctx, it.trim()) }
         val rows = mutableListOf<List<Any?>>()
         var row = mutableListOf<Any?>()
         fun endRow() {
@@ -2385,7 +2389,7 @@ class KDParser {
                     endRow()
                     if (rows.isEmpty()) throw ctx.error("Empty grid is not allowed. Grid requires at least one cell.")
                     val values = rows.flatten()
-                    val (elementType, nullable) = typeParam?.let { parseTypeParam(it.trim()) }
+                    val (elementType, nullable) = declared?.let { it.type to it.nullable }
                         ?: (inferElementType(values) to values.any { it == null })
                     return Grid<Any?>(rows.firstOrNull()?.size ?: 0, rows.size,
                         values.toTypedArray(), elementType, nullable)
@@ -2398,24 +2402,86 @@ class KDParser {
                 ch == '/' && ctx.peek(1) == '*' -> skipBlockComment(ctx)
                 ch == '-' && (ctx.peek(1) == closing || ctx.peek(1) == ',' ||
                         ctx.peek(1) == ';' || ctx.peek(1)?.isWhitespace() == true) -> {
-                    ctx.advance(); row.add(null)
+                    ctx.advance(); row.add(declared?.let { typedCell(ctx, it, null, "-") })
                 }
-                else -> row.add(parseRequiredValue(ctx))
+                else -> {
+                    val cellStart = ctx.pos
+                    val value = parseRequiredValue(ctx)
+                    row.add(declared?.let { typedCell(ctx, it, value, ctx.substring(cellStart, ctx.pos).trim()) } ?: value)
+                }
             }
         }
         throw ctx.error("Unterminated grid: expected '$closing'")
     }
 
+    /** A grid's declared element type: its class, Ki name, and whether it was declared nullable (`Int?`). */
+    private class DeclaredType(val type: Class<*>, val name: String, val nullable: Boolean)
+
     /**
-     * Parses a type parameter string, handling nullable types.
-     *
-     * @param typeParam The type parameter string (e.g., "Int", "Int?", "String?")
-     * @return A Pair of (Class, isNullable)
+     * Parses a type parameter such as `Int`, `Dec?` or `Quantity`. Every Ki type name
+     * is accepted, plus `BigDecimal` and `Boolean` and the Java class names that older
+     * versions wrote (`Character`, `LocalDate`, ...). An unknown name is an error.
      */
-    private fun parseTypeParam(typeParam: String): Pair<Class<*>?, Boolean> {
+    private fun parseTypeParam(ctx: ParseContext, typeParam: String): DeclaredType {
         val isNullable = typeParam.endsWith("?")
         val baseType = if (isNullable) typeParam.dropLast(1) else typeParam
-        return Pair(typeParamToClass(baseType), isNullable)
+        val type = typeParamToType(baseType)
+            ?: throw ctx.error("Unknown grid element type '$baseType'. Use a Ki type name such as Int, Dec, String, Date or Quantity.")
+        return DeclaredType(type.kclass.javaObjectType, type.name, isNullable)
+    }
+
+    /**
+     * A typed grid's cell: a number without a suffix takes the declared numeric type,
+     * exactly from its text (`.grid<Dec> { 68.2 }` holds Dec 68.2; Int and Long need a
+     * whole number in range); any other cell must already be of the declared type.
+     * `nil` needs a nullable type: `.grid<Int>` has a value in every cell, `.grid<Int?>`
+     * may have `nil` (or `-`).
+     */
+    private fun typedCell(ctx: ParseContext, declared: DeclaredType, value: Any?, text: String): Any? {
+        if (value == null) {
+            if (declared.nullable) return null
+            // Same wording as Ki.KS's grid literal check
+            throw ctx.error("'$text' in .grid<${declared.name}>: Grid<${declared.name}> cannot contain nil values (use .grid<${declared.name}?> for nullable)")
+        }
+        val cell = if (value is Number && isUnsuffixed(value, text)) convertNumber(ctx, declared, value, text) else value
+        if (!declared.type.isInstance(cell)) {
+            val actual = Type.typeOf(value)?.name ?: value::class.java.simpleName
+            throw ctx.error("'$text' is $actual, not ${declared.name}, in .grid<${declared.name}>")
+        }
+        return cell
+    }
+
+    /** True for a number literal written without a type suffix (`5`, `68.2`, `0xFF`; not `5L`, `68.2bd`, `1.5f`, `2d`). */
+    private fun isUnsuffixed(value: Number, text: String): Boolean = when (value) {
+        is Int -> true
+        is Long -> !text.endsWith("L")
+        is Double -> text.lastOrNull()?.let { it != 'd' && it != 'D' } ?: false
+        else -> false
+    }
+
+    private fun convertNumber(ctx: ParseContext, declared: DeclaredType, value: Number, text: String): Number {
+        val clean = text.replace("_", "")
+        val radix = clean.removePrefix("-").let { it.startsWith("0x") || it.startsWith("0X") || it.startsWith("0b") || it.startsWith("0B") }
+        fun exact(): Dec = if (value is Double && !radix) {
+            try { Dec(clean) } catch (e: NumberFormatException) { Dec(value.toString()) }
+        } else Dec.valueOf(value.toLong())
+        fun whole(type: String, convert: (Dec) -> Number): Number = try {
+            convert(exact())
+        } catch (e: ArithmeticException) {
+            val d = exact()
+            throw ctx.error(
+                if (d.signum() != 0 && d.stripTrailingZeros().scale() > 0) "'$text' is not a whole number, so it cannot be $type in .grid<${declared.name}>"
+                else "'$text' does not fit in $type in .grid<${declared.name}>"
+            )
+        }
+        return when (declared.type) {
+            java.lang.Integer::class.java -> whole("Int") { it.intValueExact() }
+            java.lang.Long::class.java -> whole("Long") { it.longValueExact() }
+            Dec::class.java -> exact()
+            java.lang.Double::class.java -> if (value is Double) value else value.toDouble()
+            java.lang.Float::class.java -> if (value is Double && !radix) (clean.toFloatOrNull() ?: value.toFloat()) else value.toFloat()
+            else -> value   // Number, Any: numbers keep their own type
+        }
     }
 
     /**
@@ -2457,28 +2523,17 @@ class KDParser {
         return Any::class.java
     }
 
-    /**
-     * Maps a type parameter string to its corresponding Class.
-     *
-     * @param typeParam The type parameter string (e.g., "Int", "String", "Dec")
-     * @return The corresponding Class, or null if not recognized
-     */
-    private fun typeParamToClass(typeParam: String): Class<*>? {
-        return when (typeParam) {
-            "Int" -> Int::class.javaObjectType
-            "Long" -> Long::class.javaObjectType
-            "Float" -> Float::class.javaObjectType
-            "Double" -> Double::class.javaObjectType
-            "Dec", "BigDecimal" -> java.math.BigDecimal::class.java
-            "String" -> String::class.java
-            "Bool", "Boolean" -> Boolean::class.javaObjectType
-            "Char" -> Char::class.javaObjectType
-            "Number" -> Number::class.java
-            "Any" -> Any::class.java
-            "Id" -> Id::class.java
-            "Ref" -> Ref::class.java
-            else -> null
-        }
+    /** Maps a type parameter to its Ki type, or null if not recognized. */
+    private fun typeParamToType(typeParam: String): Type? = Type.forName(typeParam) ?: when (typeParam) {
+        "BigDecimal" -> Type.Dec
+        "Boolean" -> Type.Bool
+        // Java class names written by Grid.toString before it used Ki type names
+        "Integer" -> Type.Int
+        "Character" -> Type.Char
+        "LocalDate" -> Type.Date
+        "ArrayList" -> Type.List
+        "LinkedHashMap" -> Type.Map
+        else -> null
     }
 
 }
