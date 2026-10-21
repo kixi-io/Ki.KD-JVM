@@ -5,7 +5,15 @@ import io.kixi.kd.Tag
 import io.kixi.uom.Quantity
 import io.kixi.uom.Unit as MeasureUnit
 
-internal class SchemaCompiler {
+/**
+ * [allowUnloadedTypes]: a type name no loaded type bag has, written as a type name
+ * (`DNA`), compiles to a rule that accepts only extension literals kept as written
+ * (`io.kixi.types.ExtLiteral`), instead of failing as an unknown type. For schemas
+ * stored with data written while the bag was loaded (a database's catalog), so the
+ * data opens without it. Everything else compiles strictly, a document's own
+ * schema (`KD.load`) included: a mistyped type name there is a schema error.
+ */
+internal class SchemaCompiler(private val allowUnloadedTypes: Boolean = false) {
     private val valueDefs = linkedMapOf<String, Pair<Tag, String>>()
     private val tagDefs = linkedMapOf<String, Pair<Tag, String>>()
     private val compiledValues = mutableMapOf<String, ValueRule>()
@@ -116,7 +124,7 @@ internal class SchemaCompiler {
         }
         check(t, p, valueAttributes + extra, setOf("items", "keys"), valueCount)
         val type = text(t, "type", p) ?: "Any"
-        if (type !in SchemaValues.types) fail(p, "Unknown type $type")
+        if (!SchemaValues.isType(type) && !(allowUnloadedTypes && SchemaValues.couldBeBagType(type))) fail(p, "Unknown type $type")
         val nullable = bool(t, "nullable", false, p)
         if (type == "nil" && has(t, "nullable")) fail(p, "The nil type already matches only nil")
         val pattern = text(t, "pattern", p)?.let {

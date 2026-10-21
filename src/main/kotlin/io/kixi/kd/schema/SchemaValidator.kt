@@ -148,7 +148,7 @@ internal class SchemaValidator(private val options: ValidationOptions) {
             return
         }
         if (!SchemaValues.matches(r.type, v)) {
-            add("TYPE", p, r.path, "Expected ${r.type}; found ${v.javaClass.simpleName}", r.type, v.javaClass.simpleName)
+            add("TYPE", p, r.path, "Expected ${r.type}; found ${SchemaValues.describe(v)}", r.type, SchemaValues.describe(v))
             return
         }
         if (v is Quantity<*>) {

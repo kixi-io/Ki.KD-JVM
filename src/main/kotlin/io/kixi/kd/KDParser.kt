@@ -164,6 +164,7 @@ class KDParser {
         fun remaining(): String = if (pos < length) content.substring(pos) else ""
         fun substring(start: Int, end: Int = pos): String = content.substring(start, end)
         fun error(message: String): KDParseException = KDParseException(message, line, column)
+        fun errorAt(state: ParseState, message: String): KDParseException = KDParseException(message, state.line, state.column)
     }
 
     // ========================================================================
@@ -1886,6 +1887,7 @@ class KDParser {
         // Parse a potential key value
         when {
             ch == '"' || ch == '\'' || ch == '`' -> parseValue(ctx)
+            ch == '.' && ctx.peek(1)?.isLetter() == true -> parseValue(ctx)   // a dot literal key: [.id(…)=1], [.seq("A")=2]
             ch == '-' || ch == '+' || ch.isDigit() -> parseValue(ctx)  // Handle numeric keys
             isIdentifierStart(ch) -> parseIdentifier(ctx)
             else -> return false
@@ -2319,7 +2321,17 @@ class KDParser {
                     throw ctx.error("Invalid schema directive: ${e.message}")
                 }
             }
-            else -> throw ctx.error("Unknown dot-literal type: .$name")
+            else -> {
+                // A type bag's literal (io.kixi.types). One no loaded bag claims is kept as written, so a
+                // document written with a bag reads and writes back without it (Ki type bags design, 3.1).
+                // (Only .grid takes a type parameter, so there is none here.)
+                val type = io.kixi.types.TypeBags.literal(name) ?: return io.kixi.types.ExtLiteral(literal)
+                try {
+                    type.parse(literal)
+                } catch (e: Exception) {
+                    throw ctx.errorAt(start, "Invalid .$name literal: ${e.message}")      // at the literal's start
+                }
+            }
         }
     }
 
@@ -2445,7 +2457,7 @@ class KDParser {
         }
         val cell = if (value is Number && isUnsuffixed(value, text)) convertNumber(ctx, declared, value, text) else value
         if (!declared.type.isInstance(cell)) {
-            val actual = Type.typeOf(value)?.name ?: value::class.java.simpleName
+            val actual = io.kixi.types.TypeBags.typeFor(value)?.name ?: Type.typeOf(value)?.name ?: value::class.java.simpleName
             throw ctx.error("'$text' is $actual, not ${declared.name}, in .grid<${declared.name}>")
         }
         return cell
@@ -2500,6 +2512,12 @@ class KDParser {
         if (nonNullValues.isEmpty()) return null
 
         val types = nonNullValues.map { it::class.java }.toSet()
+
+        // A type bag's values (or literals kept without their bag) have no Ki type name, so the grid is
+        // untyped: it writes back as `.grid {…}` and stores its cells as values.
+        if (types.any { io.kixi.types.TypeBags.typeForClass(it) != null || io.kixi.types.ExtLiteral::class.java.isAssignableFrom(it) }) {
+            return Any::class.java
+        }
 
         // All same type
         if (types.size == 1) {

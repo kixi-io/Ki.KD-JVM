@@ -11,15 +11,27 @@ import java.nio.file.Path
 
 /** Compiles version 1 KDS schemas. A schema is an ordinary KD document. */
 object KDS {
+    /**
+     * Compiles a schema. A type name must be a Ki type or a loaded type bag's
+     * (`io.kixi.types`). With [allowUnloadedTypes], a capitalized name no loaded
+     * bag has is accepted as a bag type that is not loaded, whose values are
+     * extension literals kept as written: for a schema stored with data written
+     * while the bag was loaded (a database catalog), so the data opens without it.
+     */
     @JvmStatic
-    fun compile(text: String): KDSchema = SchemaCompiler().compile(KD.readDocument(text))
+    @JvmOverloads
+    fun compile(text: String, allowUnloadedTypes: Boolean = false): KDSchema =
+        SchemaCompiler(allowUnloadedTypes).compile(KD.readDocument(text))
 
     /** Does not close the caller-owned reader. */
     @JvmStatic
-    fun compile(reader: Reader): KDSchema = compile(reader.readText())
+    @JvmOverloads
+    fun compile(reader: Reader, allowUnloadedTypes: Boolean = false): KDSchema = compile(reader.readText(), allowUnloadedTypes)
 
     @JvmStatic
-    fun compile(file: File): KDSchema = file.bufferedReader(Charsets.UTF_8).use { compile(it) }
+    @JvmOverloads
+    fun compile(file: File, allowUnloadedTypes: Boolean = false): KDSchema =
+        file.bufferedReader(Charsets.UTF_8).use { compile(it, allowUnloadedTypes) }
 
     // ========================================================================
     // Self-describing documents
