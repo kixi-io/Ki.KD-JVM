@@ -1,0 +1,2 @@
+# KD as an embedded language (lang KD { ... }), found by name through io.kixi.lang.EmbeddedLanguages.
+io.kixi.kd.KDEmbeddedLanguage

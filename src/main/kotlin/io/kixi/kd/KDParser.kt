@@ -77,7 +77,22 @@ import java.time.*
  * @see Tag
  * @see Annotation
  */
-class KDParser {
+class KDParser internal constructor(private val interpolation: Interpolation?) {
+
+    constructor() : this(null)
+
+    /** A value put in at a position of the text, up to [end] (`$x` in a `lang KD` block, [KDLanguage]). */
+    internal class Interpolated(val end: Int, val value: Any?)
+
+    /**
+     * The host's values for a `lang KD` block, by the position of each interpolation
+     * in the text, and how a value reads inside a string ([stringify]).
+     */
+    internal class Interpolation(val spans: Map<Int, Interpolated>, val stringify: (Any?) -> String)
+
+    /** A parse error that also knows its position in the text, for [KDLanguage]. */
+    internal class PositionedException(val reason: String, line: Int, column: Int, val offset: Int) :
+        KDParseException(reason, line, column)
 
     /**
      * Parses KD content and returns a Tag.
@@ -100,7 +115,7 @@ class KDParser {
 
     /** Parses top-level tags without introducing a synthetic root or resolving snips. */
     fun parseDocument(content: String): List<Tag> {
-        val ctx = ParseContext(content)
+        val ctx = ParseContext(content, positioned = interpolation != null)
         val tags = mutableListOf<Tag>()
 
         while (!ctx.isEOF()) {
@@ -127,7 +142,7 @@ class KDParser {
 
     private data class ParseState(val pos: Int, val line: Int, val column: Int)
 
-    private class ParseContext(val content: String) {
+    private class ParseContext(val content: String, val positioned: Boolean = false) {
         var pos = 0
         var line = 1
         var column = 1
@@ -163,8 +178,10 @@ class KDParser {
         fun isEOF(): Boolean = pos >= length
         fun remaining(): String = if (pos < length) content.substring(pos) else ""
         fun substring(start: Int, end: Int = pos): String = content.substring(start, end)
-        fun error(message: String): KDParseException = KDParseException(message, line, column)
-        fun errorAt(state: ParseState, message: String): KDParseException = KDParseException(message, state.line, state.column)
+        fun error(message: String): KDParseException =
+            if (positioned) PositionedException(message, line, column, pos) else KDParseException(message, line, column)
+        fun errorAt(state: ParseState, message: String): KDParseException =
+            if (positioned) PositionedException(message, state.line, state.column, state.pos) else KDParseException(message, state.line, state.column)
     }
 
     // ========================================================================
@@ -470,6 +487,10 @@ class KDParser {
                 val (nsid, value) = parseAttribute(ctx)
                 tag.setAttribute(nsid, value)
             } else {
+                interpolation?.spans?.get(ctx.pos)?.let { span ->
+                    if (span.end < ctx.length && ctx.content[span.end] == '=')
+                        throw ctx.error("An attribute's name cannot be interpolated, only its value (name=\$x)")
+                }
                 val directiveStart = ctx.peek() == '.'
                 val value = parseRequiredValue(ctx)
                 if (directiveStart && value is String) {
@@ -649,6 +670,22 @@ class KDParser {
 
         val ch = ctx.peek() ?: return null
 
+        // A host's value (`$x`, `${expr}` in a `lang KD` block): put in as it is, never read as KD text.
+        // It may start a range, as a literal can (`$lo..$hi`).
+        interpolationAt(ctx)?.let { span ->
+            val value = span.value
+            if (value != null && isRangeableValue(value)) {
+                skipSpacesAndTabs(ctx)
+                tryParseRange(ctx, value)?.let { return it }
+            } else if (value == null) {
+                val after = ctx.saveState()
+                skipSpacesAndTabs(ctx)
+                if (isRangeOperatorStart(ctx)) throw ctx.error("A range bound cannot be nil (use _ for an open bound)")
+                ctx.restoreState(after)
+            }
+            return value
+        }
+
         // Check for open range marker '_'
         if (ch == '_') {
             return parseOpenRangeOrIdentifier(ctx)
@@ -822,15 +859,16 @@ class KDParser {
                 throw ctx.error("Right open ranges can only use .. and <.. operators")
             }
 
-            return createOpenRightRange(left, rangeType)
+            return createOpenRightRange(ctx, left, rangeType)
         }
 
         // Parse the right value
+        nilBound(ctx)
         val rightValue = parseValue(ctx)
             ?: throw ctx.error("Expected value after range operator")
 
         // Create the range
-        return createRange(left, rightValue, rangeType)
+        return createRange(ctx, left, rightValue, rangeType)
     }
 
     /**
@@ -858,44 +896,45 @@ class KDParser {
         skipSpacesAndTabs(ctx)
 
         // Parse the right value
+        nilBound(ctx)
         val rightValue = parseValue(ctx)
             ?: throw ctx.error("Expected value after range operator in open-left range")
 
-        return createOpenLeftRange(rightValue, rangeType)
+        return createOpenLeftRange(ctx, rightValue, rangeType)
     }
 
     /**
      * Creates an open-right range (end is null).
      */
     @Suppress("UNCHECKED_CAST")
-    private fun createOpenRightRange(start: Any, type: Range.Bound): Range<*> {
-        return createRangeInternal(start, null, type)
+    private fun createOpenRightRange(ctx: ParseContext, start: Any, type: Range.Bound): Range<*> {
+        return createRangeInternal(ctx, start, null, type)
     }
 
     /**
      * Creates an open-left range (start is null).
      */
     @Suppress("UNCHECKED_CAST")
-    private fun createOpenLeftRange(end: Any, type: Range.Bound): Range<*> {
-        return createRangeInternal(null, end, type)
+    private fun createOpenLeftRange(ctx: ParseContext, end: Any, type: Range.Bound): Range<*> {
+        return createRangeInternal(ctx, null, end, type)
     }
 
     /**
      * Creates a range from two values.
      */
     @Suppress("UNCHECKED_CAST")
-    private fun createRange(start: Any, end: Any, type: Range.Bound): Range<*> {
+    private fun createRange(ctx: ParseContext, start: Any, end: Any, type: Range.Bound): Range<*> {
         // Validate that start and end are compatible types
         if (start::class != end::class) {
             // Allow numeric type mixing
             if (start is Number && end is Number) {
                 // Convert to same type
                 val (s, e) = normalizeNumbers(start, end)
-                return createRangeInternal(s, e, type)
+                return createRangeInternal(ctx, s, e, type)
             }
-            throw ParseException("Range endpoints must be of compatible types: ${start::class.simpleName} vs ${end::class.simpleName}")
+            throw ctx.error("Range endpoints must be of compatible types: ${start::class.simpleName} vs ${end::class.simpleName}")
         }
-        return createRangeInternal(start, end, type)
+        return createRangeInternal(ctx, start, end, type)
     }
 
     /**
@@ -903,7 +942,7 @@ class KDParser {
      * Either start or end may be null for open ranges.
      */
     @Suppress("UNCHECKED_CAST")
-    private fun createRangeInternal(start: Any?, end: Any?, type: Range.Bound): Range<*> {
+    private fun createRangeInternal(ctx: ParseContext, start: Any?, end: Any?, type: Range.Bound): Range<*> {
         // Use whichever end is non-null to determine the type
         val sample = start ?: end!!
         return when (sample) {
@@ -925,7 +964,7 @@ class KDParser {
                 val e = end as Quantity<Length>?
                 Range<Quantity<Length>?>(s, e, type)
             }
-            else -> throw ParseException("Unsupported type for range: ${sample::class.simpleName}")
+            else -> throw ctx.error("Unsupported type for range: ${sample::class.simpleName}")
         }
     }
 
@@ -951,19 +990,48 @@ class KDParser {
     // String Parsing
     // ========================================================================
 
+    /** A range's bound from a host's value (`1..$n`, `lang KD`) that is nil: KD has no nil bound (`_` opens a range). */
+    private fun nilBound(ctx: ParseContext) {
+        val span = interpolation?.spans?.get(ctx.pos) ?: return
+        if (span.value == null) throw ctx.error("A range bound cannot be nil (use _ for an open bound)")
+    }
+
+    /**
+     * If a host's value starts at the current position (`lang KD`), moves past it and
+     * returns it; otherwise null.
+     */
+    private fun interpolationAt(ctx: ParseContext): Interpolated? {
+        val span = interpolation?.spans?.get(ctx.pos) ?: return null
+        ctx.advance(span.end - ctx.pos)
+        return span
+    }
+
     private fun parseSimpleString(ctx: ParseContext): String {
         val startLine = ctx.line
+        val startState = ctx.saveState()
         ctx.advance()
 
         val sb = StringBuilder()
+        // With a host's values (lang KD): the text read so far, escapes resolved, with the values' text between.
+        val done = StringBuilder()
 
         while (!ctx.isEOF()) {
-            val ch = ctx.peek() ?: throw ctx.error("Unterminated string starting at line $startLine")
+            val ch = ctx.peek() ?: throw unterminatedString(ctx, startState, startLine)
+
+            if (interpolation != null) {
+                if (ch == '\\' && ctx.peek(1) == '$') { sb.append('$'); ctx.advance(2); continue }
+                val span = interpolationAt(ctx)
+                if (span != null) {
+                    done.append(unescape(ctx, startState, sb)).append(interpolation.stringify(span.value))
+                    sb.setLength(0)
+                    continue
+                }
+            }
 
             when (ch) {
                 '"' -> {
                     ctx.advance()
-                    return sb.toString().resolveEscapes('"')
+                    return done.append(unescape(ctx, startState, sb)).toString()
                 }
                 '\\' -> {
                     sb.append(ch)
@@ -981,8 +1049,26 @@ class KDParser {
             }
         }
 
-        throw ctx.error("Unterminated string starting at line $startLine")
+        throw unterminatedString(ctx, startState, startLine)
     }
+
+    /**
+     * An unterminated `"…"` string: in a `lang KD` block the error stands at the string's
+     * start (the host reports its own line); in a KD file it names the line it started on.
+     */
+    private fun unterminatedString(ctx: ParseContext, start: ParseState, startLine: Int): KDParseException =
+        if (ctx.positioned) ctx.errorAt(start, "Unterminated string")
+        else ctx.error("Unterminated string starting at line $startLine")
+
+    /** Resolves the escapes of a string's text, reporting a bad escape at the string ([start]). */
+    private fun unescape(ctx: ParseContext, start: ParseState, text: CharSequence): String =
+        try {
+            text.toString().resolveEscapes('"')
+        } catch (e: ParseException) {
+            val at = Regex("""\\(u.{0,4}|.)""").findAll(text).map { it.groupValues[1] }
+                .firstOrNull { it.length == 1 && it !in setOf("t", "r", "n", "\\", "\"") || it.startsWith("u") && !Regex("u[0-9a-fA-F]{4}").matches(it) }
+            throw ctx.errorAt(start, if (at == null) "Invalid escape in string" else "Invalid escape '\\$at' in string")
+        }
 
     private fun parseRawString(ctx: ParseContext): String {
         ctx.advance() // @
@@ -1053,6 +1139,13 @@ class KDParser {
             if (ctx.peek() == '"' && ctx.peek(1) == '"' && ctx.peek(2) == '"') {
                 ctx.advance(3)
                 return processBlockStringContent(sb.toString())
+            }
+
+            if (interpolation != null) {
+                // A host's value (lang KD) puts its text in; a backslash before `$` makes it a literal `$`.
+                if (ctx.peek() == '\\' && ctx.peek(1) == '$') { sb.append('$'); ctx.advance(2); continue }
+                val span = interpolationAt(ctx)
+                if (span != null) { sb.append(interpolation.stringify(span.value)); continue }
             }
 
             sb.append(ctx.peek())
@@ -1885,6 +1978,10 @@ class KDParser {
         val ch = ctx.peek() ?: return false
 
         // Parse a potential key value
+        if (interpolationAt(ctx) != null) {
+            skipSpacesAndTabs(ctx)
+            return ctx.peek() == '='
+        }
         when {
             ch == '"' || ch == '\'' || ch == '`' -> parseValue(ctx)
             ch == '.' && ctx.peek(1)?.isLetter() == true -> parseValue(ctx)   // a dot literal key: [.id(…)=1], [.seq("A")=2]
@@ -2201,6 +2298,23 @@ class KDParser {
     // Dot-prefixed Literals (.blob, .geo, .coordinate, .grid, .snip)
     // ========================================================================
 
+    /**
+     * The text of a dot literal's body, from [start] to [end]. A literal is read from its
+     * text (by its bag, or by KD for `.geo`, `.snip` and the rest), so in a `lang KD`
+     * block a host's value inside it (`.ref($id)`, `.id("$x")`) puts its text in, as in
+     * a string.
+     */
+    private fun literalText(start: Int, end: Int, ctx: ParseContext): String {
+        val interpolation = interpolation ?: return ctx.substring(start, end)
+        val sb = StringBuilder()
+        var i = start
+        while (i < end) {
+            val span = interpolation.spans[i]
+            if (span != null) { sb.append(interpolation.stringify(span.value)); i = span.end } else sb.append(ctx.content[i++])
+        }
+        return sb.toString()
+    }
+
     private fun parseDotLiteral(ctx: ParseContext): Any? {
         val start = ctx.saveState()
         ctx.advance() // skip .
@@ -2248,6 +2362,7 @@ class KDParser {
         while (!ctx.isEOF() && depth > 0) {
             val ch = ctx.peek()
             when {
+                interpolationAt(ctx) != null -> {}   // a host's value (lang KD), whatever its text holds
                 ch == '"' -> skipStringContent(ctx)
                 ch == '\'' -> skipCharContent(ctx)
                 ch == '(' -> { depth++; ctx.advance() }
@@ -2260,7 +2375,7 @@ class KDParser {
             throw ctx.error("Unterminated .$name literal")
         }
 
-        val content = ctx.substring(contentStart, ctx.pos)
+        val content = literalText(contentStart, ctx.pos, ctx)
         ctx.advance() // skip )
 
         val literal = if (typeParam != null) ".$name<$typeParam>($content)" else ".$name($content)"
