@@ -13,7 +13,12 @@ class Annotation : Call {
 
     constructor(name:String, namespace:String = ""): this(NSID(name, namespace)) {}
 
-    override fun toString(): String {
+    override fun toString(): String = render(canonical = false)
+
+    /** [toString] with the attributes in key order: what [equals] compares (see [Call.canonicalText]). */
+    override fun canonicalText(): String = render(canonical = true)
+
+    private fun render(canonical: Boolean): String {
         if(values.isEmpty() && attributes.isEmpty())
             return "@$nsid"
 
@@ -36,7 +41,7 @@ class Annotation : Call {
                 builder.append(" ")
             }
 
-            val i = attributes.entries.iterator()
+            val i = attributeEntries(canonical).iterator()
             while (i.hasNext()) {
                 val e = i.next()
                 builder.append("${e.key}=${Ki.format(e.value)}")

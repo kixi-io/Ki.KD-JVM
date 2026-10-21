@@ -162,7 +162,16 @@ class Tag : Call {
      *
      * TODO: break up long lines using the backslash
      */
-    fun toString(linePrefix: String): String {
+    fun toString(linePrefix: String): String = render(linePrefix, canonical = false)
+
+    /**
+     * What [equals] and [hashCode] compare: the KD text with every tag's and
+     * annotation's attributes in key order, so their order (kept by [toString])
+     * does not count, as in a map. Values, children and annotations keep theirs.
+     */
+    override fun canonicalText(): String = render("", canonical = true)
+
+    private fun render(linePrefix: String, canonical: Boolean): String {
 
         val builder = StringBuilder()
 
@@ -170,7 +179,7 @@ class Tag : Call {
 
         if(annotations.isNotEmpty()) {
             for(anno in annotations) {
-                builder.append(linePrefix).append(anno.toString() + "\n")
+                builder.append(linePrefix).append((if (canonical) anno.canonicalText() else anno.toString()) + "\n")
             }
         }
 
@@ -214,7 +223,7 @@ class Tag : Call {
 
         // output attributes
         if (attributes.isNotEmpty()) {
-            val i = attributes.entries.iterator()
+            val i = attributeEntries(canonical).iterator()
             while (i.hasNext()) {
                 builder.append(" ")
                 val e = i.next()
@@ -228,7 +237,7 @@ class Tag : Call {
         if (!children.isEmpty()) {
             builder.append(" {$NEW_LINE")
             for (t in children) {
-                builder.append(t.toString("$linePrefix    ") + NEW_LINE)
+                builder.append(t.render("$linePrefix    ", canonical) + NEW_LINE)
             }
             builder.append("$linePrefix}")
         }
