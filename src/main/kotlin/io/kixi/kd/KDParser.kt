@@ -11,6 +11,9 @@ import java.math.BigDecimal as Dec
 import java.net.URL
 import java.time.*
 
+/** An unsigned or signed run of digits (with `_` separators): a whole number as KD writes one. */
+private val BIG_WHOLE = Regex("[+-]?[0-9][0-9_]*")
+
 /**
  * A complete KD (Ki Data) parser supporting core KD features.
  *
@@ -758,6 +761,17 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
      */
     private fun parseNumberOrMeasure(ctx: ParseContext): Any {
         val start = ctx.saveState()
+        // A measure is read whole by Ki.Core, which wrote it: its sides are numbers or quantities by Ki.Core's
+        // rules, so 12±1min:i is a time quantity (not a Duration) and a whole number past Long's range reads.
+        measureEnd(ctx)?.let { end ->
+            val text = ctx.substring(start.pos, end)
+            ctx.advance(end - ctx.pos)
+            return try {
+                Measure.parse(text)
+            } catch (e: Exception) {
+                throw ctx.errorAt(start, "Invalid measure $text: ${e.message}")
+            }
+        }
         val value = parseNumberOrDateOrDuration(ctx)
         if (value !is Number && value !is Quantity<*>) return value
         val width = when {
@@ -780,6 +794,43 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
         } catch (e: Exception) {
             throw ctx.errorAt(start, "Invalid measure $text: ${e.message}")
         }
+    }
+
+    /**
+     * Where the measure literal starting here ends, or null when the value here is not
+     * a measure: the run of characters up to whitespace, a delimiter, `..` or a comment
+     * holds `±`, or `+-` after its first character.
+     */
+    private fun measureEnd(ctx: ParseContext): Int? {
+        val text = ctx.content
+        var k = ctx.pos
+        var measure = false
+        while (k < ctx.length) {
+            val c = text[k]
+            if (c.isWhitespace() || c in ",;)]}=\"'#@[({<>`") break
+            if (c == '.' && k + 1 < ctx.length && text[k + 1] == '.') break
+            if (c == '/' && k + 1 < ctx.length && (text[k + 1] == '/' || text[k + 1] == '*')) break
+            if (c == Measure.PLUS_MINUS || (c == '+' && k > ctx.pos && k + 1 < ctx.length && text[k + 1] == '-')) measure = true
+            k++
+        }
+        return if (measure) k else null
+    }
+
+    /**
+     * A whole number too large for Long, written unsuffixed in a Dec, Double or Float
+     * cell (`.vec<Dec> { 10000000000000000000 }`, as Ki.Core writes a large Dec), read
+     * as a Dec; null when the text here is anything else, for the usual parse.
+     */
+    private fun bigWhole(ctx: ParseContext, declared: DeclaredType): Dec? {
+        if (declared.type != Dec::class.java && declared.type != java.lang.Double::class.java && declared.type != java.lang.Float::class.java) return null
+        val m = BIG_WHOLE.matchAt(ctx.content, ctx.pos) ?: return null
+        val end = ctx.pos + m.value.length
+        val next = ctx.content.getOrNull(end)
+        if (next != null && !(next.isWhitespace() || next in ",;}#/")) return null
+        val digits = m.value.replace("_", "")
+        if (digits.toLongOrNull() != null) return null
+        ctx.advance(m.value.length)
+        return Dec(digits)
     }
 
     /**
@@ -2568,6 +2619,8 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
                 }
                 else -> {
                     val cellStart = ctx.pos
+                    val big = declared?.let { bigWhole(ctx, it) }
+                    if (big != null) { row.add(typedCell(ctx, declared!!, convertBig(declared, big), ctx.substring(cellStart, ctx.pos).trim())); continue }
                     val value = parseRequiredValue(ctx)
                     row.add(declared?.let { typedCell(ctx, it, value, ctx.substring(cellStart, ctx.pos).trim()) } ?: value)
                 }
@@ -2614,6 +2667,8 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
                 ch == '/' && ctx.peek(1) == '*' -> skipBlockComment(ctx)
                 else -> {
                     val cellStart = ctx.pos
+                    val big = bigWhole(ctx, declared)
+                    if (big != null) { numbers.add(convertBig(declared, big)); continue }
                     val value = parseRequiredValue(ctx)
                     val text = ctx.substring(cellStart, ctx.pos).trim()
                     if (value !is Number) throw ctx.error("'$text' is not a number, in .vec<${type.name}>")
@@ -2662,6 +2717,13 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
             throw ctx.error("'$text' is $actual, not ${declared.name}, in .${declared.literal}<${declared.name}>")
         }
         return cell
+    }
+
+    /** [big] (a whole number past Long's range) as the cell's type: Dec as it is, Double or Float as the nearest. */
+    private fun convertBig(declared: DeclaredType, big: Dec): Number = when (declared.type) {
+        java.lang.Double::class.java -> big.toDouble()
+        java.lang.Float::class.java -> big.toFloat()
+        else -> big
     }
 
     /** True for a number literal written without a type suffix (`5`, `68.2`, `0xFF`; not `5L`, `68.2bd`, `1.5f`, `2d`). */

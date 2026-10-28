@@ -141,5 +141,34 @@ class MeasureAndVectorTest : FunSpec({
             s.validate("v .vec<Int> { 1 2 3 4 }").isValid shouldBe false
             shouldThrow<KDSchemaException> { KDS.compile("schema T kds=1 { tag a { value type=Vector dimension=Length } }") }
         }
+
+        test("an enum of measures or vectors matches by amount, as numbers and quantities do") {
+            val s = KDS.compile("schema T kds=1 { tag m occurs=0..1 { value type=Measure enum=[5±1 1±0.1cm] }; tag v occurs=0..1 { value type=Vector enum=[.vec<Int> { 1 2 }] } }")
+            s.validate("m 5.0±1.0").isValid shouldBe true
+            s.validate("m 10±1mm").isValid shouldBe true
+            s.validate("m 5±2").isValid shouldBe false
+            s.validate("v .vec<Double> { 1.0 2.0 }").isValid shouldBe true
+        }
+    }
+
+    // The review of 2026-10-28: what Ki.Core writes, KD reads.
+    context("measures Ki.Core writes") {
+        test("dF is the unit, a long whole value, a measure of time") {
+            value("37±0.5dF") shouldBe Measure.parse("37±0.5°F")
+            val big = Measure.of(Quantity(Dec("1E+20"), KiUnit.cm), Quantity(Dec.ONE, KiUnit.cm))
+            value(big.toString()) shouldBe big
+            val time = Measure.of(Quantity(12, KiUnit.getUnit("min")!!), Quantity(1, KiUnit.getUnit("min")!!))
+            value(time.toString()) shouldBe time
+            (value("[a=5±1, b=6±1cm]") as Map<*, *>)["b"] shouldBe Measure.parse("6±1cm")
+            KD.read("t m=5±1 n=2").let { it["m"] shouldBe Measure.parse("5±1"); it["n"] shouldBe 2 }
+        }
+
+        test("a Dec vector or grid with a whole number past Long's range") {
+            val v = Vector.ofDecs(Dec("1E+19"))
+            value(v.toString()) shouldBe v
+            value(".vec<Double> { 100000000000000000000 }") shouldBe Vector.ofDoubles(1e20)
+            (value(".grid<Dec> { 100000000000000000000 1 }") as Grid<*>)[0, 0] shouldBe Dec("100000000000000000000")
+            shouldThrow<KDParseException> { value(".vec<Int> { 100000000000000000000 }") }
+        }
     }
 })

@@ -107,8 +107,9 @@ object KDLanguage : EmbeddedLanguage {
      */
     fun evaluateDocument(source: EmbeddedSource, values: Map<String, Any?>, stringify: (Any?) -> String = { v -> if (v == null) "nil" else v.toString() }): List<Tag> {
         val text = source.text
-        val block = scan("$text}", 0)
-        if (block.end != text.length) throw EmbeddedLanguageException("Unexpected '}'", block.end)
+        // The text is closed on a line of its own, so a trailing comment (# note) cannot swallow the brace.
+        val block = scan("$text\n}", 0)
+        if (block.end != text.length + 1) throw EmbeddedLanguageException("Unexpected '}'", minOf(block.end, text.length))
         val spans = HashMap<Int, KDParser.Interpolated>()
         for (x in block.interpolations) spans[x.start] = KDParser.Interpolated(x.end, values[x.key])
         try {

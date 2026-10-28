@@ -97,6 +97,9 @@ internal object SchemaValues {
             return c == 0 || (c == null && a::class == b::class && a == b)
         }
         if (a is Quantity<*> && b is Quantity<*>) return compare(a, b) == 0
+        // Measures and vectors as numbers and quantities are: the same amount (5±1 is 5.0±1.0, 1±0.1cm is 10±1mm).
+        if (a is io.kixi.Measure && b is io.kixi.Measure) return try { a.compareTo(b) == 0 } catch (e: RuntimeException) { false }
+        if (a is io.kixi.Vector<*> && b is io.kixi.Vector<*>) return a.compareTo(b) == 0
         if (a is URL && b is URL) return a.toExternalForm() == b.toExternalForm()
         if (a is List<*> && b is List<*>)
             return a.size == b.size && a.indices.all { equivalent(a[it], b[it]) }

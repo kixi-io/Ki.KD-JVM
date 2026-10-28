@@ -146,6 +146,14 @@ class KDLanguageTest : FunSpec({
             .let { it.offset shouldBe 2; it.reason shouldBe "Unterminated string" }
     }
 
+    test("evaluateDocument reads several documents, and the text may end in a comment") {
+        val docs = KDLanguage.evaluateDocument(EmbeddedSource("a n=\$x\nb { c } # the last one"), mapOf("x" to 1))
+        docs.map { it.name } shouldBe listOf("a", "b")
+        docs[0]["n"] shouldBe 1
+        KDLanguage.evaluateDocument(EmbeddedSource("a // note"), emptyMap()).single().name shouldBe "a"
+        shouldThrow<EmbeddedLanguageException> { KDLanguage.evaluateDocument(EmbeddedSource("a } b"), emptyMap()) }.reason shouldContain "'}'"
+    }
+
     test("any host finds KD by name") {
         val kd = EmbeddedLanguages.find("kd")!!
         kd.name shouldBe "KD"
