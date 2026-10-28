@@ -172,7 +172,7 @@ class TypeBagLiteralTest : FunSpec({
                     shouldThrow<KDSchemaException> { KDS.compile("schema \"s\" kds=1 {\n tag t {\n attribute a $attr\n }\n}") }.message shouldContain what
                 refuses("type=Seq min=1", "Bounds require a numeric type or Quantity")
                 refuses("type=Seq pattern=\"A\"", "String constraints require type=String")
-                refuses("type=Seq minCount=1", "Count constraints require List, Map, or Grid")
+                refuses("type=Seq minCount=1", "Count constraints require List, Map, Grid, or Vector")
                 val s = KDS.compile("schema \"s\" kds=1 {\n tag t {\n attribute a type=Seq nullable=true\n attribute l type=List {\n items type=Seq\n }\n }\n}")
                 s.validate("t a=nil l=[.seq(\"A\") .seq(\"C\")]").isValid.shouldBeTrue()
                 s.validate("t l=[.seq(\"A\") \"C\"]").isValid.shouldBeFalse()

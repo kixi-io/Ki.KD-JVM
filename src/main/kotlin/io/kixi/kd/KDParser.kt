@@ -718,7 +718,7 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
             ch == '`' -> parseBacktickString(ctx)
             ch == '[' -> parseListOrMap(ctx)
             ch == '<' -> parseURL(ctx)
-            ch == '-' || ch == '+' || ch.isDigit() -> parseNumberOrDateOrDuration(ctx)
+            ch == '-' || ch == '+' || ch.isDigit() -> parseNumberOrMeasure(ctx)
             ch == '.' && ctx.peek(1)?.isLetter() == true -> parseDotLiteral(ctx)
             Currency.isPrefixSymbol(ch) -> {
                 // Currency prefix must be followed by digit or period (e.g., $100, $.50)
@@ -747,6 +747,39 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
         }
 
         return baseValue
+    }
+
+    /**
+     * A number, date, duration, quantity or version; a number or quantity followed at
+     * once by `±` (or its ASCII spelling `+-`) and a second number or quantity is a
+     * [Measure] (`0.0042±0.0006µM`, `0.512+-0.008`, `5cm±1mm`). KD finds the literal's
+     * extent; Ki.Core's [Measure.parse] reads it, so the unit written once after the
+     * uncertainty applies to both numbers.
+     */
+    private fun parseNumberOrMeasure(ctx: ParseContext): Any {
+        val start = ctx.saveState()
+        val value = parseNumberOrDateOrDuration(ctx)
+        if (value !is Number && value !is Quantity<*>) return value
+        val width = when {
+            ctx.peek() == Measure.PLUS_MINUS -> 1
+            ctx.peek() == '+' && ctx.peek(1) == '-' -> 2
+            else -> return value
+        }
+        ctx.advance(width)
+        val next = ctx.peek()
+        if (next == null || !(next.isDigit() || next == '.' || next == '+' || next == '-')) {
+            throw ctx.error("Expected the uncertainty after ${if (width == 1) "±" else "+-"} (a measure is written 0.512±0.008 or 5±0.1cm)")
+        }
+        val uncertainty = parseNumberOrDateOrDuration(ctx)
+        if (uncertainty !is Number && uncertainty !is Quantity<*>) {
+            throw ctx.errorAt(start, "A measure's uncertainty is a number or a quantity, not ${Ki.format(uncertainty)}")
+        }
+        val text = ctx.substring(start.pos, ctx.pos)
+        return try {
+            Measure.parse(text)
+        } catch (e: Exception) {
+            throw ctx.errorAt(start, "Invalid measure $text: ${e.message}")
+        }
     }
 
     /**
@@ -2348,6 +2381,8 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
             return parseGrid(ctx, closing, typeParam)
         }
 
+        if (name == "vec" && ctx.peek() == '<') return parseVector(ctx, start)
+
         if (ctx.peek() != '(') {
             ctx.restoreState(start)
             return null
@@ -2541,8 +2576,59 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
         throw ctx.error("Unterminated grid: expected '$closing'")
     }
 
-    /** A grid's declared element type: its class, Ki name, and whether it was declared nullable (`Int?`). */
-    private class DeclaredType(val type: Class<*>, val name: String, val nullable: Boolean)
+    /**
+     * `.vec<T> { n n n }` (Ki.Core's [Vector]): T is Int, Long, Float, Double or Dec,
+     * and each number is read as a typed grid's cell is (unsuffixed numbers take T
+     * exactly from their text; a suffixed one must be a T). Spaces, tabs, commas,
+     * newlines and comments separate the numbers.
+     */
+    private fun parseVector(ctx: ParseContext, start: ParseState): Vector<*> {
+        ctx.advance() // skip <
+        val typeStart = ctx.pos
+        while (!ctx.isEOF() && ctx.peek() != '>' && ctx.peek() != '\n') ctx.advance()
+        if (ctx.peek() != '>') throw ctx.errorAt(start, "Unterminated type parameter in .vec<...>")
+        val typeName = ctx.substring(typeStart, ctx.pos).trim()
+        ctx.advance() // skip >
+        val type = Type.forName(typeName)?.takeIf { it in Vector.ELEMENT_TYPES }
+            ?: throw ctx.errorAt(start, "A vector holds Int, Long, Float, Double or Dec numbers, not '$typeName' (.vec<Float> { 1.0 2.5 })")
+        val declared = DeclaredType(type.kclass.javaObjectType, type.name, false, "vec")
+        skipSpacesAndTabs(ctx)
+        if (ctx.peek() != '{') throw ctx.error("Expected '{' after .vec<${type.name}>")
+        ctx.advance()
+        val numbers = ArrayList<Number>()
+        while (!ctx.isEOF()) {
+            val ch = ctx.peek()
+            when {
+                ch == '}' -> {
+                    ctx.advance()
+                    return try {
+                        Vector.of(type, numbers)
+                    } catch (e: IllegalArgumentException) {
+                        throw ctx.errorAt(start, e.message ?: "Invalid vector")
+                    }
+                }
+                ch == '\n' || ch == '\r' || ch == ' ' || ch == '\t' || ch == ',' -> ctx.advance()
+                ch == '#' || (ch == '/' && ctx.peek(1) == '/') -> {
+                    while (!ctx.isEOF() && ctx.peek() != '\n' && ctx.peek() != '\r') ctx.advance()
+                }
+                ch == '/' && ctx.peek(1) == '*' -> skipBlockComment(ctx)
+                else -> {
+                    val cellStart = ctx.pos
+                    val value = parseRequiredValue(ctx)
+                    val text = ctx.substring(cellStart, ctx.pos).trim()
+                    if (value !is Number) throw ctx.error("'$text' is not a number, in .vec<${type.name}>")
+                    numbers.add(typedCell(ctx, declared, value, text) as Number)
+                }
+            }
+        }
+        throw ctx.errorAt(start, "Unterminated vector: expected '}'")
+    }
+
+    /**
+     * A grid's (or a vector's) declared element type: its class, Ki name, whether it was
+     * declared nullable (`Int?`), and the literal it belongs to, for messages.
+     */
+    private class DeclaredType(val type: Class<*>, val name: String, val nullable: Boolean, val literal: String = "grid")
 
     /**
      * Parses a type parameter such as `Int`, `Dec?` or `Quantity`. Every Ki type name
@@ -2568,12 +2654,12 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
         if (value == null) {
             if (declared.nullable) return null
             // Same wording as Ki.KS's grid literal check
-            throw ctx.error("'$text' in .grid<${declared.name}>: Grid<${declared.name}> cannot contain nil values (use .grid<${declared.name}?> for nullable)")
+            throw ctx.error("'$text' in .${declared.literal}<${declared.name}>: Grid<${declared.name}> cannot contain nil values (use .grid<${declared.name}?> for nullable)")
         }
         val cell = if (value is Number && isUnsuffixed(value, text)) convertNumber(ctx, declared, value, text) else value
         if (!declared.type.isInstance(cell)) {
             val actual = io.kixi.types.TypeBags.typeFor(value)?.name ?: Type.typeOf(value)?.name ?: value::class.java.simpleName
-            throw ctx.error("'$text' is $actual, not ${declared.name}, in .grid<${declared.name}>")
+            throw ctx.error("'$text' is $actual, not ${declared.name}, in .${declared.literal}<${declared.name}>")
         }
         return cell
     }
@@ -2597,8 +2683,8 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
         } catch (e: ArithmeticException) {
             val d = exact()
             throw ctx.error(
-                if (d.signum() != 0 && d.stripTrailingZeros().scale() > 0) "'$text' is not a whole number, so it cannot be $type in .grid<${declared.name}>"
-                else "'$text' does not fit in $type in .grid<${declared.name}>"
+                if (d.signum() != 0 && d.stripTrailingZeros().scale() > 0) "'$text' is not a whole number, so it cannot be $type in .${declared.literal}<${declared.name}>"
+                else "'$text' does not fit in $type in .${declared.literal}<${declared.name}>"
             )
         }
         return when (declared.type) {

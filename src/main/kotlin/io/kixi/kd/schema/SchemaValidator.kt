@@ -3,6 +3,7 @@ package io.kixi.kd.schema
 import io.kixi.Call
 import io.kixi.Grid
 import io.kixi.Ki
+import io.kixi.Measure
 import io.kixi.NSID
 import io.kixi.Range
 import io.kixi.kd.Tag
@@ -151,7 +152,13 @@ internal class SchemaValidator(private val options: ValidationOptions) {
             add("TYPE", p, r.path, "Expected ${r.type}; found ${SchemaValues.describe(v)}", r.type, SchemaValues.describe(v))
             return
         }
-        if (v is Quantity<*>) {
+        if (v is Measure && (r.dimension != null || r.unit != null) && v.unit == null) {
+            add("DIMENSION", p, r.path, "Expected a measure in ${r.dimension ?: r.unit!!.dimensionName}; found a measure of a plain number")
+            return
+        }
+        val unitOf = (v as? Measure)?.value ?: v
+        if (unitOf is Quantity<*>) {
+            val v = unitOf
             if (r.dimension != null && v.unit.dimensionName != r.dimension) {
                 add("DIMENSION", p, r.path, "Expected dimension ${r.dimension}; found ${v.unit.dimensionName}")
                 return
@@ -194,6 +201,7 @@ internal class SchemaValidator(private val options: ValidationOptions) {
                     r.items?.let { value(it, e.value, "$p/items[$i]") }
                 }
             }
+            is io.kixi.Vector<*> -> count(v.size, r.minCount, r.maxCount, p, r.path)
             is Grid<*> -> {
                 count(v.size, r.minCount, r.maxCount, p, r.path)
                 if (r.rows != null && v.height != r.rows) add("GRID_ROWS", p, r.path, "Expected ${r.rows} rows; found ${v.height}")
