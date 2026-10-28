@@ -100,6 +100,26 @@ object KDLanguage : EmbeddedLanguage {
         }
     }
 
+    /**
+     * Reads [source] as a KD document of any number of top-level tags with the
+     * interpolations' [values] (by key, as [scan] reports them), as [evaluate] reads a
+     * block: `insert into compounds compound name=$name` in KQ reads its documents so.
+     */
+    fun evaluateDocument(source: EmbeddedSource, values: Map<String, Any?>, stringify: (Any?) -> String = { v -> if (v == null) "nil" else v.toString() }): List<Tag> {
+        val text = source.text
+        val block = scan("$text}", 0)
+        if (block.end != text.length) throw EmbeddedLanguageException("Unexpected '}'", block.end)
+        val spans = HashMap<Int, KDParser.Interpolated>()
+        for (x in block.interpolations) spans[x.start] = KDParser.Interpolated(x.end, values[x.key])
+        try {
+            return KDParser(KDParser.Interpolation(spans, stringify)).parseDocument(text)
+        } catch (e: KDParser.PositionedException) {
+            throw EmbeddedLanguageException(e.reason, e.offset, cause = e)
+        } catch (e: io.kixi.text.ParseException) {
+            throw EmbeddedLanguageException(e.message, -1, cause = e)
+        }
+    }
+
     /** Scans a `"…"` (or `"""…"""`) string whose content starts at [from]; returns the position after it. */
     private fun string(source: String, from: Int, triple: Boolean, out: MutableList<EmbeddedInterpolation>): Int {
         var k = from
