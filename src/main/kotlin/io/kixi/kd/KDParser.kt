@@ -826,7 +826,7 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
         val m = BIG_WHOLE.matchAt(ctx.content, ctx.pos) ?: return null
         val end = ctx.pos + m.value.length
         val next = ctx.content.getOrNull(end)
-        if (next != null && !(next.isWhitespace() || next in ",;}#/")) return null
+        if (next != null && !(next.isWhitespace() || next in ",;})#/")) return null
         val digits = m.value.replace("_", "")
         if (digits.toLongOrNull() != null) return null
         ctx.advance(m.value.length)
@@ -838,7 +838,7 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
      */
     private fun isRangeableValue(value: Any?): Boolean {
         return value is Number || value is Char || value is String ||
-                value is Version || value is Duration || value is Quantity<*> ||
+                value is Version || value is Duration || value is Quantity<*> || value is Measure ||
                 value is LocalDate || value is LocalDateTime || value is ZonedDateTime || value is KiTZDateTime
     }
 
@@ -1043,6 +1043,7 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
             is LocalDateTime -> Range(start as LocalDateTime?, end as LocalDateTime?, type)
             is ZonedDateTime -> Range(start as ZonedDateTime?, end as ZonedDateTime?, type)
             is KiTZDateTime -> Range(start as KiTZDateTime?, end as KiTZDateTime?, type)
+            is Measure -> Range(start as Measure?, end as Measure?, type)
             is Quantity<*> -> {
                 val s = start as Quantity<Length>?
                 val e = end as Quantity<Length>?
