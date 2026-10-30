@@ -1581,6 +1581,7 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
                 c == '_' -> ctx.advance()
                 c == '.' && !hasExponent -> {
                     if (ctx.peek(1) == '.') break // Range operator
+                    if (dotLiterAt(ctx)) break   // `1.L`: the liter, read below
                     hasDecimal = true
                     dotCount++
                     ctx.advance()
@@ -1617,6 +1618,22 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
         val numEnd = ctx.pos
         val numStr = ctx.substring(start, numEnd).replace("_", "")
 
+        // `1.L`, `2.5.L`: a liter. A bare `L` after a number is a Long (`1L`), so the
+        // liter's ASCII form puts a dot before the L (Ki.Core reads it as `ℓ`).
+        if (dotLiterAt(ctx)) {
+            ctx.advance(2)
+            var typeSpec = ""
+            if (ctx.peek() == ':' && ctx.peek(1).let { it == 'i' || it == 'L' || it == 'd' || it == 'f' }) {
+                typeSpec = ":" + ctx.peek(1)
+                ctx.advance(2)
+            }
+            return try {
+                Quantity.parse("$numStr.L$typeSpec")
+            } catch (e: Exception) {
+                throw ctx.error("Invalid liter quantity ${ctx.substring(start, ctx.pos)}: ${e.message}")
+            }
+        }
+
         // Check what follows - could be duration unit, quantity unit, version qualifier, or type suffix
         val suffix = ctx.peek()
 
@@ -1651,6 +1668,13 @@ class KDParser internal constructor(private val interpolation: Interpolation?) {
 
         // Regular number
         return parseNumberWithSuffix(ctx, start, numEnd, hasDecimal || hasExponent)
+    }
+
+    /** At [ctx]'s position: `.L` not followed by a letter, digit or `_`, the liter after a number (`1.L`). */
+    private fun dotLiterAt(ctx: ParseContext): Boolean {
+        if (ctx.peek() != '.' || ctx.peek(1) != 'L') return false
+        val after = ctx.peek(2) ?: return true
+        return !(after.isLetterOrDigit() || after == '_')
     }
 
     /**

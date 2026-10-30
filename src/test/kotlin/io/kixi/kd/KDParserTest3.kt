@@ -150,6 +150,21 @@ class KDParserTest3 : FunSpec({
             q.unit shouldBe UOM.L
         }
 
+        test("a liter is written 1.L; 1L stays a Long and 1..5 a range") {
+            fun q(text: String) = parser.parse("v $text").value as Quantity<*>
+            q("1.L").unit shouldBe UOM.L
+            q("1.L").toString() shouldBe "1ℓ"
+            q("2.5.L").toString() shouldBe "2.5ℓ"
+            q("-0.5.L").toString() shouldBe "-0.5ℓ"
+            q("1_000.L").toString() shouldBe "1000ℓ"
+            q("1e3.L").toString() shouldBe "1000ℓ"
+            q("1.L:d").value shouldBe 1.0
+            parser.parse("v 1L").value shouldBe 1L
+            parser.parse("v 1.L 2.L").values.map { it.toString() } shouldBe listOf("1ℓ", "2ℓ")
+            parser.parse("v total=1.5.L").getAttribute<Any>("total").toString() shouldBe "1.5ℓ"
+            parser.parse("v 1±0.1.L").value.toString() shouldBe "1±0.1ℓ"
+        }
+
         test("should parse volume in milliliters") {
             val tag = parser.parse("volume 250mℓ")
             tag.value.shouldBeInstanceOf<Quantity<*>>()
