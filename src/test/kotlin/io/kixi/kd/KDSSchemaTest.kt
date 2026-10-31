@@ -149,6 +149,15 @@ class KDSSchemaTest : FunSpec({
         code(noUnit, "price 2EUR", "INCOMPARABLE_BOUND")
         invalidSchema("tag price { value type=Quantity min=1USD max=2EUR }")
     }
+    test("a schema's unit may be a plain L, the liter (no number makes it a Long)") {
+        val s = schema("tag flask { value type=Quantity unit=L min=0.5.L }")
+        s.validate("flask 1.L").isValid shouldBe true
+        s.validate("flask 2ℓ").isValid shouldBe true
+        code(s, "flask 1500mL", "UNIT")
+        code(s, "flask 0.25.L", "VALUE_BELOW_MIN")
+        schema("tag flask { value type=Quantity unit=\"L\" }").validate("flask 1.L").isValid shouldBe true
+        invalidSchema("tag flask { value type=Quantity unit=L dimension=Mass }")
+    }
     test("recursive list map and range item constraints") {
         val s = schema("tag m { value type=Map minCount=1 { keys type=String; items type=List { items type=Int } } }")
         s.validate("m [a=[1 2]]").isValid shouldBe true

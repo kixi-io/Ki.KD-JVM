@@ -144,7 +144,8 @@ internal class SchemaCompiler(private val allowUnloadedTypes: Boolean = false) {
         val columns = count(t, "columns", p)
         if ((rows != null || columns != null) && type != "Grid") fail(p, "rows and columns require Grid")
         val dimension = text(t, "dimension", p)
-        val unit = text(t, "unit", p)?.let { MeasureUnit.getUnit(it) ?: fail(p, "Unknown unit $it") }
+        // The unit is named on its own, so a plain L is the liter (unit=L; Unit.getStandaloneUnit).
+        val unit = text(t, "unit", p)?.let { MeasureUnit.getStandaloneUnit(it) ?: fail(p, "Unknown unit $it") }
         if ((dimension != null || unit != null) && type != "Quantity" && type != "Measure") fail(p, "Unit constraints require Quantity or Measure")
         if (dimension != null && MeasureUnit.allUnits().none { it.dimensionName == dimension })
             fail(p, "Unknown dimension $dimension")
